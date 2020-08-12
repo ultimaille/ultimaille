@@ -7,6 +7,14 @@ There are lots of mesh processing libraries in the wild, excellent specimens are
 
 I am, however, not satisfied with either of those. At the moment of this writing, Geogram, for instance, has 847 thousands (sic!) of lines of code.
 I'll try to make a library under 10K loc able to do common geometry processing tasks for surfaces and volumes (polygonal and tetrahedral/hexahedral meshes).
+Another reason to create yet-another-mesh-library is that I like explicit types and avoid `auto` as long as it reasonable.
+In practice it means that I cannot use libigl for the simple reason that I do not know what this data represents:
+```C++
+Eigen::MatrixXd V;
+Eigen::MatrixXi F;
+```
+Is it a polygonal surface or a tetrahedral mesh? If surface, is it triangulated or is it a generic polygonal mesh? I simply can not tell...
+
 
 # Common principles
 * This library is meant to have a *reasonable* performance. It means that I strive to make it as rapid as possible as long as it does not deteriorate the readability of the source code.
@@ -16,7 +24,6 @@ I'll try to make a library under 10K loc able to do common geometry processing t
 
 # Compile and run:
 ```sh
-19
 git clone https://github.com/ssloy/ultimaille.git
 cd ultimaille
 mkdir build
@@ -25,3 +32,4 @@ cmake ..
 make
 bin/test
 ```
+
