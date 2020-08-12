@@ -6,12 +6,12 @@
 #include <iostream>
 
 template<int n> struct vec {
-    vec() { for (int i=n; i--; data[i] = 0); }
+    vec() = default;
           double & operator[](const int i)       { assert(i>=0 && i<n); return data[i]; }
     const double & operator[](const int i) const { assert(i>=0 && i<n); return data[i]; }
     double norm2() const { return (*this)*(*this) ; }
     double norm()  const { return std::sqrt(norm2()); }
-    double data[n];
+    double data[n] = {0};
 };
 
 template<int n> double operator*(const vec<n>& lhs, const vec<n>& rhs) {
@@ -58,7 +58,7 @@ template<int n> std::ostream& operator<<(std::ostream& out, const vec<n>& v) {
 /////////////////////////////////////////////////////////////////////////////////
 
 template<> struct vec<2> {
-    vec() : x(0), y(0) {}
+    vec() =  default;
     vec(double X, double Y) : x(X), y(Y) {}
           double& operator[](const int i)       { assert(i>=0 && i<2); return i==0 ? x : y; }
     const double& operator[](const int i) const { assert(i>=0 && i<2); return i==0 ? x : y; }
@@ -66,13 +66,13 @@ template<> struct vec<2> {
     double norm()  const { return std::sqrt(norm2()); }
     vec & normalize() { *this = (*this)/norm(); return *this; }
 
-    double x,y;
+    double x{}, y{};
 };
 
 /////////////////////////////////////////////////////////////////////////////////
 
 template<> struct vec<3> {
-    vec() : x(0), y(0), z(0) {}
+    vec() = default;
     vec(double X, double Y, double Z) : x(X), y(Y), z(Z) {}
           double& operator[](const int i)       { assert(i>=0 && i<3); return i==0 ? x : (1==i ? y : z); }
     const double& operator[](const int i) const { assert(i>=0 && i<3); return i==0 ? x : (1==i ? y : z); }
@@ -80,7 +80,7 @@ template<> struct vec<3> {
     double norm()  const { return std::sqrt(norm2()); }
     vec & normalize() { *this = (*this)/norm(); return *this; }
 
-    double x,y,z;
+    double x{}, y{}, z{};
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -88,8 +88,9 @@ template<> struct vec<3> {
 template<int n> struct dt;
 
 template<int nrows,int ncols> struct mat {
-    vec<ncols> rows[nrows];
+    vec<ncols> rows[nrows] = {0};
 
+    mat() = default;
           vec<ncols>& operator[] (const int idx)       { assert(idx>=0 && idx<nrows); return rows[idx]; }
     const vec<ncols>& operator[] (const int idx) const { assert(idx>=0 && idx<nrows); return rows[idx]; }
 
