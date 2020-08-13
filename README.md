@@ -1,3 +1,5 @@
+# WARNING: UNDER CONSTRUCTION!
+
 # UltiMaille: the ultimate mesh processing library
 There are lots of mesh processing libraries in the wild, excellent specimens are:
 * [geogram](http://alice.loria.fr/software/geogram/doc/html/index.html)

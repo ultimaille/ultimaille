@@ -1,12 +1,29 @@
 #ifndef __SURFACE_H__
 #define __SURFACE_H__
 #include <vector>
+#include <list>
 #include <string>
 #include "geometry.h"
+
+struct GenericAttribute {
+    GenericAttribute() = default;
+    std::string name{};
+
+    virtual void resize(int n) = 0;
+    virtual void permute(std::vector<int> &old2new) = 0;
+};
+
+template <typename T> struct Attribute : GenericAttribute {
+    void resize(int n) {
+        data.resize(n);
+    }
+    std::vector<T> data{};
+};
 
 struct Surface { // polygonal mesh interface
     std::vector<vec3> verts{};
     std::vector<int> facets{};
+    std::list<GenericAttribute *> attr_vertices{};
 
     Surface() = default;
 
@@ -31,7 +48,7 @@ struct TriMesh : Surface { // simplicial mesh implementation
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct PolyMesh : public Surface { // polygonal mesh implementation
+struct PolyMesh : Surface { // polygonal mesh implementation
     std::vector<int> offset;
 
     PolyMesh();
