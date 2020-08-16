@@ -24,7 +24,7 @@ void read_wavefront_obj(const std::string filename, PolyMesh &m) {
             iss >> trash;
             vec3 v;
             for (int i=0;i<3;i++) iss >> v[i];
-            m.verts.push_back(v);
+            m.points.data->push_back(v);
         } else if (!line.compare(0, 2, "f ")) {
             int idx, cnt=0;
             iss >> trash;
@@ -43,7 +43,7 @@ void write_wavefront_obj(const std::string filename, const Surface &m) {
     out.open(filename, std::ios_base::out);
     out << std::fixed << std::setprecision(4);
     for (int v=0; v<m.nverts(); v++)
-        out << "v " << m.verts[v] << std::endl;
+        out << "v " << m.points[v] << std::endl;
     for (int f=0; f<m.nfacets(); f++) {
         out << "f ";
         for (int v=0; v<m.facet_size(f); v++)

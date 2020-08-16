@@ -1,10 +1,12 @@
 #ifndef __SURFACE_H__
 #define __SURFACE_H__
 #include <vector>
+#include <memory>
 #include <list>
 #include <string>
 #include "geometry.h"
 
+/*
 struct GenericAttribute {
     GenericAttribute() = default;
     std::string name{};
@@ -19,11 +21,22 @@ template <typename T> struct Attribute : GenericAttribute {
     }
     std::vector<T> data{};
 };
+*/
+
+struct PointSet {
+    PointSet() : data(new std::vector<vec3>()) {}
+    PointSet(std::shared_ptr<std::vector<vec3> > ext) : data(ext) {}
+          vec3& operator[](const int i)       { return data->at(i); }
+    const vec3& operator[](const int i) const { return data->at(i); }
+    int size() const { return data->size(); }
+
+    std::shared_ptr<std::vector<vec3> > data;
+};
 
 struct Surface { // polygonal mesh interface
-    std::vector<vec3> verts{};
+    PointSet points{};
     std::vector<int> facets{};
-    std::list<GenericAttribute *> attr_vertices{};
+//  std::list<GenericAttribute *> attr_vertices{};
 
     Surface() = default;
 
@@ -50,7 +63,6 @@ struct TriMesh : Surface { // simplicial mesh implementation
 
 struct PolyMesh : Surface { // polygonal mesh implementation
     std::vector<int> offset;
-
     PolyMesh();
 
     int nfacets()  const;
