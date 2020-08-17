@@ -4,11 +4,14 @@
 
 #include "surface.h"
 
-int Surface::nverts() const {
-    return points.size();
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int TriMesh::create_facets(const int n, const int size) {
+    for (int i=0; i<n*size; i++)
+        facets.push_back(0);
+    resize_attribute_containers();
+    return nfacets()-n;
+}
 
 int TriMesh::nfacets() const {
     assert(0==facets.size()%3);
@@ -34,9 +37,23 @@ int TriMesh::vert(const int fi, const int lv) const {
     return facets[fi*3 + lv];
 }
 
+int &TriMesh::vert(const int fi, const int lv) {
+    assert(fi>=0 && fi<nfacets() && lv>=0 && lv<3);
+    return facets[fi*3 + lv];
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PolyMesh::PolyMesh() : Surface(), offset(1, 0) {}
+
+int PolyMesh::create_facets(const int n, const int size) {
+    for (int i=0; i<n*size; i++)
+        facets.push_back(0);
+    for (int i=0; i<n; i++)
+        offset.push_back(offset.back()+size);
+    resize_attribute_containers();
+    return nfacets()-n;
+}
 
 int PolyMesh::nfacets() const {
     return static_cast<int>(offset.size())-1;
@@ -56,6 +73,13 @@ int PolyMesh::facet_corner(const int fi, const int ci) const {
 }
 
 int PolyMesh::vert(const int fi, const int lv) const {
+    assert(fi>=0 && fi<nfacets());
+    int n = facet_size(fi);
+    assert(lv>=0 && lv<n);
+    return facets[offset[fi]+lv];
+}
+
+int &PolyMesh::vert(const int fi, const int lv) {
     assert(fi>=0 && fi<nfacets());
     int n = facet_size(fi);
     assert(lv>=0 && lv<n);

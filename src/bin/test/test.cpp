@@ -1,11 +1,11 @@
 #include <iostream>
 #include <cstdlib>
-#include <cstdlib>
 #include "ultimaille/knn.h"
 #include "ultimaille/mesh_io.h"
 #include "ultimaille/surface.h"
 
 int main(int argc, char** argv) {
+#if 0
     if (2>argc) {
         std::cerr << "Usage: " << argv[0] << " model.obj" << std::endl;
         return 1;
@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
         std::cout << pts[i] << std::endl;
 */
     write_wavefront_obj("drop.obj", pm);
+#endif
     return 0;
 }
 

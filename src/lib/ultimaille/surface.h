@@ -2,52 +2,45 @@
 #define __SURFACE_H__
 #include <vector>
 #include <memory>
-#include <list>
 #include <string>
 #include "geometry.h"
 #include "pointset.h"
-
-/*
-struct GenericAttribute {
-    GenericAttribute() = default;
-    std::string name{};
-
-    virtual void resize(int n) = 0;
-    virtual void permute(std::vector<int> &old2new) = 0;
-};
-
-template <typename T> struct Attribute : GenericAttribute {
-    void resize(int n) {
-        data.resize(n);
-    }
-    std::vector<T> data{};
-};
-*/
+#include "attributes.h"
 
 struct Surface { // polygonal mesh interface
     PointSet points{};
     std::vector<int> facets{};
-//  std::list<GenericAttribute *> attr_vertices{};
+    std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
+
+    void resize_attribute_containers() {
+        for (std::weak_ptr<GenericAttributeContainer> &wp : attr_facets)
+            if (auto spt = wp.lock())
+                spt->resize(nfacets());
+    }
 
     Surface() = default;
 
-    int nverts() const;
+    int nverts() const { return points.size(); }
 
     virtual int nfacets()  const = 0;
     virtual int ncorners() const = 0;
     virtual int facet_size(const int fi) const = 0;
     virtual int facet_corner(const int fi, const int ci) const = 0;
+    virtual int &vert(const int fi, const int lv) = 0;
     virtual int vert(const int fi, const int lv) const = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct TriMesh : Surface { // simplicial mesh implementation
+    int create_facets(const int n, const int size);
+
     int nfacets()  const;
     int ncorners() const;
     int facet_size(const int fi) const;
     int facet_corner(const int fi, const int ci) const;
     int vert(const int fi, const int lv) const;
+    int &vert(const int fi, const int lv);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,11 +49,14 @@ struct PolyMesh : Surface { // polygonal mesh implementation
     std::vector<int> offset;
     PolyMesh();
 
+    int create_facets(const int n, const int size);
+
     int nfacets()  const;
     int ncorners() const;
     int facet_size(const int fi) const;
     int facet_corner(const int fi, const int ci) const;
     int vert(const int fi, const int lv) const;
+    int &vert(const int fi, const int lv);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

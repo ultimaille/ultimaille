@@ -7,8 +7,9 @@
 
 // supposes .obj file to have "f " entries without slashes
 // TODO: improve the parser
+// TODO: export vn and vt attributes
 void read_wavefront_obj(const std::string filename, PolyMesh &m) {
-    m = PolyMesh();
+//    m = PolyMesh();
     std::ifstream in;
     in.open (filename, std::ifstream::in);
     if (in.fail()) {
@@ -26,13 +27,16 @@ void read_wavefront_obj(const std::string filename, PolyMesh &m) {
             for (int i=0;i<3;i++) iss >> v[i];
             m.points.data->push_back(v);
         } else if (!line.compare(0, 2, "f ")) {
-            int idx, cnt=0;
+            std::vector<int> f;
+            int idx;
             iss >> trash;
             while (iss >> idx) {
-                m.facets.push_back(--idx);  // in wavefront obj all indices start at 1, not zero
-                cnt++;
+                f.push_back(--idx);  // in wavefront obj all indices start at 1, not zero
             }
-            m.offset.push_back(m.offset.back()+cnt);
+            int off_f = m.create_facets(1, f.size());
+            for (int i=0; i<static_cast<int>(f.size()); i++) {
+                m.vert(off_f, i) = f[i];
+            }
         }
     }
     std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;

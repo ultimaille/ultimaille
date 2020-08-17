@@ -13,7 +13,7 @@ struct PointSet {
 
     int size() const { return data->size(); }
 
-    void get_bbox(vec3 &min, vec3 &max) {
+    void bbox(vec3 &min, vec3 &max) {
         min = max = data->at(0);
         for (vec3 const &p : *data) {
             for (int j=0; j<3; j++) {

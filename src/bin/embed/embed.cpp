@@ -1,8 +1,9 @@
 #include <iostream>
 #include <cstdlib>
-#include <cstdlib>
+
 #include "ultimaille/knn.h"
 #include "ultimaille/mesh_io.h"
+#include "ultimaille/attributes.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/hboxes.h"
 
@@ -45,7 +46,7 @@ void sample_exterior(const double size, PolyMesh &rocker) {
 
         { // normalize point cloud between [0,size]^2
             vec3 min, max;
-            seeds.get_bbox(min, max);
+            seeds.bbox(min, max);
             float maxside = std::max(max.x-min.x, max.y-min.y);
             for (vec3 &p : seeds)
                 p = (p-min)*size/maxside;
@@ -69,15 +70,7 @@ void sample_exterior(const double size, PolyMesh &rocker) {
             if (!primitives.size()) rocker.points.push_back(p);
         }
     }
-
-/*
-    { // bluetify the point set
-        for (int i=0; i<10; i++)
-            lloyd(seeds, rocker);
-    }
-    */
 }
-
 
 int main(int argc, char** argv) {
     if (2>argc) {
@@ -87,21 +80,28 @@ int main(int argc, char** argv) {
 
     PolyMesh pm;
     read_wavefront_obj(argv[1], pm);
+
     for (vec3 &p : *pm.points.data) p.z = 0; // make sure it is 2D
 
     const double size = 10.;
     { // normalize the rocker, place it well inside the [0,side]^2 square
         vec3 min, max;
-        pm.points.get_bbox(min, max);
+        pm.points.bbox(min, max);
         float maxside = std::max(max.x-min.x, max.y-min.y);
         for (vec3 &p : pm.points) {
             p = ((p - (max+min)/2.)/maxside)*size/1.3 + vec3(1,1,0)*size/2;
         }
     }
 
+    FacetAttribute<int> id(pm);
+    for (int i=0; i<pm.nfacets(); i++) {
+        id[i] = i;
+    }
+
     sample_exterior(size, pm);
 
     write_wavefront_obj("drop.obj", pm);
+
     return 0;
 }
 
