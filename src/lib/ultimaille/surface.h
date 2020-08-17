@@ -2,10 +2,10 @@
 #define __SURFACE_H__
 #include <vector>
 #include <memory>
-#include <string>
 #include "geometry.h"
 #include "pointset.h"
-#include "attributes.h"
+
+struct GenericAttributeContainer;
 
 struct Surface { // polygonal mesh interface
     PointSet points{};
@@ -14,19 +14,9 @@ struct Surface { // polygonal mesh interface
 
     Surface() = default;
 
-    void resize_attribute_containers() {
-        for (std::weak_ptr<GenericAttributeContainer> &wp : attr_facets)
-            if (auto spt = wp.lock())
-                spt->resize(nfacets());
-    }
-
-    void permute_attribute_containers(std::vector<int> &perm) {
-        assert(false);
-    }
-
-    int nverts() const {
-        return points.size();
-    }
+    void resize_attribute_containers();
+    void permute_attribute_containers(std::vector<int> &perm);
+    int nverts() const;
 
     virtual int nfacets()  const = 0;
     virtual int ncorners() const = 0;
@@ -39,7 +29,7 @@ struct Surface { // polygonal mesh interface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct TriMesh : Surface { // simplicial mesh implementation
-    int create_facets(const int n, const int size);
+    int create_facets(const int n);
 
     int nfacets()  const;
     int ncorners() const;

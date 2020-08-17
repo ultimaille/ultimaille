@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
     sample_exterior(size, pm);
 
     write_wavefront_obj("drop.obj", pm);
-    write_geogram_ascii("drop.geogram_ascii", pm, { {"id", id} });
+    write_geogram_ascii("drop.geogram_ascii", pm, { {"id", id.ptr} });
 
     return 0;
 }

@@ -3,11 +3,26 @@
 #include <cassert>
 
 #include "surface.h"
+#include "attributes.h"
+
+void Surface::resize_attribute_containers() {
+    for (std::weak_ptr<GenericAttributeContainer> &wp : attr_facets)
+        if (auto spt = wp.lock())
+            spt->resize(nfacets());
+}
+
+void Surface::permute_attribute_containers(std::vector<int> &perm) {
+    assert(false);
+}
+
+int Surface::nverts() const {
+    return points.size();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int TriMesh::create_facets(const int n, const int size) {
-    for (int i=0; i<n*size; i++)
+int TriMesh::create_facets(const int n) {
+    for (int i=0; i<n*3; i++)
         facets.push_back(0);
     resize_attribute_containers();
     return nfacets()-n;
