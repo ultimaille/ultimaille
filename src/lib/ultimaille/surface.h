@@ -5,6 +5,7 @@
 #include <list>
 #include <string>
 #include "geometry.h"
+#include "pointset.h"
 
 /*
 struct GenericAttribute {
@@ -22,16 +23,6 @@ template <typename T> struct Attribute : GenericAttribute {
     std::vector<T> data{};
 };
 */
-
-struct PointSet {
-    PointSet() : data(new std::vector<vec3>()) {}
-    PointSet(std::shared_ptr<std::vector<vec3> > ext) : data(ext) {}
-          vec3& operator[](const int i)       { return data->at(i); }
-    const vec3& operator[](const int i) const { return data->at(i); }
-    int size() const { return data->size(); }
-
-    std::shared_ptr<std::vector<vec3> > data;
-};
 
 struct Surface { // polygonal mesh interface
     PointSet points{};

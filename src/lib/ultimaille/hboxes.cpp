@@ -18,24 +18,26 @@ HBoxes::HBoxes(std::vector<BBox3> const &boxes) {
         tree_pos_to_org[b] = b;
     }
 
+#pragma omp parallel
+#pragma omp single nowait
     sort(G, 0, nboxes);
 
-    offset = pow(2., 1. + mylog2(nboxes)) - 1;
+    offset = std::pow(2., 1. + mylog2(nboxes)) - 1;
     tree.resize(offset + nboxes);
 
     for (int b=0; b<nboxes; b++)
         tree[offset + b] = boxes[tree_pos_to_org[b]];
-    for (int i=int(offset)-1; i>=0; i--) {
+    for (int i=offset-1; i>=0; i--) {
         for (int son = 2*i+1; son<2*i+3; son++)
-            if (son < int(tree.size()))
+            if (son < static_cast<int>(tree.size()))
                 tree[i].add(tree[son]);
     }
 }
 
 void HBoxes::sort(std::vector<vec3> &G, int org, int dest) const {
     BBox3 b;
-    for (auto const &p2o : tree_pos_to_org)
-        b.add(G[p2o]);
+    for (int i=org; i<dest; i++)
+        b.add(G[tree_pos_to_org[i]]);
 
     int dim = 2; // find the best dim to cut
     for (int d=0; d<2; d++)
@@ -47,12 +49,15 @@ void HBoxes::sort(std::vector<vec3> &G, int org, int dest) const {
     if (dest - org <= 2) return;
 
     int m = org + pow(2., mylog2(dest-org-1));
+#pragma omp task
     sort(G, org, m);
+#pragma omp task
     sort(G, m, dest);
 }
 
 void HBoxes::intersect(BBox3 const &b, std::vector<int> &primitives, int node) const {
-    assert(node>0 && node < static_cast<int>(tree.size()));
+    if (!node) primitives.resize(0);
+    assert(node>=0 && node < static_cast<int>(tree.size()));
     if (!tree[node].intersect(b)) return;
     if (node >= offset)
         primitives.push_back(tree_pos_to_org[node - offset]);

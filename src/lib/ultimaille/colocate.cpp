@@ -1,7 +1,7 @@
 #include "knn.h"
 #include "colocate.h"
 
-void colocate(std::vector<vec3> &points, std::vector<int> &old2new, double tolerance) {
+void colocate(const std::vector<vec3> &points, std::vector<int> &old2new, double tolerance) {
     int nb = points.size();
     old2new = std::vector<int>(nb, -1);
 
@@ -9,7 +9,7 @@ void colocate(std::vector<vec3> &points, std::vector<int> &old2new, double toler
 
 #pragma omp parallel for
     for (int seed=0; seed<nb; seed++) {
-        int k = std::min(int(6), nb);
+        int k = std::min(6, nb);
         while (1) {
             std::vector<int> neighbors = knn.query(points[seed], k);
 
