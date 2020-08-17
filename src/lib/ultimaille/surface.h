@@ -12,15 +12,21 @@ struct Surface { // polygonal mesh interface
     std::vector<int> facets{};
     std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
 
+    Surface() = default;
+
     void resize_attribute_containers() {
         for (std::weak_ptr<GenericAttributeContainer> &wp : attr_facets)
             if (auto spt = wp.lock())
                 spt->resize(nfacets());
     }
 
-    Surface() = default;
+    void permute_attribute_containers(std::vector<int> &perm) {
+        assert(false);
+    }
 
-    int nverts() const { return points.size(); }
+    int nverts() const {
+        return points.size();
+    }
 
     virtual int nfacets()  const = 0;
     virtual int ncorners() const = 0;

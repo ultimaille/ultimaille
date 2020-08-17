@@ -57,3 +57,55 @@ void write_wavefront_obj(const std::string filename, const Surface &m) {
     out.close();
 }
 
+// Attention: only double attributes
+typedef unsigned int index_t;
+void write_geogram_ascii(const std::string filename, const Surface &m, std::vector<std::pair<std::string, FacetAttribute<int> &> > fattr) {
+    std::fstream file;
+    file.open(filename, std::ios_base::out);
+    file << "[HEAD]\n\"GEOGRAM\"\n\"1.0\"\n[ATTS]\n\"GEO::Mesh::vertices\"\n";
+    file << m.nverts() << "\n";
+    file << "[ATTR]\n\"GEO::Mesh::vertices\"\n\"point\"\n\"double\"\n8 # this is the size of an element (in bytes)\n3 # this is the number of elements per item\n";
+    file << std::fixed << std::setprecision(4);
+    for (const vec3 &p : m.points)
+        file << p.x << "\n" << p.y << "\n" << p.z << "\n";
+    file << "[ATTS]\n\"GEO::Mesh::facets\"\n";
+    file << m.nfacets() << "\n";
+    file << "[ATTR]\n\"GEO::Mesh::facets\"\n\"GEO::Mesh::facets::facet_ptr\"\n\"index_t\"\n" << sizeof(index_t) << "\n1\n";
+    for (int f=0; f<m.nfacets(); f++)
+        file << m.facet_corner(f,0) << "\n";
+
+    file << "[ATTS]\n\"GEO::Mesh::facet_corners\"\n";
+    file << m.ncorners() << "\n";
+    file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"GEO::Mesh::facet_corners::corner_vertex\"\n\"index_t\"\n" << sizeof(index_t) << "\n1\n";
+    for (int f=0; f<m.nfacets(); f++)
+        for (int v=0; v<m.facet_size(f); v++)
+           file << m.vert(f,v) << "\n";
+    file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"GEO::Mesh::facet_corners::corner_adjacent_facet\"\n\"index_t\"\n" << sizeof(index_t) << "\n1\n";
+    MeshConnectivity fec(m);
+    for (int c=0; c<m.ncorners(); c++) {
+        int opp = fec.opposite(c);
+        file << (opp < 0 ? index_t(-1) : fec.c2f[opp]) << "\n";
+    }
+
+    for (auto &it : fattr) {
+        file << "[ATTR]\n\"GEO::Mesh::facets\"\n\"" << it.first << "\"\n\"int\"\n4 # this is the size of an element (in bytes)\n1 # this is the number of elements per item\n";
+        for (int i=0; i<m.nfacets(); i++)
+            file << it.second[i] << "\n";
+    }
+
+/*
+    for (auto &it : vert_attr_map) {
+        file << "[ATTR]\n\"GEO::Mesh::vertices\"\n\"" << it.first << "\"\n\"double\"\n8 # this is the size of an element (in bytes)\n1 # this is the number of elements per item\n";
+        for (int i=0; i<m.nverts(); i++)
+            file << it.second[i] << "\n";
+    }
+    for (auto &it : facet_attr_map) {
+    }
+    for (auto &it : corner_attr_map) {
+        file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"" << it.first << "\"\n\"double\"\n8 # this is the size of an element (in bytes)\n1 # this is the number of elements per item\n";
+        for (int i=0; i<m.ncorners(); i++)
+            file << it.second[i] << "\n";
+    }
+*/
+    file.close();
+}
