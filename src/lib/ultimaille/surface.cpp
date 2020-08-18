@@ -11,8 +11,11 @@ void Surface::resize_attribute_containers() {
             spt->resize(nfacets());
 }
 
-void Surface::permute_attribute_containers(std::vector<int> &perm) {
-    assert(false);
+void Surface::permute_attribute_containers(std::vector<int> &old2new) {
+    Permutation p(old2new);
+    for (std::weak_ptr<GenericAttributeContainer> &wp : attr_facets)
+        if (auto spt = wp.lock())
+            spt->permute(p);
 }
 
 int Surface::nverts() const {

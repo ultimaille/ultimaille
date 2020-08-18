@@ -22,8 +22,8 @@ struct Surface { // polygonal mesh interface
     virtual int ncorners() const = 0;
     virtual int facet_size(const int fi) const = 0;
     virtual int facet_corner(const int fi, const int ci) const = 0;
-    virtual int &vert(const int fi, const int lv) = 0;
-    virtual int vert(const int fi, const int lv) const = 0;
+    virtual int  vert(const int fi, const int lv) const = 0;
+    virtual int &vert(const int fi, const int lv)       = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ struct TriMesh : Surface { // simplicial mesh implementation
     int ncorners() const;
     int facet_size(const int fi) const;
     int facet_corner(const int fi, const int ci) const;
-    int vert(const int fi, const int lv) const;
+    int  vert(const int fi, const int lv) const;
     int &vert(const int fi, const int lv);
 };
 
@@ -51,7 +51,7 @@ struct PolyMesh : Surface { // polygonal mesh implementation
     int ncorners() const;
     int facet_size(const int fi) const;
     int facet_corner(const int fi, const int ci) const;
-    int vert(const int fi, const int lv) const;
+    int  vert(const int fi, const int lv) const;
     int &vert(const int fi, const int lv);
 };
 
