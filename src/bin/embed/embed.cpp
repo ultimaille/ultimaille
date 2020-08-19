@@ -80,6 +80,7 @@ int main(int argc, char** argv) {
 
     PolyMesh pm;
     read_wavefront_obj(argv[1], pm);
+    write_geogram("input.geogram", pm, {}, {}, {});
 
     for (vec3 &p : *pm.points.data) p.z = 0; // make sure it is 2D
 
@@ -121,7 +122,7 @@ int main(int argc, char** argv) {
         to_kill[i] = !(rand()%8);
     pm.delete_vertices(to_kill);
 
-    write_geogram_ascii("drop2.geogram_ascii", pm, { {"rand", pid.ptr} }, { {"id", fid.ptr} }, {{"id", cid.ptr}});
+    write_geogram("drop2.geogram", pm, { {"rand", pid.ptr} }, { {"id", fid.ptr} }, {{"id", cid.ptr}});
 
 
     return 0;
