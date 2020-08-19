@@ -12,7 +12,7 @@ void Surface::resize_attrs() {
         spt->resize(ncorners());
 }
 
-void Surface::compress_attrs(std::vector<bool> &facets_to_kill) {
+void Surface::compress_attrs(const std::vector<bool> &facets_to_kill) {
     assert(facets_to_kill.size()==(size_t)nfacets());
     std::vector<int>  facets_old2new(nfacets(),  -1);
     std::vector<int> corners_old2new(ncorners(), -1);
@@ -45,7 +45,7 @@ int TriMesh::create_facets(const int n) {
     return nfacets()-n;
 }
 
-void TriMesh::delete_facets(std::vector<bool> &to_kill) {
+void TriMesh::delete_facets(const std::vector<bool> &to_kill) {
     assert(to_kill.size()==(size_t)nfacets());
     compress_attrs(to_kill);
 
@@ -102,7 +102,7 @@ int PolyMesh::create_facets(const int n, const int size) {
     return nfacets()-n;
 }
 
-void PolyMesh::delete_facets(std::vector<bool> &to_kill) {
+void PolyMesh::delete_facets(const std::vector<bool> &to_kill) {
     assert(to_kill.size()==(size_t)nfacets());
     compress_attrs(to_kill);
 
@@ -117,6 +117,28 @@ void PolyMesh::delete_facets(std::vector<bool> &to_kill) {
     offset.resize(new_nb_facets+1);
     facets.resize(new_nb_corners);
 }
+
+void PolyMesh::delete_vertices(std::vector<bool> &to_kill) {
+    std::vector<bool> facets_to_kill(nfacets(), false);
+    MeshConnectivity fec(*this);
+
+    for (int v=0; v<nverts(); v++) {
+        if (!to_kill[v]) continue;
+        int cir = fec.v2c[v];
+        if (cir<0) continue; // isolated vertex
+        do {
+            facets_to_kill[fec.c2f[cir]] = true;
+            cir = fec.c2c[cir];
+        } while (cir != fec.v2c[v]);
+    }
+    delete_facets(facets_to_kill);
+
+    std::vector<int> old2new;
+    points.delete_points(to_kill, old2new);
+    for (int &v : facets)
+        v = old2new[v];
+}
+
 
 int PolyMesh::nfacets() const {
     return static_cast<int>(offset.size())-1;

@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include "surface.h"
+#include "pointset.h"
 #include "permutation.h"
 
 struct GenericAttributeContainer {
@@ -32,6 +33,12 @@ template <typename T> struct GenericAttribute {
     T& operator[](const int i)       { return std::dynamic_pointer_cast<AttributeContainer<T> >(ptr)->data[i]; }
     T  operator[](const int i) const { return std::dynamic_pointer_cast<AttributeContainer<T> >(ptr)->data[i]; }
     std::shared_ptr<GenericAttributeContainer> ptr;
+};
+
+template <typename T> struct PointAttribute : GenericAttribute<T> {
+    PointAttribute(PointSet &p) : GenericAttribute<T>(p.size())  {
+        p.attr.push_back(this->ptr);
+    }
 };
 
 template <typename T> struct FacetAttribute : GenericAttribute<T> {

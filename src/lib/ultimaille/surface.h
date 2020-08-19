@@ -16,7 +16,7 @@ struct Surface { // polygonal mesh interface
     Surface() = default;
 
     void resize_attrs();
-    void compress_attrs(std::vector<bool> &facets_to_kill);
+    void compress_attrs(const std::vector<bool> &facets_to_kill);
 
     int nverts() const;
 
@@ -32,7 +32,7 @@ struct Surface { // polygonal mesh interface
 
 struct TriMesh : Surface { // simplicial mesh implementation
     int create_facets(const int n);
-    void delete_facets(std::vector<bool> &to_kill);
+    void delete_facets(const std::vector<bool> &to_kill);
 
     int nfacets()  const;
     int ncorners() const;
@@ -49,7 +49,8 @@ struct PolyMesh : Surface { // polygonal mesh implementation
     PolyMesh();
 
     int create_facets(const int n, const int size);
-    void delete_facets(std::vector<bool> &to_kill);
+    void delete_facets(const std::vector<bool> &to_kill);
+    void delete_vertices(std::vector<bool> &to_kill);
 
     int nfacets()  const;
     int ncorners() const;

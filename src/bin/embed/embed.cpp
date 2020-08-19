@@ -93,6 +93,10 @@ int main(int argc, char** argv) {
         }
     }
 
+    PointAttribute<int> pid(pm.points);
+    for (int i=0; i<pm.nverts(); i++)
+        pid[i] = rand()%10000;
+
     FacetAttribute<int> fid(pm);
     for (int i=0; i<pm.nfacets(); i++)
         fid[i] = rand()%10000;
@@ -103,13 +107,22 @@ int main(int argc, char** argv) {
 
     sample_exterior(size, pm);
 
-    write_geogram_ascii("drop.geogram_ascii", pm, { {"id", fid.ptr} }, {{"id", cid.ptr}});
+    write_geogram_ascii("drop.geogram_ascii", pm, { {"rand", pid.ptr} }, { {"id", fid.ptr} }, {{"id", cid.ptr}});
 
+    /*
     std::vector<bool> to_kill(pm.nfacets(), false);
     for (int i=0; i<pm.nfacets(); i++)
         to_kill[i] = !(rand()%5);
     pm.delete_facets(to_kill);
-    write_geogram_ascii("drop2.geogram_ascii", pm, { {"id", fid.ptr} }, {{"id", cid.ptr}});
+    */
+
+    std::vector<bool> to_kill(pm.nverts(), false);
+    for (int i=0; i<pm.nverts(); i++)
+        to_kill[i] = !(rand()%8);
+    pm.delete_vertices(to_kill);
+
+    write_geogram_ascii("drop2.geogram_ascii", pm, { {"rand", pid.ptr} }, { {"id", fid.ptr} }, {{"id", cid.ptr}});
+
 
     return 0;
 }
