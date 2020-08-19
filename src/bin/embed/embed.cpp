@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 
     FacetAttribute<int> fid(pm);
     for (int i=0; i<pm.nfacets(); i++)
-        fid[i] = i;
+        fid[i] = rand()%10000;
 
     CornerAttribute<int> cid(pm);
     for (int i=0; i<pm.ncorners(); i++)

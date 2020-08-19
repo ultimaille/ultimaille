@@ -6,24 +6,30 @@
 #include "attributes.h"
 
 void Surface::resize_attrs() {
-    for (std::weak_ptr<GenericAttributeContainer> &wp : attr_facets)
-        if (auto spt = wp.lock())
-            spt->resize(nfacets());
-    for (std::weak_ptr<GenericAttributeContainer> &wp : attr_corners)
-        if (auto spt = wp.lock())
-            spt->resize(ncorners());
+    for (auto &wp : attr_facets)  if (auto spt = wp.lock())
+        spt->resize(nfacets());
+    for (auto &wp : attr_corners) if (auto spt = wp.lock())
+        spt->resize(ncorners());
 }
 
-void Surface::compress_facet_attrs(std::vector<int> &old2new) {
-    for (std::weak_ptr<GenericAttributeContainer> &wp : attr_facets)
-        if (auto spt = wp.lock())
-            spt->compress(old2new);
-}
+void Surface::compress_attrs(std::vector<bool> &facets_to_kill) {
+    assert(facets_to_kill.size()==(size_t)nfacets());
+    std::vector<int>  facets_old2new(nfacets(),  -1);
+    std::vector<int> corners_old2new(ncorners(), -1);
 
-void Surface::compress_corner_attrs(std::vector<int> &old2new) {
-    for (std::weak_ptr<GenericAttributeContainer> &wp : attr_corners)
-        if (auto spt = wp.lock())
-            spt->compress(old2new);
+    int new_nb_facets  = 0;
+    int new_nb_corners = 0;
+
+    for (int f=0; f<nfacets(); f++) {
+        if (facets_to_kill[f]) continue;
+        for (int lv=0; lv<facet_size(f); lv++)
+            corners_old2new[facet_corner(f, lv)] = new_nb_corners++;
+        facets_old2new[f] = new_nb_facets++;
+    }
+    for (auto &wp : attr_facets)  if (auto spt = wp.lock())
+        spt->compress(facets_old2new);
+    for (auto &wp : attr_corners) if (auto spt = wp.lock())
+        spt->compress(corners_old2new);
 }
 
 int Surface::nverts() const {
@@ -41,25 +47,17 @@ int TriMesh::create_facets(const int n) {
 
 void TriMesh::delete_facets(std::vector<bool> &to_kill) {
     assert(to_kill.size()==(size_t)nfacets());
-    std::vector<int>  facets_old2new(nfacets(),  -1);
-    std::vector<int> corners_old2new(ncorners(), -1);
+    compress_attrs(to_kill);
 
-    std::vector<int> new_facets;
-    new_facets.reserve(facets.size());
     int new_nb_facets  = 0;
     int new_nb_corners = 0;
-
     for (int f=0; f<nfacets(); f++) {
         if (to_kill[f]) continue;
-        for (int lv=0; lv<facet_size(f); lv++) {
-            new_facets.push_back(vert(f, lv));
-            corners_old2new[facet_corner(f, lv)] = new_nb_corners++;
-        }
-        facets_old2new[f] = new_nb_facets++;
+        for (int lv=0; lv<facet_size(f); lv++)
+            facets[new_nb_corners++] = vert(f, lv);
+        ++new_nb_facets;
     }
-    facets = new_facets;
-    compress_facet_attrs(facets_old2new);
-    compress_corner_attrs(corners_old2new);
+    facets.resize(new_nb_corners);
 }
 
 int TriMesh::nfacets() const {
@@ -106,30 +104,18 @@ int PolyMesh::create_facets(const int n, const int size) {
 
 void PolyMesh::delete_facets(std::vector<bool> &to_kill) {
     assert(to_kill.size()==(size_t)nfacets());
-    std::vector<int>  facets_old2new(nfacets(),  -1);
-    std::vector<int> corners_old2new(ncorners(), -1);
+    compress_attrs(to_kill);
 
-    std::vector<int> new_facets;
-    std::vector<int> new_offset;
-    new_facets.reserve(facets.size());
-    new_offset.reserve(offset.size());
-    new_offset.push_back(0);
     int new_nb_facets  = 0;
     int new_nb_corners = 0;
-
     for (int f=0; f<nfacets(); f++) {
         if (to_kill[f]) continue;
-        for (int lv=0; lv<facet_size(f); lv++) {
-            new_facets.push_back(vert(f, lv));
-            corners_old2new[facet_corner(f, lv)] = new_nb_corners++;
-        }
-        new_offset.push_back(new_offset.back()+facet_size(f));
-        facets_old2new[f] = new_nb_facets++;
+        for (int lv=0; lv<facet_size(f); lv++)
+            facets[new_nb_corners++] = vert(f, lv);
+        offset[++new_nb_facets] = new_nb_corners;
     }
-    facets = new_facets;
-    offset = new_offset;
-    compress_facet_attrs(facets_old2new);
-    compress_corner_attrs(corners_old2new);
+    offset.resize(new_nb_facets+1);
+    facets.resize(new_nb_corners);
 }
 
 int PolyMesh::nfacets() const {

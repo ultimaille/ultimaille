@@ -16,8 +16,8 @@ struct Surface { // polygonal mesh interface
     Surface() = default;
 
     void resize_attrs();
-    void compress_facet_attrs(std::vector<int> &perm);
-    void compress_corner_attrs(std::vector<int> &perm);
+    void compress_attrs(std::vector<bool> &facets_to_kill);
+
     int nverts() const;
 
     virtual int nfacets()  const = 0;

@@ -8,7 +8,6 @@
 struct GenericAttributeContainer {
     virtual void resize(const int n) = 0;
     virtual void compress(const std::vector<int> &old2new) = 0;
-//  virtual void permute(Permutation &perm) = 0;
     virtual ~GenericAttributeContainer() = default;
 };
 
@@ -17,16 +16,14 @@ template <typename T> struct AttributeContainer : GenericAttributeContainer {
     void resize(const int n) { data.resize(n); }
     void compress(const std::vector<int> &old2new) { // NB: old2new is not a permutation!
         assert(old2new.size()==data.size());
+        int cnt = 0;
         for (int i=0; i<static_cast<int>(old2new.size()); i++) {
-            if (old2new[i]<0 || old2new[i]==i) continue;
+            if (old2new[i]<0) continue;
             data[old2new[i]] = data[i];
+            cnt++;
         }
+        resize(cnt);
     }
-    /*
-    void permute(Permutation &perm) {
-        perm.apply(data);
-    }
-    */
     std::vector<T> data;
 };
 
