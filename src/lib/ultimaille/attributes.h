@@ -7,16 +7,26 @@
 
 struct GenericAttributeContainer {
     virtual void resize(const int n) = 0;
-    virtual void permute(Permutation &perm) = 0;
+    virtual void compress(const std::vector<int> &old2new) = 0;
+//  virtual void permute(Permutation &perm) = 0;
     virtual ~GenericAttributeContainer() = default;
 };
 
 template <typename T> struct AttributeContainer : GenericAttributeContainer {
     AttributeContainer(const int n) : data(n) {}
     void resize(const int n) { data.resize(n); }
+    void compress(const std::vector<int> &old2new) { // NB: old2new is not a permutation!
+        assert(old2new.size()==data.size());
+        for (int i=0; i<static_cast<int>(old2new.size()); i++) {
+            if (old2new[i]<0 || old2new[i]==i) continue;
+            data[old2new[i]] = data[i];
+        }
+    }
+    /*
     void permute(Permutation &perm) {
         perm.apply(data);
     }
+    */
     std::vector<T> data;
 };
 
@@ -30,6 +40,12 @@ template <typename T> struct GenericAttribute {
 template <typename T> struct FacetAttribute : GenericAttribute<T> {
     FacetAttribute(Surface &m) : GenericAttribute<T>(m.nfacets())  {
         m.attr_facets.push_back(this->ptr);
+    }
+};
+
+template <typename T> struct CornerAttribute : GenericAttribute<T> {
+    CornerAttribute(Surface &m) : GenericAttribute<T>(m.ncorners())  {
+        m.attr_corners.push_back(this->ptr);
     }
 };
 

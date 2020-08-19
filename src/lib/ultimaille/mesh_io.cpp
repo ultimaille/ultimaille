@@ -60,7 +60,7 @@ void write_wavefront_obj(const std::string filename, const Surface &m) {
 
 // Attention: only double attributes
 typedef unsigned int index_t;
-void write_geogram_ascii(const std::string filename, const Surface &m, std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > fattr) {
+void write_geogram_ascii(const std::string filename, const Surface &m, std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > fattr, std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > cattr) {
     std::fstream file;
     file.open(filename, std::ios_base::out);
     file << "[HEAD]\n\"GEOGRAM\"\n\"1.0\"\n[ATTS]\n\"GEO::Mesh::vertices\"\n";
@@ -106,6 +106,24 @@ void write_geogram_ascii(const std::string filename, const Surface &m, std::vect
         }
     }
 
+    for (auto &it : cattr) {
+        std::string name = it.first;
+        file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"" << name << "\"\n";
+
+        std::shared_ptr<GenericAttributeContainer> &ptr = it.second;
+        if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
+            file << "\"int\"\n" << sizeof(int) << " # this is the size of an element (in bytes)\n1 # this is the number of elements per item\n";
+            for (int i=0; i<m.ncorners(); i++)
+                file << aint->data[i] << "\n";
+        } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
+            file << "\"double\"\n" << sizeof(double) << " # this is the size of an element (in bytes)\n1 # this is the number of elements per item\n";
+            for (int i=0; i<m.ncorners(); i++)
+                file << adouble->data[i] << "\n";
+        } else {
+            assert(false);
+        }
+    }
+
 /*
     for (auto &it : vert_attr_map) {
         file << "[ATTR]\n\"GEO::Mesh::vertices\"\n\"" << it.first << "\"\n\"double\"\n8 # this is the size of an element (in bytes)\n1 # this is the number of elements per item\n";
@@ -113,11 +131,6 @@ void write_geogram_ascii(const std::string filename, const Surface &m, std::vect
             file << it.second[i] << "\n";
     }
     for (auto &it : facet_attr_map) {
-    }
-    for (auto &it : corner_attr_map) {
-        file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"" << it.first << "\"\n\"double\"\n8 # this is the size of an element (in bytes)\n1 # this is the number of elements per item\n";
-        for (int i=0; i<m.ncorners(); i++)
-            file << it.second[i] << "\n";
     }
 */
     file.close();

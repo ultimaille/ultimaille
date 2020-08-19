@@ -4,6 +4,8 @@
 #include <vector>
 #include <cassert>
 
+// TODO: move the permutation data inside the struct (instead of an external ref)
+// TODO: invert the permutation in place (or apply_reverse)
 struct Permutation {
     Permutation(const std::vector<int> &p) : destinations(p) {
         is_valid();
@@ -13,7 +15,7 @@ struct Permutation {
         int n = destinations.size();
         std::vector<bool> visited(n, false);
         for (int i=0; i<n; i++) {
-            if (destinations[i] >= n || visited[i])
+            if (destinations[i]<0 || destinations[i] >= n || visited[i])
                 return false;
             visited[destinations[i]] = true;
         }

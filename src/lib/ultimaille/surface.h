@@ -11,11 +11,13 @@ struct Surface { // polygonal mesh interface
     PointSet points{};
     std::vector<int> facets{};
     std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
+    std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
 
     Surface() = default;
 
-    void resize_attribute_containers();
-    void permute_attribute_containers(std::vector<int> &perm);
+    void resize_attrs();
+    void compress_facet_attrs(std::vector<int> &perm);
+    void compress_corner_attrs(std::vector<int> &perm);
     int nverts() const;
 
     virtual int nfacets()  const = 0;
@@ -30,6 +32,7 @@ struct Surface { // polygonal mesh interface
 
 struct TriMesh : Surface { // simplicial mesh implementation
     int create_facets(const int n);
+    void delete_facets(std::vector<bool> &to_kill);
 
     int nfacets()  const;
     int ncorners() const;
@@ -46,6 +49,7 @@ struct PolyMesh : Surface { // polygonal mesh implementation
     PolyMesh();
 
     int create_facets(const int n, const int size);
+    void delete_facets(std::vector<bool> &to_kill);
 
     int nfacets()  const;
     int ncorners() const;

@@ -93,15 +93,23 @@ int main(int argc, char** argv) {
         }
     }
 
-    FacetAttribute<int> id(pm);
-    for (int i=0; i<pm.nfacets(); i++) {
-        id[i] = i;
-    }
+    FacetAttribute<int> fid(pm);
+    for (int i=0; i<pm.nfacets(); i++)
+        fid[i] = i;
+
+    CornerAttribute<int> cid(pm);
+    for (int i=0; i<pm.ncorners(); i++)
+        cid[i] = i;
 
     sample_exterior(size, pm);
 
-    write_wavefront_obj("drop.obj", pm);
-    write_geogram_ascii("drop.geogram_ascii", pm, { {"id", id.ptr} });
+    write_geogram_ascii("drop.geogram_ascii", pm, { {"id", fid.ptr} }, {{"id", cid.ptr}});
+
+    std::vector<bool> to_kill(pm.nfacets(), false);
+    for (int i=0; i<pm.nfacets(); i++)
+        to_kill[i] = !(rand()%5);
+    pm.delete_facets(to_kill);
+    write_geogram_ascii("drop2.geogram_ascii", pm, { {"id", fid.ptr} }, {{"id", cid.ptr}});
 
     return 0;
 }
