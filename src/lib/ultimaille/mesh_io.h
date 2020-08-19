@@ -16,6 +16,7 @@ void write_geogram(const std::string filename, const Surface &m,
         std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > pattr,
         std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > fattr,
         std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > cattr);
+void read_geogram(const std::string filename, PolyMesh &m);
 
 #endif // __MESH_IO_H__
 
