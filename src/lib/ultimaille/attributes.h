@@ -46,9 +46,9 @@ template <typename T> struct PointAttribute : GenericAttribute<T> {
     PointAttribute(PointSet &pts) : GenericAttribute<T>(pts.size()) {
         pts.attr.push_back(this->ptr);
     }
-    PointAttribute(Surface &m, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p) {
-        m.points.attr.push_back(this->ptr);
-    }
+//  PointAttribute(Surface &m, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p) {
+//      m.points.attr.push_back(this->ptr);
+//  }
     PointAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
         for (auto &pair : std::get<0>(attributes)) {
             if (pair.first!=name) continue;
@@ -67,9 +67,9 @@ template <typename T> struct FacetAttribute : GenericAttribute<T> {
     FacetAttribute(Surface &m) : GenericAttribute<T>(m.nfacets())  {
         m.attr_facets.push_back(this->ptr);
     }
-    FacetAttribute(Surface &m, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p)  {
-        m.attr_facets.push_back(this->ptr);
-    }
+//  FacetAttribute(Surface &m, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p)  {
+//      m.attr_facets.push_back(this->ptr);
+//  }
     FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
         for (auto &pair : std::get<1>(attributes)) {
             if (pair.first!=name) continue;
@@ -88,11 +88,11 @@ template <typename T> struct CornerAttribute : GenericAttribute<T> {
     CornerAttribute(Surface &m) : GenericAttribute<T>(m.ncorners())  {
         m.attr_corners.push_back(this->ptr);
     }
-    CornerAttribute(Surface &m, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p)  {
-        m.attr_corners.push_back(this->ptr);
-    }
+//  CornerAttribute(Surface &m, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p)  {
+//      m.attr_corners.push_back(this->ptr);
+//  }
     CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
-        for (auto &pair : std::get<1>(attributes)) {
+        for (auto &pair : std::get<2>(attributes)) {
             if (pair.first!=name) continue;
             this->ptr = pair.second;
             m.attr_corners.push_back(this->ptr);
@@ -100,7 +100,7 @@ template <typename T> struct CornerAttribute : GenericAttribute<T> {
         }
         this->ptr = std::make_shared<AttributeContainer<T> >(m.ncorners());
         m.attr_corners.push_back(this->ptr);
-        std::get<1>(attributes).emplace_back(name, this->ptr);
+        std::get<2>(attributes).emplace_back(name, this->ptr);
     }
 };
 
