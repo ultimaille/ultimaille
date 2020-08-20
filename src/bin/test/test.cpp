@@ -5,13 +5,33 @@
 #include "ultimaille/attributes.h"
 
 
-template <typename A,typename M> bool bind_attribute(std::string name, std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > &attrs, M& m, A &a) {
-    for (auto &pair : attrs) {
+template <typename T> bool bind_attribute(std::string name, SurfaceAttributes attributes, PolyMesh &m, PointAttribute<T> &a) {
+    for (auto &pair : std::get<0>(attributes)) {
         if (pair.first!=name) continue;
-        a = A(m, pair.second);
+        a = PointAttribute<T>(m, pair.second);
         return true;
     }
-    a = A();
+    a = PointAttribute<T>();
+    return false;
+}
+
+template <typename T> bool bind_attribute(std::string name, SurfaceAttributes attributes, PolyMesh &m, FacetAttribute<T> &a) {
+    for (auto &pair : std::get<0>(attributes)) {
+        if (pair.first!=name) continue;
+        a = FacetAttribute<T>(m, pair.second);
+        return true;
+    }
+    a = FacetAttribute<T>();
+    return false;
+}
+
+template <typename T> bool bind_attribute(std::string name, SurfaceAttributes attributes, PolyMesh &m, CornerAttribute<T> &a) {
+    for (auto &pair : std::get<0>(attributes)) {
+        if (pair.first!=name) continue;
+        a = CornerAttribute<T>(m, pair.second);
+        return true;
+    }
+    a = CornerAttribute<T>();
     return false;
 }
 
@@ -22,15 +42,16 @@ int main(int argc, char** argv) {
     }
 
     PolyMesh pm;
-    auto [pattr, fattr, cattr] = read_geogram(argv[1], pm);
+    SurfaceAttributes attributes = read_geogram(argv[1], pm);
     PointAttribute<int>  prand;
     FacetAttribute<int>  fid;
     CornerAttribute<int> cid;
-    bind_attribute("rand", pattr, pm, prand);
-    bind_attribute("id",   fattr, pm, fid);
-    bind_attribute("id",   cattr, pm, cid);
+    bind_attribute("rand", attributes, pm, prand);
+    bind_attribute("id",   attributes, pm, fid);
+    bind_attribute("id",   attributes, pm, cid);
 
-    write_geogram("read_test.geogram", pm, {{"rand", prand.ptr}}, {{"id", fid.ptr}}, {{"id", cid.ptr}});
+    write_geogram("read_test.geogram", pm, attributes);
+    write_geogram("read_test_wo_attributes.geogram", pm);
 
     return 0;
 }

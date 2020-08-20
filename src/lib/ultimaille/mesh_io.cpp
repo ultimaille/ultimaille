@@ -63,10 +63,8 @@ void write_wavefront_obj(const std::string filename, const Surface &m) {
 
 // Attention: only double attributes
 typedef unsigned int index_t;
-void write_geogram_ascii(const std::string filename, const Surface &m,
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > pattr,
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > fattr,
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > cattr) {
+void write_geogram_ascii(const std::string filename, const Surface &m, SurfaceAttributes attr) {
+    auto [pattr, fattr, cattr] = attr;
     std::fstream file;
     file.open(filename, std::ios_base::out);
     file << "[HEAD]\n\"GEOGRAM\"\n\"1.0\"\n[ATTS]\n\"GEO::Mesh::vertices\"\n";
@@ -93,34 +91,33 @@ void write_geogram_ascii(const std::string filename, const Surface &m,
         int opp = fec.opposite(c);
         file << (opp < 0 ? index_t(-1) : fec.c2f[opp]) << "\n";
     }
-    auto attr = pattr;
-    attr.insert(attr.end(), fattr.begin(), fattr.end());
-    attr.insert(attr.end(), cattr.begin(), cattr.end());
 
-    int npattr = pattr.size();
-    int nfattr = fattr.size();
+std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+    for (int i=0; i<3; i++) {
+        auto att = A[i];
 
-    for (int i=0; i<static_cast<int>(attr.size()); i++) {
-        std::string name = attr[i].first;
-        std::shared_ptr<GenericAttributeContainer> ptr = attr[i].second;
+        for (int i=0; i<static_cast<int>(att.size()); i++) {
+            std::string name = att[i].first;
+            std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
 
-        if (i<npattr)
-            file << "[ATTR]\n\"GEO::Mesh::vertices\"\n\"" << name << "\"\n";
-        else if (i<npattr+nfattr)
-            file << "[ATTR]\n\"GEO::Mesh::facets\"\n\"" << name << "\"\n";
-        else
-            file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"" << name << "\"\n";
+            if (i==0)
+                file << "[ATTR]\n\"GEO::Mesh::vertices\"\n\"" << name << "\"\n";
+            else if (i==1)
+                file << "[ATTR]\n\"GEO::Mesh::facets\"\n\"" << name << "\"\n";
+            else
+                file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"" << name << "\"\n";
 
-        if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-            file << "\"int\"\n4\n1\n";
-            for (const auto &v : aint->data)
-                file << v << "\n";
-        } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
-            file << "\"double\"\n8\n1\n";
-            for (const auto &v : adouble->data)
-                file << v << "\n";
-        } else {
-            assert(false);
+            if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
+                file << "\"int\"\n4\n1\n";
+                for (const auto &v : aint->data)
+                    file << v << "\n";
+            } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
+                file << "\"double\"\n8\n1\n";
+                for (const auto &v : adouble->data)
+                    file << v << "\n";
+            } else {
+                assert(false);
+            }
         }
     }
 
@@ -214,10 +211,8 @@ namespace {
     };
 }
 
-void write_geogram(const std::string filename, const Surface &m,
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > pattr,
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > fattr,
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > cattr) {
+void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr) {
+    auto [pattr, fattr, cattr] = attr;
     try {
         GeogramGZWriter writer(filename);
         writer.addFileHeader();
@@ -244,33 +239,35 @@ void write_geogram(const std::string filename, const Surface &m,
         }
         writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet);
 
-        auto attr = pattr;
-        attr.insert(attr.end(), fattr.begin(), fattr.end());
-        attr.insert(attr.end(), cattr.begin(), cattr.end());
 
-        int npattr = pattr.size();
-        int nfattr = fattr.size();
 
-        for (int i=0; i<static_cast<int>(attr.size()); i++) {
-            std::string name = attr[i].first;
-            std::shared_ptr<GenericAttributeContainer> ptr = attr[i].second;
-            std::string place = "";
+std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+for (int z=0; z<3; z++) {
+    auto att = A[z];
 
-            if (i<npattr)
-                place = "GEO::Mesh::vertices";
-            else if (i<npattr+nfattr)
-                place = "GEO::Mesh::facets";
-            else
-                place = "GEO::Mesh::facet_corners";
+    for (int i=0; i<static_cast<int>(att.size()); i++) {
+        std::string name = att[i].first;
+        std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+        std::string place = "";
 
-            if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-                writer.addAttribute(place, name, "int", aint->data);
-            } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
-                writer.addAttribute(place, name, "double", adouble->data);
-            } else {
-                assert(false);
-            }
+        if (z==0)
+            place = "GEO::Mesh::vertices";
+        else if (z==1)
+            place = "GEO::Mesh::facets";
+        else
+            place = "GEO::Mesh::facet_corners";
+
+        if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
+            writer.addAttribute(place, name, "int", aint->data);
+        } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
+            writer.addAttribute(place, name, "double", adouble->data);
+        } else {
+//      std::cerr << place << std::endl;
+//        TODO : ignore adjacency
+            assert(false);
         }
+    }
+}
     } catch (const std::exception& e) {
         std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
     }
@@ -474,7 +471,7 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                     in.read_attribute((void *)m.offset.data(), size);
                 } else if (attribute_set_name == "GEO::Mesh::facet_corners" && attribute_name == "GEO::Mesh::facet_corners::corner_vertex") {
                     in.read_attribute((void *)m.facets.data(), size);
-                } else {
+                } else if (attribute_name!="GEO::Mesh::facet_corners::corner_adjacent_facet") {
                     std::shared_ptr<GenericAttributeContainer> P;
                     if (element_type=="int" || element_type=="signed_index_t") {
                         GenericAttribute<int> A(nb_items);
