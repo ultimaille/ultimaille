@@ -11,6 +11,12 @@ void PointSet::bbox(vec3 &min, vec3 &max) {
     }
 }
 
+void PointSet::resize(const int n) {
+    assert(1==data.use_count());
+    data->resize(n);
+    resize_attrs();
+}
+
 void PointSet::push_back(const vec3 &p) {
     assert(1==data.use_count());
     data->push_back(p);

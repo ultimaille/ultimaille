@@ -15,6 +15,7 @@ struct PointSet {
     const vec3& operator[](const int i) const { return data->at(i); }
 
     void bbox(vec3 &min, vec3 &max);
+    void resize(const int n);
     void push_back(const vec3 &p);
     void delete_points(const std::vector<bool> &to_kill, std::vector<int> &old2new);
 

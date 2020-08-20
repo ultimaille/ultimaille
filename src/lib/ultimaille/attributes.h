@@ -30,14 +30,18 @@ template <typename T> struct AttributeContainer : GenericAttributeContainer {
 
 template <typename T> struct GenericAttribute {
     GenericAttribute(int size) : ptr(new AttributeContainer<T>(size)) {}
+    GenericAttribute(std::shared_ptr<GenericAttributeContainer> p) : ptr(p) {}
     T& operator[](const int i)       { return std::dynamic_pointer_cast<AttributeContainer<T> >(ptr)->data[i]; }
     T  operator[](const int i) const { return std::dynamic_pointer_cast<AttributeContainer<T> >(ptr)->data[i]; }
     std::shared_ptr<GenericAttributeContainer> ptr;
 };
 
 template <typename T> struct PointAttribute : GenericAttribute<T> {
-    PointAttribute(PointSet &p) : GenericAttribute<T>(p.size())  {
-        p.attr.push_back(this->ptr);
+    PointAttribute(PointSet &pts) : GenericAttribute<T>(pts.size()) {
+        pts.attr.push_back(this->ptr);
+    }
+    PointAttribute(PointSet &pts, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p) {
+        pts.attr.push_back(this->ptr);
     }
 };
 
