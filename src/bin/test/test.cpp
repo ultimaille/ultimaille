@@ -5,12 +5,13 @@
 #include "ultimaille/attributes.h"
 
 
-bool find_container(std::string name, std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > &attrs, std::shared_ptr<GenericAttributeContainer> &ptr) {
+template <typename A,typename M> bool bind_attribute(std::string name, std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > &attrs, M& m, A &a) {
     for (auto &pair : attrs) {
         if (pair.first!=name) continue;
-        ptr = pair.second;
+        a = A(m, pair.second);
         return true;
     }
+    a = A();
     return false;
 }
 
@@ -21,25 +22,16 @@ int main(int argc, char** argv) {
     }
 
     PolyMesh pm;
-    std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > pattr, fattr, cattr;
+    auto [pattr, fattr, cattr] = read_geogram(argv[1], pm);
+    PointAttribute<int>  prand;
+    FacetAttribute<int>  fid;
+    CornerAttribute<int> cid;
+    bind_attribute("rand", pattr, pm, prand);
+    bind_attribute("id",   fattr, pm, fid);
+    bind_attribute("id",   cattr, pm, cid);
 
-    read_geogram(argv[1], pm, pattr, fattr, cattr);
+    write_geogram("read_test.geogram", pm, {{"rand", prand.ptr}}, {{"id", fid.ptr}}, {{"id", cid.ptr}});
 
-    std::shared_ptr<GenericAttributeContainer> ptr;
-    bool ret = find_container("rand", pattr, ptr);
-    assert(ret);
-    PointAttribute<int> pid(pm.points, ptr);
-
-    if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-        for (int i=0; i<pm.nverts(); i++) {
-            std::cerr << aint->data[i] << std::endl;
-        }
-    }
-
-
-//    std::cerr << pattr.size() << " " << fattr.size() << " " << cattr.size() << std::endl;
-
-    write_geogram_ascii("read_test.geogram_ascii", pm, {{"rand", pid.ptr}}, {}, {});
     return 0;
 }
 

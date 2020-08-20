@@ -29,6 +29,7 @@ template <typename T> struct AttributeContainer : GenericAttributeContainer {
 };
 
 template <typename T> struct GenericAttribute {
+    GenericAttribute() : ptr(nullptr) {}
     GenericAttribute(int size) : ptr(new AttributeContainer<T>(size)) {}
     GenericAttribute(std::shared_ptr<GenericAttributeContainer> p) : ptr(p) {}
     T& operator[](const int i)       { return std::dynamic_pointer_cast<AttributeContainer<T> >(ptr)->data[i]; }
@@ -37,22 +38,31 @@ template <typename T> struct GenericAttribute {
 };
 
 template <typename T> struct PointAttribute : GenericAttribute<T> {
+    PointAttribute() : GenericAttribute<T>() {}
     PointAttribute(PointSet &pts) : GenericAttribute<T>(pts.size()) {
         pts.attr.push_back(this->ptr);
     }
-    PointAttribute(PointSet &pts, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p) {
-        pts.attr.push_back(this->ptr);
+    PointAttribute(Surface &m, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p) {
+        m.points.attr.push_back(this->ptr);
     }
 };
 
 template <typename T> struct FacetAttribute : GenericAttribute<T> {
+    FacetAttribute() : GenericAttribute<T>() {}
     FacetAttribute(Surface &m) : GenericAttribute<T>(m.nfacets())  {
+        m.attr_facets.push_back(this->ptr);
+    }
+    FacetAttribute(Surface &m, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p)  {
         m.attr_facets.push_back(this->ptr);
     }
 };
 
 template <typename T> struct CornerAttribute : GenericAttribute<T> {
+    CornerAttribute() : GenericAttribute<T>() {}
     CornerAttribute(Surface &m) : GenericAttribute<T>(m.ncorners())  {
+        m.attr_corners.push_back(this->ptr);
+    }
+    CornerAttribute(Surface &m, std::shared_ptr<GenericAttributeContainer> p) : GenericAttribute<T>(p)  {
         m.attr_corners.push_back(this->ptr);
     }
 };

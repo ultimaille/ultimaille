@@ -422,14 +422,11 @@ struct GeogramGZReader {
     long current_chunk_file_pos_;
 };
 
-void read_geogram(const std::string filename, PolyMesh &m,
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > &pattr,
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > &fattr,
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > &cattr) {
+std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >,
+           std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >,
+           std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > > read_geogram(const std::string filename, PolyMesh &m) {
+    std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > pattr, fattr, cattr;
     m = PolyMesh();
-    pattr.resize(0);
-    fattr.resize(0);
-    cattr.resize(0);
     try {
         GeogramGZReader in(filename);
         std::string chunk_class;
@@ -506,5 +503,6 @@ void read_geogram(const std::string filename, PolyMesh &m,
     } catch (const std::exception& e) {
         std::cerr << "Ooops: catch error= " << e.what() << " when reading " << filename << "\n";
     }
+    return std::make_tuple(pattr, fattr, cattr);
 }
 
