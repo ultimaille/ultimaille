@@ -8,12 +8,11 @@
 
 #include <zlib/zlib.h>
 
-
 // supposes .obj file to have "f " entries without slashes
 // TODO: improve the parser
 // TODO: export vn and vt attributes
-void read_wavefront_obj(const std::string filename, PolyMesh &m) {
-    m = PolyMesh();
+void read_wavefront_obj(const std::string filename, Polygons &m) {
+    m = Polygons();
     std::ifstream in;
     in.open (filename, std::ifstream::in);
     if (in.fail()) {
@@ -61,7 +60,7 @@ void write_wavefront_obj(const std::string filename, const Surface &m) {
     out.close();
 }
 
-// Attention: only double attributes
+// Attention: only int and double attributes
 typedef unsigned int index_t;
 void write_geogram_ascii(const std::string filename, const Surface &m, SurfaceAttributes attr) {
     auto [pattr, fattr, cattr] = attr;
@@ -86,13 +85,14 @@ void write_geogram_ascii(const std::string filename, const Surface &m, SurfaceAt
         for (int v=0; v<m.facet_size(f); v++)
            file << m.vert(f,v) << "\n";
     file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"GEO::Mesh::facet_corners::corner_adjacent_facet\"\n\"index_t\"\n4\n1\n";
-    MeshConnectivity fec(m);
+    SurfaceConnectivity fec(m);
     for (int c=0; c<m.ncorners(); c++) {
         int opp = fec.opposite(c);
         file << (opp < 0 ? index_t(-1) : fec.c2f[opp]) << "\n";
     }
 
-std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+    // TODO ugly, repair it
+    std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
     for (int i=0; i<3; i++) {
         auto att = A[i];
 
@@ -232,7 +232,7 @@ void write_geogram(const std::string filename, const Surface &m, SurfaceAttribut
         writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex);
 
         std::vector<index_t> corner_adjacent_facet;
-        MeshConnectivity fec(m);
+        SurfaceConnectivity fec(m);
         for (int c=0; c<m.ncorners(); c++) {
             int opp = fec.opposite(c);
             corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : fec.c2f[opp]);
@@ -241,33 +241,34 @@ void write_geogram(const std::string filename, const Surface &m, SurfaceAttribut
 
 
 
-std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
-for (int z=0; z<3; z++) {
-    auto att = A[z];
+        // TODO ugly, repair it
+        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+        for (int z=0; z<3; z++) {
+            auto att = A[z];
 
-    for (int i=0; i<static_cast<int>(att.size()); i++) {
-        std::string name = att[i].first;
-        std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
-        std::string place = "";
+            for (int i=0; i<static_cast<int>(att.size()); i++) {
+                std::string name = att[i].first;
+                std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                std::string place = "";
 
-        if (z==0)
-            place = "GEO::Mesh::vertices";
-        else if (z==1)
-            place = "GEO::Mesh::facets";
-        else
-            place = "GEO::Mesh::facet_corners";
+                if (z==0)
+                    place = "GEO::Mesh::vertices";
+                else if (z==1)
+                    place = "GEO::Mesh::facets";
+                else
+                    place = "GEO::Mesh::facet_corners";
 
-        if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-            writer.addAttribute(place, name, "int", aint->data);
-        } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
-            writer.addAttribute(place, name, "double", adouble->data);
-        } else {
-//      std::cerr << place << std::endl;
-//        TODO : ignore adjacency
-            assert(false);
+                if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
+                    writer.addAttribute(place, name, "int", aint->data);
+                } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
+                    writer.addAttribute(place, name, "double", adouble->data);
+                } else {
+                    //      std::cerr << place << std::endl;
+                    //        TODO : ignore adjacency
+                    assert(false);
+                }
+            }
         }
-    }
-}
     } catch (const std::exception& e) {
         std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
     }
@@ -347,11 +348,9 @@ struct GeogramGZReader {
     }
 
     std::string read_chunk_class() {
-//        std::cerr << "read_chunk_class()\n";
         std::string result;
         result.resize(4,'\0');
         int check = gzread(file_, &result[0], 4);
-//        std::cerr << "read_chunk_class()\n";
         if (check == 0 && gzeof(file_))
             result = "EOFL";
         else if (check != 4)
@@ -360,7 +359,6 @@ struct GeogramGZReader {
     }
 
     size_t read_size() {
-//        std::cerr << "read_size()\n";
         std::uint64_t result = 0;
         int check = gzread(file_, &result, sizeof(std::uint64_t));
         if (check == 0 && gzeof(file_))
@@ -372,7 +370,6 @@ struct GeogramGZReader {
     }
 
     void read_chunk_header() {
-//        std::cerr << "read_chunk_header()\n";
         current_chunk_class_ = read_chunk_class();
         if (gzeof(file_)) {
             gzclose(file_);
@@ -399,11 +396,8 @@ struct GeogramGZReader {
             skip_chunk();
 
         read_chunk_header();
-
-
         return current_chunk_class_;
     }
-
 
     void read_attribute(void* addr, size_t size) {
         assert(current_chunk_class_ == "ATTR");
@@ -421,9 +415,9 @@ struct GeogramGZReader {
 
 std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >,
            std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >,
-           std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > > read_geogram(const std::string filename, PolyMesh &m) {
+           std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > > read_geogram(const std::string filename, Polygons &m) {
     std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > > pattr, fattr, cattr;
-    m = PolyMesh();
+    m = Polygons();
     try {
         GeogramGZReader in(filename);
         std::string chunk_class;
@@ -493,9 +487,8 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                         cattr.emplace_back(attribute_name, P);
                     }
                 }
-
-            }
-        }
+            } // chunk_class = ATTR
+        } // chunks
         m.offset.back() = m.facets.size();
     } catch (const std::exception& e) {
         std::cerr << "Ooops: catch error= " << e.what() << " when reading " << filename << "\n";

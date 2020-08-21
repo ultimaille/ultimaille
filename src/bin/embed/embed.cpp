@@ -31,7 +31,7 @@ vec2 permuted_grid(const int i, const int j, const int n, const double size) {
     return vec2(i/(double)n - (n-1-permy[j])/(double)(n*n), j/(double)n - permx[i]/(double)(n*n))*size;
 }
 
-void sample_exterior(const double size, PolyMesh &rocker) {
+void sample_exterior(const double size, Polygons &rocker) {
     PointSet seeds;
     double ave_len = average_edge_size(rocker);
     { // uniformly populate the square [0,size]^2 with blueish pointset
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    PolyMesh pm;
+    Polygons pm;
     read_wavefront_obj(argv[1], pm);
 //  write_geogram("input.geogram", pm, {}, {}, {});
 

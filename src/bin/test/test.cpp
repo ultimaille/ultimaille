@@ -10,18 +10,27 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    PolyMesh pm;
+    Polygons pm;
     SurfaceAttributes attributes = read_geogram(argv[1], pm);
-    PointAttribute<int> prand("rand", attributes, pm);
-    FacetAttribute<int> fid("id", attributes, pm);
-    CornerAttribute<int> cid("id", attributes, pm);
 
-    FacetAttribute<int> nonex("nonexisting", attributes, pm);
+    Triangles tri;
+    pm.extract_triangles(tri);
+    assert(tri.nfacets() == pm.nfacets());
+
+    Quads quads;
+    pm.extract_quads(quads);
+//  assert(quads.nfacets() == pm.nfacets());
+    std::cerr << quads.points.use_count() << std::endl;
+
+//  PointAttribute<int> prand("rand", attributes, tri);
+//  FacetAttribute<int> fid("id", attributes, tri);
+//  CornerAttribute<int> cid("id", attributes, tri);
+
+    FacetAttribute<int> nonex("nonexisting", attributes, tri);
     for (int i=0; i<pm.nfacets(); i++)
         nonex[i] = rand()%1980;
 
-    write_geogram("read_test.geogram", pm, attributes);
-    write_geogram("read_test_wo_attributes.geogram", pm);
+    write_geogram("read_test.geogram", tri, attributes);
 
     return 0;
 }
