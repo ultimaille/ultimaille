@@ -173,7 +173,7 @@ void Polygons::extract_triangles(Triangles &tri) {
     int cnt = 0;
     for (int f=0; f<nfacets(); f++) {
         if (3!=facet_size(f)) continue;
-        for (int v=0; v<3; v++) 
+        for (int v=0; v<3; v++)
             tri.vert(cnt, v) = vert(f, v);
         ++cnt;
     }
@@ -189,7 +189,7 @@ void Polygons::extract_quads(Quads &quads) {
     int cnt = 0;
     for (int f=0; f<nfacets(); f++) {
         if (4!=facet_size(f)) continue;
-        for (int v=0; v<4; v++) 
+        for (int v=0; v<4; v++)
             quads.vert(cnt, v) = vert(f, v);
         ++cnt;
     }
@@ -294,8 +294,8 @@ bool SurfaceConnectivity::is_border_vert(const int v) const {
     int cir = v2c[v];
     if (cir<0) return false;
     do {
-        cir = c2c[cir];
         if (opposite(cir) == -1) return true;
+        cir = c2c[cir];
     } while (cir != v2c[v]);
     return false;
 }

@@ -6,12 +6,13 @@
 #include "ultimaille/attributes.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/hboxes.h"
+#include "ultimaille/range.h"
 
 double average_edge_size(const Surface &m) {
     double sum = 0;
     int nb = 0;
-    for (int f=0; f<m.nfacets(); f++) {
-        for (int lv=0; lv<m.facet_size(f); lv++) {
+    for (int f : range(m.nfacets())) {
+        for (int lv : range(m.facet_size(f))) {
             vec3 a = m.points[m.vert(f, lv)];
             vec3 b = m.points[m.vert(f, (lv+1)%m.facet_size(f))];
             sum += (a-b).norm();
@@ -31,15 +32,15 @@ vec2 permuted_grid(const int i, const int j, const int n, const double size) {
     return vec2(i/(double)n - (n-1-permy[j])/(double)(n*n), j/(double)n - permx[i]/(double)(n*n))*size;
 }
 
-void sample_exterior(const double size, Polygons &rocker) {
+void sample_exterior(const double size, Triangles &rocker) {
     PointSet seeds;
     double ave_len = average_edge_size(rocker);
     { // uniformly populate the square [0,size]^2 with blueish pointset
         int repeat = floor(size*(1./grid_size)/ave_len)+1;
-        for (int rj=0; rj<repeat; rj++)
-            for (int ri=0; ri<repeat; ri++)
-                for (int j=0; j<grid_size; j++)
-                    for (int i=0; i<grid_size; i++) {
+        for (int rj : range(repeat))
+            for (int ri : range(repeat))
+                for (int j : range(grid_size))
+                    for (int i : range(grid_size)) {
                         vec2 p = permuted_grid(i, j, grid_size, 1) + vec2(rj, ri);
                         seeds.push_back(vec3(p.x, p.y, 0));
                     }
@@ -55,8 +56,8 @@ void sample_exterior(const double size, Polygons &rocker) {
 
     { // delete points inside the domain and replace them with the domain points
         std::vector<BBox3> inboxes(rocker.nfacets());
-        for (int f=0; f<rocker.nfacets(); f++) {
-            for (int lv=0; lv<rocker.facet_size(f); lv++)
+        for (int f : range(rocker.nfacets())) {
+            for (int lv : range(3))
                 inboxes[f].add(rocker.points[rocker.vert(f, lv)]);
             inboxes[f].dilate(ave_len/4);
         }
@@ -78,35 +79,27 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    Polygons pm;
-    read_wavefront_obj(argv[1], pm);
-//  write_geogram("input.geogram", pm, {}, {}, {});
+    Triangles tri;
+    {
+        Polygons pm;
+        read_wavefront_obj(argv[1], pm);
+        pm.extract_triangles(tri);
+        assert(tri.nfacets() == pm.nfacets());
+    }
 
-    for (vec3 &p : *pm.points.data) p.z = 0; // make sure it is 2D
+    for (vec3 &p : *tri.points.data) p.z = 0; // make sure it is 2D
 
     const double size = 10.;
     { // normalize the rocker, place it well inside the [0,side]^2 square
         vec3 min, max;
-        pm.points.bbox(min, max);
+        tri.points.bbox(min, max);
         float maxside = std::max(max.x-min.x, max.y-min.y);
-        for (vec3 &p : pm.points) {
+        for (vec3 &p : tri.points) {
             p = ((p - (max+min)/2.)/maxside)*size/1.3 + vec3(1,1,0)*size/2;
         }
     }
 
-    PointAttribute<int> pid(pm.points);
-    for (int i=0; i<pm.nverts(); i++)
-        pid[i] = rand()%10000;
-
-    FacetAttribute<int> fid(pm);
-    for (int i=0; i<pm.nfacets(); i++)
-        fid[i] = rand()%10000;
-
-    CornerAttribute<int> cid(pm);
-    for (int i=0; i<pm.ncorners(); i++)
-        cid[i] = i;
-
-    sample_exterior(size, pm);
+    sample_exterior(size, tri);
 
 //  write_geogram_ascii("drop.geogram_ascii", pm, { {"rand", pid.ptr} }, { {"id", fid.ptr} }, {{"id", cid.ptr}});
 
@@ -117,12 +110,7 @@ int main(int argc, char** argv) {
     pm.delete_facets(to_kill);
     */
 
-    std::vector<bool> to_kill(pm.nverts(), false);
-    for (int i=0; i<pm.nverts(); i++)
-        to_kill[i] = !(rand()%8);
-    pm.delete_vertices(to_kill);
-
-//  write_geogram("drop2.geogram", pm, { {"rand", pid.ptr} }, { {"id", fid.ptr} }, {{"id", cid.ptr}});
+    write_geogram("drop2.geogram", tri, { {}, {}, {} });
 
 
     return 0;

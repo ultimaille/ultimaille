@@ -1,50 +1,41 @@
 #ifndef __RANGE_H__
 #define __RANGE_H__
 
-#include "surface.h"
+#include <tuple>
+#include <utility>
+#include <iterator>
 
-struct range {
-    const int end_;
-
-    range(const int end) : end_(end) {}
-
+constexpr auto range(int n) {
     struct iterator {
-        iterator &operator++() { ++value_; return *this; }
-        const int &operator*() const { return value_; }
-        bool operator!=(const iterator& rhs) const { return value_ != rhs.value_; }
-        int value_{};
+        int i;
+        void operator++() { ++i; }
+        bool operator!=(const iterator& rhs) const { return i != rhs.i; }
+        const int &operator*() const { return i; }
     };
-
-    iterator begin() const { return iterator{0};    }
-    iterator end()   const { return iterator{end_}; }
-};
-
-inline range facets(Surface &m) {
-    return {m.nfacets()};
+    struct wrapper {
+        int n;
+        auto begin() { return iterator{0}; }
+        auto end()   { return iterator{n}; }
+    };
+    return wrapper{n};
 }
 
-inline range corners(Surface &m) {
-    return {m.ncorners()};
-}
-
-struct facet_vertices {
-    Surface &m_;
-    const int facet_;
-    facet_vertices(Surface &m, const int facet) : m_(m), facet_(facet) {}
-
+template <typename T> constexpr auto enumerate(T && iterable) {
     struct iterator {
-        iterator &operator++() { ++value_; return *this; }
-        int &operator*() const { return m_.vert(facet_, value_); }
-        bool operator!=(const iterator& rhs) const { return value_ != rhs.value_; }
-        Surface &m_;
-        const int facet_;
-        int value_;
+        int i;
+        typedef decltype(std::begin(std::declval<T>())) iterator_type;
+        iterator_type iter;
+        bool operator!=(const iterator& rhs) const { return iter != rhs.iter; }
+        void operator++() { ++i; ++iter; }
+        auto operator*() const { return std::tie(i, *iter); }
     };
-
-    iterator begin() const { return iterator{m_, facet_, 0};    }
-    iterator end()   const { return iterator{m_, facet_, m_.facet_size(facet_)}; }
-};
-
+    struct wrapper {
+        T iterable;
+        auto begin() { return iterator{0, std::begin(iterable)}; }
+        auto end()   { return iterator{0, std::end  (iterable)}; }
+    };
+    return wrapper{std::forward<T>(iterable)};
+}
 
 #endif // __RANGE_H__
 

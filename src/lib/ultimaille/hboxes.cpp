@@ -27,7 +27,7 @@ HBoxes::HBoxes(std::vector<BBox3> const &boxes) {
 
     for (int b=0; b<nboxes; b++)
         tree[offset + b] = boxes[tree_pos_to_org[b]];
-    for (int i=offset-1; i>=0; i--) {
+    for (int i=offset; i--;) {
         for (int son = 2*i+1; son<2*i+3; son++)
             if (son < static_cast<int>(tree.size()))
                 tree[i].add(tree[son]);
