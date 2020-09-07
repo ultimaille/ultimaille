@@ -15,9 +15,9 @@ struct ConvexCell {
 
     ConvexCell(const vec2 min, const vec2 max);
 
-    void clip_by_line(vec3 eqn);
-    void export_verts(std::vector<vec2> &verts);
-    vec3 vertex(int t);
+    void clip_by_line(const vec3 eqn);
+    void export_verts(std::vector<vec2> &verts) const;
+    vec3 vertex(const int t) const;
 
     // N.B. clip[], tr[] and head suffice to compute all; vpos[], nb_v and nb_t are here for performance reasons
 

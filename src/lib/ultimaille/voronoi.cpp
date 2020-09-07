@@ -25,7 +25,7 @@ ConvexCell::ConvexCell(const vec2 min, const vec2 max) {
     head = 0;
 }
 
-void ConvexCell::clip_by_line(vec3 eqn) {
+void ConvexCell::clip_by_line(const vec3 eqn) {
     if (status!=success) return;
 
     int beg = -1; // find the portion of the polygon to cut
@@ -68,58 +68,58 @@ void ConvexCell::clip_by_line(vec3 eqn) {
     vpos[tr[beg]] = vertex(tr[beg]);
 }
 
-vec3 ConvexCell::vertex(int t) {
+vec3 ConvexCell::vertex(const int t) const {
     return cross(clip[t], clip[tr[t]]);
 }
 
-void ConvexCell::export_verts(std::vector<vec2> &verts) {
+void ConvexCell::export_verts(std::vector<vec2> &verts) const {
     verts = std::vector<vec2>(nb_t);
     int cur = head;
     int cnt = 0;
     do {
-        vec3 &p = vpos[cur];
-        verts[cnt++] = vec2(p.x/p.z, p.y/p.z);
+        const vec3 &p = vpos[cur];
+        verts[cnt++] = {p.x/p.z, p.y/p.z};
         cur = tr[cur];
     } while (cur!=head);
 }
 
-/*
-bool voronoi_cell(const KNN &knn, ConvexCell &cc, std::vector<vec2> &verts, const std::vector<vec2> &pts, const int seed, const int k) {
-    size_t iter = 0;
-    size_t k_ = k;
-    while (++iter<pts.size()) {
+bool voronoi_cell(const KNN<2> &knn, ConvexCell &cc, std::vector<vec2> &verts, const std::vector<vec2> &pts, const int seed, const int k) {
+    int npts = pts.size();
+    int iter = 0;
+    int k_ = k;
+    while (++iter<npts) { // the loop is necessary to increase number of polled neighbors until the security radius criterion is met
         ConvexCell cc_ = cc;
 
         { // actual clipping
-            std::vector<size_t> nn = knn.query(pts[seed], k_);
-            for (size_t i=1; i<k_; i++) { // clip by half-planes
+            std::vector<int> nn = knn.query(pts[seed], k_);
+            for (int i=1; i<k_; i++) { // clip by half-planes
                 vec2 B = pts[nn[i]];
                 vec2 dir = pts[seed] - B;
                 vec3 eq = vec3(dir.x, dir.y, -((pts[seed]+B)*dir)/2.);
                 cc_.clip_by_line(eq);
             }
-            if (cc_.status==success) { // export verts and check the security radius
+            if (cc_.status==ConvexCell::success) { // export verts and check the security radius
                 cc_.export_verts(verts);
-                double farthest = (pts[nn.back()] - pts[seed])*(pts[nn.back()] - pts[seed]);
+                double farthest = (pts[nn.back()] - pts[seed]).norm2();
                 double maxlen = -std::numeric_limits<double>::max();
-                for (auto const &v : verts)
-                    maxlen = std::max(maxlen, (v-pts[seed])*(v-pts[seed]));
+                for (const vec2 &v : verts)
+                    maxlen = std::max(maxlen, (v-pts[seed]).norm2());
                 if (maxlen*4>=farthest)
-                    cc_.status = security_radius_not_reached;
+                    cc_.status = ConvexCell::security_radius_not_reached;
             }
         }
 
-        if (cc_.status==success || (cc_.status==security_radius_not_reached && k_==pts.size())) {
+        if (cc_.status==ConvexCell::success || (cc_.status==ConvexCell::security_radius_not_reached && k_==npts)) {
             cc = cc_;
-            cc.status = success;
+            cc.status = ConvexCell::success;
             return true;
         }
-        if (cc_.status!=security_radius_not_reached) {
+        if (cc_.status!=ConvexCell::security_radius_not_reached) {
             cc = cc_;
             std::cerr << "Clipping error: " << cc_.status << std::endl;
             return false;
         }
-        k_ = std::min(k_*2, pts.size());
+        k_ = std::min(k_*2, npts);
 //      std::cerr << "K: " << k_ << std::endl;
     }
     std::cerr << "Clipping error, normally this part of code should not be reachable" << std::endl;
@@ -137,16 +137,16 @@ void voronoi_diagram(const std::vector<vec2> &seeds, Mesh &voronoi, double coloc
 
     KNN knn(seeds);
 #pragma omp parallel for
-    for (size_t i=0; i<seeds.size(); i++) {
+    for (int i=0; i<seeds.size(); i++) {
         ConvexCell cc(min, max);
         bool res = voronoi_cell(knn, cc, vorverts[i], seeds, i, 16);
         assert(res);
     }
     for (auto const &verts : vorverts) {
-        size_t nverts = verts.size();
-        size_t off_v = voronoi.create_vertices(nverts);
-        size_t off_f = voronoi.create_facets(1, nverts);
-        for (size_t j=0; j<nverts; j++) {
+        int nverts = verts.size();
+        int off_v = voronoi.create_vertices(nverts);
+        int off_f = voronoi.create_facets(1, nverts);
+        for (int j=0; j<nverts; j++) {
             voronoi.point(off_v+j) = verts[j];
             voronoi.vert(off_f, j) = off_v+j;
         }

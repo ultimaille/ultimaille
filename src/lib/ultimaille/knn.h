@@ -8,7 +8,7 @@
 #include <vector>
 #include "geometry.h"
 
-template<int D> struct KNN {
+template<int D> struct KNN { // do not try anything but D=2 or D=3
     const std::vector<vec<D>> &pts;
     const int n;
     std::vector<int> tree;

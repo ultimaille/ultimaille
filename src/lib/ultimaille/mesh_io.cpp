@@ -42,6 +42,7 @@ void read_wavefront_obj(const std::string filename, Polygons &m) {
             }
         }
     }
+    in.close();
     std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;
 }
 
