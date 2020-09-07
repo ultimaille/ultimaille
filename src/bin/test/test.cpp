@@ -132,7 +132,6 @@ int main(int argc, char** argv) {
     Polygons pm;
     SurfaceAttributes attributes = read_geogram(argv[1], pm);
 
-/*
 
     Triangles tri;
     pm.extract_triangles(tri);
@@ -145,14 +144,14 @@ int main(int argc, char** argv) {
 
 //  PointAttribute<int> prand("rand", attributes, tri);
 //  FacetAttribute<int> fid("id", attributes, tri);
-//  CornerAttribute<int> cid("id", attributes, tri);
+  CornerAttribute<int> cid("id", attributes, tri);
 
     FacetAttribute<int> nonex("nonexisting", attributes, tri);
     for (int i=0; i<pm.nfacets(); i++)
         nonex[i] = rand()%1980;
 
 
-*/
+
 //  for (int f : facets(pm))
 //      for (int &v : facet_vertices(pm, f))
 //          v = rand()%999;
@@ -165,6 +164,7 @@ int main(int argc, char** argv) {
 */
     write_geogram("read_test.geogram", pm, attributes);
 
+/*
     std::vector<int> one{{111, 1, 11}};
     const std::list<float> three{{333, 3, 33}};
     std::vector<int> four{{444, 4, 44, -11111}};
@@ -179,14 +179,17 @@ int main(int argc, char** argv) {
     }
     */
 
+/*
     for (auto [v1, v2, v3]: Zip(one, three, four)) std::cout << v1++ << " " << v2  << " " << v3++ << std::endl;
     std::cout << std::endl;
-
+*/
 //  auto zip = Zip(one, three, four);
 //    std::sort(zip.begin(), zip.end());
 
+/*
     for (auto [v1, v2, v3]: Zip(one, three, four)) std::cout << v1 << " " << v2 << " " << v3 << std::endl;
     std::cout << std::endl;
+    */
 
 
     return 0;
