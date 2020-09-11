@@ -26,6 +26,12 @@ template<int n> vec<n> operator+(const vec<n>& lhs, const vec<n>& rhs) {
     return ret;
 }
 
+template<int n> vec<n>& operator+=(vec<n>& a, const vec<n>& b) {
+    for (int i=n; i--; a[i]+=b[i]);
+    return a;
+}
+
+
 template<int n> vec<n> operator-(const vec<n>& lhs, const vec<n>& rhs) {
     vec<n> ret = lhs;
     for (int i=n; i--; ret[i]-=rhs[i]);
@@ -88,7 +94,7 @@ template<> struct vec<3> {
 template<int n> struct dt;
 
 template<int nrows,int ncols> struct mat {
-    vec<ncols> rows[nrows] = {0};
+    vec<ncols> rows[nrows] = {};
 
     mat() = default;
           vec<ncols>& operator[] (const int idx)       { assert(idx>=0 && idx<nrows); return rows[idx]; }
@@ -148,6 +154,14 @@ template<int nrows,int ncols> struct mat {
         mat<ncols,nrows> ret;
         for (int i=ncols; i--; ret[i]=this->col(i));
         return ret;
+    }
+
+    double norm() {
+        double n = 0.;
+        for (int i=0; i<nrows; i++)
+            for (int j=0; j<ncols; j++)
+                n += rows[i][j]*rows[i][j];
+        return std::sqrt(n);
     }
 };
 
