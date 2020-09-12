@@ -164,6 +164,22 @@ namespace {
             addData(static_cast<void const *>(data.data()), sizeof(T)*data.size());
         }
 
+        void addAttribute(std::string const &wh, std::string const &name, std::vector<vec2> const &data) {
+            addHeader("ATTR");
+            addU64((4+wh.length())+(4+name.length())+(4+6)+4+4+sizeof(double)*2*data.size());
+            addString(wh);
+            addString(name);
+            addString("double");
+            addU32(8);
+            addU32(2);
+            std::vector<double> values;
+            for (const auto &p : data) {
+                values.push_back(p.x);
+                values.push_back(p.y);
+            }
+            addData(static_cast<void const *>(values.data()), sizeof(double)*values.size());
+        }
+
         void addAttribute(std::string const &wh, std::string const &name, std::vector<vec3> const &data) {
             addHeader("ATTR");
             addU64((4+wh.length())+(4+name.length())+(4+6)+4+4+sizeof(double)*3*data.size());
@@ -263,6 +279,10 @@ void write_geogram(const std::string filename, const Surface &m, SurfaceAttribut
                     writer.addAttribute(place, name, "int", aint->data);
                 } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
                     writer.addAttribute(place, name, "double", adouble->data);
+                } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
+                    writer.addAttribute(place, name, avec2->data);
+                } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
+                    writer.addAttribute(place, name, avec3->data);
                 } else {
                     //      std::cerr << place << std::endl;
                     //        TODO : ignore adjacency
