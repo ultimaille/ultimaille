@@ -494,10 +494,31 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                         in.read_attribute(ptr, size);
                         P = A.ptr;
                     } else if (element_type=="double") {
-                        GenericAttribute<double> A(nb_items);
-                        void *ptr = std::dynamic_pointer_cast<AttributeContainer<double> >(A.ptr)->data.data();
-                        in.read_attribute(ptr, size);
-                        P = A.ptr;
+                        assert(element_size==8);
+                        std::vector<double> raw(nb_items*dimension);
+                        in.read_attribute((void *)raw.data(), size);
+
+                        if (1==dimension) {
+                            GenericAttribute<double> A(nb_items);
+                            for (int i=0; i<nb_items; i++)
+                                A[i] = raw[i];
+                            P = A.ptr;
+                        } if (2==dimension) {
+                            GenericAttribute<vec2> A(nb_items);
+                            for (int i=0; i<nb_items; i++)
+                                    A[i] = {raw[i*2+0], raw[i*2+1]};
+                             P = A.ptr;
+                       } if (3==dimension) {
+                            GenericAttribute<vec3> A(nb_items);
+                            for (int i=0; i<nb_items; i++)
+                                    A[i] = {raw[i*3+0], raw[i*3+1], raw[i*3+2]};
+                             P = A.ptr;
+                       }
+
+//                      GenericAttribute<double> A(nb_items);
+//                      void *ptr = std::dynamic_pointer_cast<AttributeContainer<double> >(A.ptr)->data.data();
+//                      in.read_attribute(ptr, size);
+//                      P = A.ptr;
                     }
 
                     if (attribute_set_name == "GEO::Mesh::vertices") {
