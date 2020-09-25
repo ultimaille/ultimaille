@@ -453,6 +453,7 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                     m.points.resize(nb_items);
                 } else if (attribute_set_name == "GEO::Mesh::facets") {
                     m.offset.resize(nb_items+1);
+                    for (index_t o=0; o<nb_items+1; o++) m.offset[o] = 3*o;
                 } else if (attribute_set_name == "GEO::Mesh::facet_corners") {
                     m.facets.resize(nb_items);
                 }
@@ -465,6 +466,8 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                     nb_items = m.offset.size()-1;
                 } else if (attribute_set_name == "GEO::Mesh::facet_corners") {
                     nb_items = m.facets.size();
+                } else {
+                    continue;
                 }
                 assert(nb_items>0);
 
@@ -486,6 +489,7 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                     in.read_attribute((void *)m.offset.data(), size);
                 } else if (attribute_set_name == "GEO::Mesh::facet_corners" && attribute_name == "GEO::Mesh::facet_corners::corner_vertex") {
                     in.read_attribute((void *)m.facets.data(), size);
+                    std::cerr << "size " << size <<std::endl; 
                 } else if (attribute_name!="GEO::Mesh::facet_corners::corner_adjacent_facet") {
                     std::shared_ptr<GenericAttributeContainer> P;
                     if (element_type=="int" || element_type=="signed_index_t") {
@@ -494,18 +498,42 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                         in.read_attribute(ptr, size);
                         P = A.ptr;
                     } else if (element_type=="double") {
-                        GenericAttribute<double> A(nb_items);
-                        void *ptr = std::dynamic_pointer_cast<AttributeContainer<double> >(A.ptr)->data.data();
-                        in.read_attribute(ptr, size);
-                        P = A.ptr;
+                        assert(element_size==8);
+                        std::vector<double> raw(nb_items*dimension);
+                        in.read_attribute((void *)raw.data(), size);
+
+                        if (1==dimension) {
+                            GenericAttribute<double> A(nb_items);
+                            for (int i=0; i<nb_items; i++)
+                                A[i] = raw[i];
+                            P = A.ptr;
+                        } if (2==dimension) {
+                            GenericAttribute<vec2> A(nb_items);
+                            for (int i=0; i<nb_items; i++)
+                                    A[i] = {raw[i*2+0], raw[i*2+1]};
+                             P = A.ptr;
+                       } if (3==dimension) {
+                            GenericAttribute<vec3> A(nb_items);
+                            for (int i=0; i<nb_items; i++)
+                                    A[i] = {raw[i*3+0], raw[i*3+1], raw[i*3+2]};
+                             P = A.ptr;
+                       }
+
+//                      GenericAttribute<double> A(nb_items);
+//                      void *ptr = std::dynamic_pointer_cast<AttributeContainer<double> >(A.ptr)->data.data();
+//                      in.read_attribute(ptr, size);
+//                      P = A.ptr;
                     }
 
                     if (attribute_set_name == "GEO::Mesh::vertices") {
                         pattr.emplace_back(attribute_name, P);
+                        m.points.attr.emplace_back(P);
                     } else if (attribute_set_name == "GEO::Mesh::facets") {
                         fattr.emplace_back(attribute_name, P);
+                        m.attr_facets.emplace_back(P);
                     } else if (attribute_set_name == "GEO::Mesh::facet_corners") {
                         cattr.emplace_back(attribute_name, P);
+                        m.attr_corners.emplace_back(P);
                     }
                 }
             } // chunk_class = ATTR

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <queue>
 #include <cstdlib>
 #include "ultimaille/mesh_io.h"
 #include "ultimaille/surface.h"
@@ -6,8 +7,6 @@
 #include "ultimaille/range.h"
 
 #include <OpenNL_psm/OpenNL_psm.h>
-
-#define STAR_LOOP(c, v, fec) for (int c=fec.v2c[v], __FLAG__=1; c!=fec.v2c[v] || __FLAG__; c=fec.c2c[c], __FLAG__=0)
 
 double average_edge_length(const Surface &m) {
     double sum = 0;
@@ -23,12 +22,7 @@ double average_edge_length(const Surface &m) {
     return sum/nb;
 }
 
-void compute_frame_field(const Triangles &m, const SurfaceConnectivity &fec,
-        PointAttribute<double> &theta,
-        FacetAttribute<int> &ffsing,
-        PointAttribute<mat<2,2>> &Bi,
-        CornerAttribute<mat<2,2>> &Rij,
-        CornerAttribute<int> &debugRij) {
+bool compute_frame_field_wsing(const Triangles &m, const SurfaceConnectivity &fec, PointAttribute<double> &theta, PointAttribute<mat<2,2>> &Bi) {
     { // compute the frame field at the boundary
         for (int vi : range(m.nverts())) {
             if (!fec.is_border_vert(vi)) continue;
@@ -109,11 +103,13 @@ void compute_frame_field(const Triangles &m, const SurfaceConnectivity &fec,
             nlSolve();
 
             for (int vi : range(m.nverts()))
-                theta[vi] = atan2(nlGetVariable(2*vi+1), nlGetVariable(2*vi))/4  + M_PI/2 * (m.points[vi].x>5);// + (rand()%4)*M_PI/2.;
+                theta[vi] = atan2(nlGetVariable(2*vi+1), nlGetVariable(2*vi))/4;//  + M_PI/2 * (m.points[vi].x>5);// + (rand()%4)*M_PI/2.;
 
             nlDeleteContext(nlGetCurrent());
         }
     }
+
+    std::vector<mat<2,2>> Rij(m.ncorners());
 
     for (int vi : range(m.nverts()))
         Bi[vi] = {{ {cos(theta[vi]), cos(M_PI/2+theta[vi])}, {sin(theta[vi]), sin(M_PI/2+theta[vi])} }};
@@ -131,12 +127,10 @@ void compute_frame_field(const Triangles &m, const SurfaceConnectivity &fec,
             if (norm<best_norm) {
                 best_norm = norm;
                 Rij[c] = curr;
-                debugRij[c] = k+1;
             }
         }
         if (opp>=0) {
             Rij[opp] = Rij[c].transpose();
-            debugRij[opp] = (4-debugRij[c])%4;
         }
     }
 
@@ -144,8 +138,119 @@ void compute_frame_field(const Triangles &m, const SurfaceConnectivity &fec,
         mat<2,2> R = mat<2,2>::identity();
         for (int lci : range(3))
             R = Rij[m.facet_corner(fi, lci)]*R;
-        ffsing[fi] = ((R-mat<2,2>::identity()).norm()>1e-10);
+        if (((R-mat<2,2>::identity()).norm()>1e-10)) return false;
     }
+
+    std::vector<bool> visited(m.nverts());
+    std::queue<int> q;
+    q.push(0);
+    visited[0] = true;
+
+    while (!q.empty()) {
+        int i = q.front();
+        q.pop();
+//        if (visited[i]) continue;
+
+        int c = fec.v2c[i];
+        do {
+            int j = fec.to(c);
+            if (!visited[j]) {
+                visited[j] = true;
+                q.push(j);
+                while (theta[j] - theta[i]> M_PI/4) theta[j] -= M_PI/2;
+                while (theta[j] - theta[i]<-M_PI/4) theta[j] += M_PI/2;
+            }
+            c = fec.c2c[c];
+        } while (c != fec.v2c[i]);
+
+    }
+    for (int vi : range(m.nverts()))
+        Bi[vi] = {{ {cos(theta[vi]), cos(M_PI/2+theta[vi])}, {sin(theta[vi]), sin(M_PI/2+theta[vi])} }};
+    return true;
+}
+
+
+void compute_frame_field(const Triangles &m, const SurfaceConnectivity &fec, PointAttribute<double> &theta, PointAttribute<mat<2,2>> &Bi) {
+    std::cerr << "Computing the ff constraints...";
+    { // compute the frame field at the boundary
+        for (int vi : range(m.nverts())) {
+            if (!fec.is_border_vert(vi)) continue;
+            vec2 n = {0,0};
+
+            int ci = fec.v2c[vi];
+            do {
+                if (fec.opposite(ci)<0) {
+                    vec3 edge = m.points[fec.to(ci)] - m.points[fec.from(ci)];
+                    vec2 rote = {edge.y, -edge.x};
+                    if (n.norm2()<1e-10) {
+                        n = rote;
+                    } else {
+                        double dist = -1;
+                        vec2 best = rote;
+                        for (int i=0; i<4; i++) {
+                            double tdist = (rote-n).norm2();
+                            if (dist<0 || tdist<dist) {
+                                dist = tdist;
+                                best = rote;
+                            }
+                            rote = {rote.y, -rote.x};
+                        }
+                        n += best;
+                    }
+                }
+                ci = fec.c2c[ci];
+            } while (ci != fec.v2c[vi]);
+
+            double angle = atan2(n.y, n.x);
+
+            if      (angle> (M_PI*3)/4) angle -= M_PI;
+            else if (angle<-(M_PI*3)/4) angle += M_PI;
+            else if (angle>M_PI/4)      angle -= M_PI/2;
+            else if (angle<-M_PI/4)     angle += M_PI/2;
+
+            theta[vi] = angle;
+        }
+    }
+    std::cerr << "ok\n";
+
+    std::cerr << "Interpolating the ff...";
+    { // interpolate the frame field
+        nlNewContext();
+        nlSolverParameteri(NL_NB_VARIABLES, m.nverts());
+        nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
+        nlBegin(NL_SYSTEM);
+        nlBegin(NL_MATRIX);
+
+        for (int c : range(m.ncorners())) {
+            if (fec.opposite(c)>=0 && fec.from(c)>fec.to(c)) continue;
+            nlBegin(NL_ROW);
+            nlCoefficient(fec.to(c)  ,  1);
+            nlCoefficient(fec.from(c), -1);
+            nlEnd(NL_ROW);
+        }
+
+        for (int v : range(m.nverts())) {
+            if (!fec.is_border_vert(v)) continue;
+            nlRowScaling(100);
+            nlBegin(NL_ROW);
+            nlCoefficient(v,  1);
+            nlRightHandSide(theta[v]);
+            nlEnd(NL_ROW);
+        }
+
+        nlEnd(NL_MATRIX);
+        nlEnd(NL_SYSTEM);
+        nlSolve();
+
+        for (int v : range(m.nverts()))
+            theta[v] = nlGetVariable(v);
+
+        nlDeleteContext(nlGetCurrent());
+    }
+    std::cerr << "ok\n";
+
+    for (int vi : range(m.nverts()))
+        Bi[vi] = {{ {cos(theta[vi]), cos(M_PI/2+theta[vi])}, {sin(theta[vi]), sin(M_PI/2+theta[vi])} }};
 }
 
 int main(int argc, char** argv) {
@@ -165,55 +270,40 @@ int main(int argc, char** argv) {
         // TODO assert manifoldity
     }
 
+
     PointAttribute<double> theta(m.points);
-    FacetAttribute<int> ffsing(m);
     PointAttribute<mat<2,2>> Bi(m.points);
-    CornerAttribute<mat<2,2>> Rij(m);
-    CornerAttribute<int> debugRij(m);
+    FacetAttribute<int> ffsing(m);
 
+    std::cerr << "Computing fec...";
     SurfaceConnectivity fec(m);
+    std::cerr << "ok\n";
+//  PointAttribute<vec2> A(m.points);
+//  for (int v : range(m.nverts())) {
+//      A[v].x = 1 + (10-m.points[v].y);
+//      A[v].y = 1 + (10-m.points[v].x);
+//  }
 
-    compute_frame_field(m, fec, theta, ffsing, Bi, Rij, debugRij);
+    bool ret = compute_frame_field_wsing(m, fec, theta, Bi);
+    if (!ret) 
+    compute_frame_field(m, fec, theta, Bi);
+
+    write_geogram("pgp.geogram", m, { {{"theta", theta.ptr}}, {}, {} });
+
 
     CornerAttribute<vec2> gij(m);
     for (int c : range(m.ncorners())) {
-        int i=fec.from(c), j=fec.to(c);//, opp=fec.opposite(c);
-//        if (opp>=0 && i>j) continue;
+        int i=fec.from(c), j=fec.to(c);
         vec3 edge = m.points[j] - m.points[i];
-        gij[c] = ((Bi[i] + Rij[c]*Bi[j])/2).transpose()*vec2(edge.x, edge.y);
-//        if (opp>=0) gij[opp] = -(Bi[j].transpose()*Bi[i]*gij[c]);
-
-//        if (opp>=0) gij[opp] = Rij[c]*(-gij[c]); // TODO WTF?
+        gij[c] = ((Bi[i].transpose() + Bi[j].transpose())/2)*vec2(edge.x, edge.y);
+//          gij[c].x *= A[fec.from(c)].x;
+//          gij[c].y *= A[fec.from(c)].y;
     }
-
-
-
-    PointAttribute<int> debugBi(m.points);
-    CornerAttribute<int> lci(m);
-    for (int f : range(m.nfacets()))
-        for (int i : range(3))
-            lci[m.facet_corner(f, i)] = i;
-
-
-    const mat<2,2> R90 = {{ {0,-1}, {1,0} }};
-    for (int v : range(m.nverts())) {
-        mat<2,2> curr = mat<2,2>::identity();
-        double best_norm = (Bi[v] - curr).norm();
-        for (int k=0; k<3; k++) {
-            curr = R90*curr;
-            double norm = (Bi[v] - curr).norm();  // TODO why?? it DOES correspond to the definiton in section 2.2 from the PGP3D paper, but i do not understand it
-            if (norm<best_norm) {
-                best_norm = norm;
-                debugBi[v] = k+1;
-            }
-        }
-    }
-
 
     CornerAttribute<vec2> cij(m);
 
-/*
-    { // curl correction step
+    if (1) { // compute curl correction
+        std::cerr << "Computing the curl correction...";
         nlNewContext();
         nlSolverParameteri(NL_NB_VARIABLES, 2*m.ncorners());
         nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
@@ -222,6 +312,8 @@ int main(int argc, char** argv) {
 
         for (int c : range(m.ncorners())) {
             int i = fec.from(c), j = fec.to(c);
+            mat<2,2> Rij_ = mat<2,2>::identity();
+
             for (int d : range(2)) { // min \sum_{ij} ||c_{ij}||^2
                 nlRowScaling(.1);
                 nlBegin(NL_ROW);
@@ -235,8 +327,8 @@ int main(int argc, char** argv) {
                     nlRowScaling(100);
                     nlBegin(NL_ROW);
                     nlCoefficient(2*c+d, 1);
-                    nlCoefficient(2*opp+0, Rij[c][d][0]);
-                    nlCoefficient(2*opp+1, Rij[c][d][1]);
+                    nlCoefficient(2*opp+0, Rij_[d][0]);
+                    nlCoefficient(2*opp+1, Rij_[d][1]);
                     nlEnd(NL_ROW);
                 }
             } else {
@@ -259,8 +351,8 @@ int main(int argc, char** argv) {
             int hij = m.facet_corner(f, 0);
             int hjk = m.facet_corner(f, 1);
             int hki = m.facet_corner(f, 2);
-            mat<2,2> Rij_ = Rij[hij];
-            mat<2,2> Rik_ = Rij[hki].transpose();
+            mat<2,2> Rij_ = mat<2,2>::identity();
+            mat<2,2> Rik_ = mat<2,2>::identity();
 
             vec2 gij_ = gij[hij];
             vec2 gjk_ = gij[hjk];
@@ -281,145 +373,130 @@ int main(int argc, char** argv) {
 
         nlEnd(NL_MATRIX);
         nlEnd(NL_SYSTEM);
+        std::cerr << "solving...";
         nlSolve();
 
         for (int c : range(m.ncorners())) {
             cij[c] = vec2{nlGetVariable(2*c+0), nlGetVariable(2*c+1)};
-            cij[c] = std::min(1., .35*gij[c].norm()/cij[c].norm())*cij[c];
+//            cij[c] = std::min(1., .35*gij[c].norm()/cij[c].norm())*cij[c];
         }
         nlDeleteContext(nlGetCurrent());
+        std::cerr << "ok\n";
     }
-*/
+
+    { // apply curl correction
+        double av_length = average_edge_length(m);
+        std::cerr << "average edge length is " << av_length << std::endl;
+        const double scale = 0.3/av_length;
+
+        for (int c : range(m.ncorners())) {
+            gij[c] = scale*(gij[c]+cij[c]);
+//          gij[c].x *= A[fec.from(c)].x;
+//          gij[c].y *= A[fec.from(c)].y;
+        }
+    }
 
     CornerAttribute<vec2> uti(m);
     PointAttribute<vec2> ui(m.points);
 
     { // PGP
-        double av_length = average_edge_length(m);
-        std::cerr << "average edge length is " << av_length << std::endl;
-        const double scale = 0.4/av_length;
-        nlNewContext();
-        nlSolverParameteri(NL_NB_VARIABLES, 4*m.nverts());
-        nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
-        nlBegin(NL_SYSTEM);
+        for (int iter : range(3)) {
 
-        for (int c : range(m.ncorners())) {
-            if (fec.opposite(c)>=0) continue;
+            nlNewContext();
+            nlSolverParameteri(NL_NB_VARIABLES, 4*m.nverts());
+            nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
+            nlBegin(NL_SYSTEM);
 
-            int i = fec.from(c), j = fec.to(c);
-            vec3 edge = m.points[j] - m.points[i];
-            vec2 n = {edge.y, -edge.x};
+            for (int c : range(m.ncorners())) {
+                if (fec.opposite(c)>=0) continue;
 
-            if (std::abs(Bi[i].col(0)*n) > std::abs(Bi[i].col(1)*n)) { // TODO both constraints on corners
-                nlSetVariable(4*i+0, 1); // u is integer
-                nlSetVariable(4*i+1, 0);
-                nlLockVariable(4*i+0);
-                nlLockVariable(4*i+1);
-            } else {
-                nlSetVariable(4*i+2, 1); // v is integer
-                nlSetVariable(4*i+3, 0);
-                nlLockVariable(4*i+2);
-                nlLockVariable(4*i+3);
+                int i = fec.from(c), j = fec.to(c);
+                vec3 edge = m.points[j] - m.points[i];
+                vec2 n = {edge.y, -edge.x};
+
+                int offset_i = std::abs(Bi[i].col(0)*n) > std::abs(Bi[i].col(1)*n) ? 4*i : 4*i+2;
+                int offset_j = std::abs(Bi[j].col(0)*n) > std::abs(Bi[j].col(1)*n) ? 4*j : 4*j+2;
+
+                nlSetVariable(offset_i+0, 1); // integer constraint
+                nlSetVariable(offset_i+1, 0);
+                nlLockVariable(offset_i+0);
+                nlLockVariable(offset_i+1);
+
+                nlSetVariable(offset_j+0, 1); // integer constraint
+                nlSetVariable(offset_j+1, 0);
+                nlLockVariable(offset_j+0);
+                nlLockVariable(offset_j+1);
             }
-        }
 
-        nlBegin(NL_MATRIX);
+            nlBegin(NL_MATRIX);
 
-        for (int c : range(m.ncorners())) {
-            int i = fec.from(c), j = fec.to(c);
-
-            vec2 gij_ = scale*(gij[c] + cij[c]);
-            mat<2,2> &Rij_ = Rij[c];
-
-            for (int d : range(2)) {
-                assert(Rij_[d][0] == 0 || Rij_[d][1]==0);
-                double rdij = (Rij_[d][0] ? 0 : 1);
-                double sdij = Rij_[d][0] + Rij_[d][1];
-
-                nlBegin(NL_ROW);
-                nlCoefficient(4*i+d*2+0,  cos(2.*M_PI*gij_[d]));
-                nlCoefficient(4*i+d*2+1, -sin(2.*M_PI*gij_[d]));
-                nlCoefficient(4*j+2*rdij, -1);
-                nlEnd(NL_ROW);
-
-                nlBegin(NL_ROW);
-                nlCoefficient(4*i+d*2+1, cos(2.*M_PI*gij_[d]));
-                nlCoefficient(4*i+d*2+0, sin(2.*M_PI*gij_[d]));
-                nlCoefficient(4*j+2*rdij+1, -sdij);
-                nlEnd(NL_ROW);
-            }
-        }
-        nlEnd(NL_MATRIX);
-        nlEnd(NL_SYSTEM);
-        nlSolve();
-
-        for (int i : range(m.nverts())) {
-            ui[i][0] = atan2(nlGetVariable(4*i+1), nlGetVariable(4*i+0))/(2.*M_PI);
-            ui[i][1] = atan2(nlGetVariable(4*i+3), nlGetVariable(4*i+2))/(2.*M_PI);
-        }
-
-        for (int hi : range(m.ncorners())) // transfer tex coords from verts to corners
-            uti[hi] = ui[fec.from(hi)];
-
-        for (int i : range(3)) {
-            std::cerr << "gij: " << scale*gij[m.facet_corner(1,i)] << std::endl << std::endl;
-        }
-
-        for (int i : range(3)) {
-            std::cerr << "Rij: " << Rij[m.facet_corner(1,i)] << std::endl << std::endl;
-        }
-
-        for (int i : range(3)) {
-            std::cerr << "Bi: " << Bi[m.vert(1,i)] << " ui: " << ui[m.vert(1,i)] << std::endl << std::endl;
-        }
-
-        for (int f : range(m.nfacets())) {
-        if (f!=1) continue;
-            int hij = m.facet_corner(f, 0);
-            int hjk = m.facet_corner(f, 1);
-            int hki = m.facet_corner(f, 2);
-            mat<2,2> Rij_ = Rij[hij];
-            mat<2,2> Rik_ = Rij[hij]*Rij[hjk];
-
-            uti[hjk] = Rij_*uti[hjk];
-            uti[hki] = Rik_*uti[hki];
-
-              std::cerr << "uti: " <<uti[hij] <<  uti[hjk] << " " << uti[hki] << std::endl;
-
-            vec2 gij_ = gij[hij];
-            vec2 gik_ = gij[hij] + (Rij_*gij[hjk]);
-
-              std::cerr << gij_ << " " << gik_ << std::endl;
-              continue;
+            if (iter) for (int vi : range(m.nverts())) {
                 for (int d : range(2)) {
-                    while (uti[hij][d] + gij_[d] - uti[hjk][d] >  .5) uti[hjk][d] += 1;
-                    while (uti[hij][d] + gij_[d] - uti[hjk][d] < -.5) uti[hjk][d] -= 1;
-                    while (uti[hij][d] + gik_[d] - uti[hki][d] >  .5) uti[hki][d] += 1;
-                    while (uti[hij][d] + gik_[d] - uti[hki][d] < -.5) uti[hki][d] -= 1;
+                    nlRowScaling(.05*iter);
+                    nlBegin(NL_ROW);
+                    nlCoefficient(4*vi+2*d + 0,  1);
+                    nlRightHandSide(cos(2.*M_PI*ui[vi][d]));
+                    nlEnd(NL_ROW);
+                    nlRowScaling(.05*iter);
+                    nlBegin(NL_ROW);
+                    nlCoefficient(4*vi+2*d + 1,  1);
+                    nlRightHandSide(sin(2.*M_PI*ui[vi][d]));
+                    nlEnd(NL_ROW);
                 }
 
-         /*
-            mat<2,2> R = mat<2,2>::identity();
-            for (int e : range(2)) {
-                int ci = m.facet_corner(f, e);
-                int cj = m.facet_corner(f, e+1);
-                vec2 gij_ =  scale*(R*(gij[ci] + cij[ci]));
-              R = Rij[ci]*R;
-              uti[cj] = R*uti[cj];
-//              std::cerr << R << "\n\n";
+            }
 
+
+            for (int c : range(m.ncorners())) {
+                int i = fec.from(c), j = fec.to(c);
+
+                mat<2,2> Rij_ = mat<2,2>::identity();
 
                 for (int d : range(2)) {
-                    while (uti[ci][d] + gij_[d] - uti[cj][d] >  .5) uti[cj][d] += 1;
-                    while (uti[ci][d] + gij_[d] - uti[cj][d] < -.5) uti[cj][d] -= 1;
+                    assert(Rij_[d][0] == 0 || Rij_[d][1]==0);
+                    double rdij = (Rij_[d][0] ? 0 : 1);
+                    double sdij = Rij_[d][0] + Rij_[d][1];
+
+                    nlBegin(NL_ROW);
+                    nlCoefficient(4*i+d*2+0,  cos(2.*M_PI*gij[c][d]));
+                    nlCoefficient(4*i+d*2+1, -sin(2.*M_PI*gij[c][d]));
+                    nlCoefficient(4*j+2*rdij, -1);
+                    nlEnd(NL_ROW);
+
+                    nlBegin(NL_ROW);
+                    nlCoefficient(4*i+d*2+1, cos(2.*M_PI*gij[c][d]));
+                    nlCoefficient(4*i+d*2+0, sin(2.*M_PI*gij[c][d]));
+                    nlCoefficient(4*j+2*rdij+1, -sdij);
+                    nlEnd(NL_ROW);
                 }
             }
-            */
-        }
+            nlEnd(NL_MATRIX);
+            nlEnd(NL_SYSTEM);
+            nlSolve();
 
-        nlDeleteContext(nlGetCurrent());
+            for (int i : range(m.nverts())) {
+                ui[i][0] = atan2(nlGetVariable(4*i+1), nlGetVariable(4*i+0))/(2.*M_PI);
+                ui[i][1] = atan2(nlGetVariable(4*i+3), nlGetVariable(4*i+2))/(2.*M_PI);
+            }
+
+            for (int hi : range(m.ncorners())) // transfer tex coords from verts to corners
+                uti[hi] = ui[fec.from(hi)];
+
+            for (int f : range(m.nfacets())) {
+                for (int e : range(2)) {
+                    int ci = m.facet_corner(f, e);
+                    int cj = m.facet_corner(f, e+1);
+                    for (int d : range(2)) {
+                        while (uti[ci][d] + gij[ci][d] - uti[cj][d] >  .5) uti[cj][d] += 1;
+                        while (uti[ci][d] + gij[ci][d] - uti[cj][d] < -.5) uti[cj][d] -= 1;
+                    }
+                }
+            }
+
+            nlDeleteContext(nlGetCurrent());
+        }
     }
-    write_geogram("pgp.geogram", m, { {{"theta", theta.ptr}, {"debugBi", debugBi.ptr}, {"ui", ui.ptr}}, {{"ffsing", ffsing.ptr}}, {{"uti", uti.ptr},{"debugRij", debugRij.ptr},{"lci", lci.ptr}} });
+    write_geogram("pgp.geogram", m, { {{"theta", theta.ptr}, {"ui", ui.ptr}}, {}, {{"uti", uti.ptr}} });
 
     return 0;
 }

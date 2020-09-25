@@ -22,14 +22,15 @@ struct DisjointSet {
 
     // connect a node and its parents to the root and return the root
     int root(const int i) {
+        int i_ = i;
         // find the root
-        int rootId = m_ids[i];
+        int rootId = m_ids[i_];
         while (rootId!=m_ids[rootId]) rootId = m_ids[rootId];
         // connect all the path to root
-        while (i!=rootId) {
-            int newI = m_ids[i];
-            m_ids[i] = rootId;
-            i = newI;
+        while (i_!=rootId) {
+            int newI = m_ids[i_];
+            m_ids[i_] = rootId;
+            i_ = newI;
         }
         return rootId;
     }
@@ -47,7 +48,7 @@ struct DisjointSet {
     // return the number of sets
     int nsets() {
         int num = 0;
-        for (int i=0; i<m_ids.size(); i++) {
+        for (int i=0; i<(int)m_ids.size(); i++) {
             if (i == root(i)) ++num; // count the different roots
         }
         return num;
@@ -58,14 +59,14 @@ struct DisjointSet {
         // prepare the correspondance root Id => setId
         id2setid.resize(m_ids.size());
         int nsets = 0;
-        for (int i=0; i<m_ids.size(); i++) {
+        for (int i=0; i<(int)m_ids.size(); i++) {
             if (i == root(i)) {
                 id2setid[i] = nsets;
                 nsets++;
             }
         }
         // fill the other set Ids
-        for (int i=0; i<m_ids.size(); i++)
+        for (int i=0; i<(int)m_ids.size(); i++)
             id2setid[i] = id2setid[m_ids[i]];
         return nsets;
     }
