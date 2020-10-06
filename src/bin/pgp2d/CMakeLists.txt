@@ -6,6 +6,9 @@ target_link_libraries(pgp2d m ${CMAKE_DL_LIBS} ultimaille OpenNL_psm)
 add_executable(pgp2d-no-singu pgp2d-no-singu.cpp)
 target_link_libraries(pgp2d-no-singu m ${CMAKE_DL_LIBS} ultimaille OpenNL_psm)
 
+add_executable(pgp2d-corners pgp2d-corners.cpp)
+target_link_libraries(pgp2d-corners m ${CMAKE_DL_LIBS} ultimaille OpenNL_psm)
+
 add_executable(cut cut.cpp)
 target_link_libraries(cut m ${CMAKE_DL_LIBS} ultimaille OpenNL_psm)
 

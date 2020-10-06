@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstdlib>
-#include "ultimaille/disjointset.h"
 #include "ultimaille/mesh_io.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/attributes.h"
