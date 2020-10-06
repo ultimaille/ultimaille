@@ -112,7 +112,7 @@ struct DisjointSetWithSign : DisjointSet {
 
         // connect all the path to root
         int i_ = i;
-        while (i!=root_id) {
+        while (i_!=root_id) {
             int new_i = m_ids[i_];
             m_ids[i_] = root_id;
             bool new_same_sign = (same_sign_with_root==m_same_sign[i_]);
