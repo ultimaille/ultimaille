@@ -453,6 +453,7 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                     m.points.resize(nb_items);
                 } else if (attribute_set_name == "GEO::Mesh::facets") {
                     m.offset.resize(nb_items+1);
+                    for (index_t o=0; o<nb_items+1; o++) m.offset[o] = 3*o;
                 } else if (attribute_set_name == "GEO::Mesh::facet_corners") {
                     m.facets.resize(nb_items);
                 }
@@ -465,6 +466,8 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                     nb_items = m.offset.size()-1;
                 } else if (attribute_set_name == "GEO::Mesh::facet_corners") {
                     nb_items = m.facets.size();
+                } else {
+                    continue;
                 }
                 assert(nb_items>0);
 
@@ -486,6 +489,7 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
                     in.read_attribute((void *)m.offset.data(), size);
                 } else if (attribute_set_name == "GEO::Mesh::facet_corners" && attribute_name == "GEO::Mesh::facet_corners::corner_vertex") {
                     in.read_attribute((void *)m.facets.data(), size);
+                    std::cerr << "size " << size <<std::endl; 
                 } else if (attribute_name!="GEO::Mesh::facet_corners::corner_adjacent_facet") {
                     std::shared_ptr<GenericAttributeContainer> P;
                     if (element_type=="int" || element_type=="signed_index_t") {
@@ -523,10 +527,13 @@ std::tuple<std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeCo
 
                     if (attribute_set_name == "GEO::Mesh::vertices") {
                         pattr.emplace_back(attribute_name, P);
+                        m.points.attr.emplace_back(P);
                     } else if (attribute_set_name == "GEO::Mesh::facets") {
                         fattr.emplace_back(attribute_name, P);
+                        m.attr_facets.emplace_back(P);
                     } else if (attribute_set_name == "GEO::Mesh::facet_corners") {
                         cattr.emplace_back(attribute_name, P);
+                        m.attr_corners.emplace_back(P);
                     }
                 }
             } // chunk_class = ATTR

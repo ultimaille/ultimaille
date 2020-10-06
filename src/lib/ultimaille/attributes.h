@@ -16,6 +16,7 @@ template <typename T> struct AttributeContainer : GenericAttributeContainer {
     AttributeContainer(const int n) : data(n) {}
     void resize(const int n) { data.resize(n); }
     void compress(const std::vector<int> &old2new) { // NB: old2new is not a permutation!
+        std::cerr << old2new.size() << " " << data.size() << std::endl;
         assert(old2new.size()==data.size());
         int cnt = 0;
         for (int i=0; i<static_cast<int>(old2new.size()); i++) {
@@ -44,7 +45,7 @@ template <typename T> struct GenericAttribute {
             if (pair.first!=name) continue;
             ptr = std::dynamic_pointer_cast<AttributeContainer<T> >(pair.second);
             assert(ptr.get());
-            callbacks.push_back(ptr);
+//          callbacks.push_back(ptr);
             return;
         }
         ptr = std::make_shared<AttributeContainer<T> >(size);

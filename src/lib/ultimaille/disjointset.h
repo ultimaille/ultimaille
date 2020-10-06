@@ -29,11 +29,11 @@ struct DisjointSet {
         int root_id = m_ids[i];
         while (root_id!=m_ids[root_id]) root_id = m_ids[root_id];
         // connect all the path to root
-        int cur_id = i;
-        while (cur_id!=root_id) {
-            int new_i = m_ids[cur_id];
-            m_ids[cur_id] = root_id;
-            cur_id = new_i;
+        int i_ = i;
+        while (i_!=root_id) {
+            int new_i = m_ids[i_];
+            m_ids[i_] = root_id;
+            i_ = new_i;
         }
         return root_id;
     }
@@ -111,13 +111,13 @@ struct DisjointSetWithSign : DisjointSet {
         }
 
         // connect all the path to root
-        int cur_id = i;
+        int i_ = i;
         while (i!=root_id) {
-            int new_i = m_ids[cur_id];
-            m_ids[cur_id] = root_id;
-            bool new_same_sign = (same_sign_with_root==m_same_sign[cur_id]);
-            m_same_sign[cur_id] = same_sign_with_root;
-            cur_id = new_i;
+            int new_i = m_ids[i_];
+            m_ids[i_] = root_id;
+            bool new_same_sign = (same_sign_with_root==m_same_sign[i_]);
+            m_same_sign[i_] = same_sign_with_root;
+            i_ = new_i;
             same_sign_with_root = new_same_sign;
         }
         return root_id;

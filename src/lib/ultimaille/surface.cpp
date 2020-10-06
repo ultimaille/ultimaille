@@ -25,8 +25,10 @@ void Surface::compress_attrs(const std::vector<bool> &facets_to_kill) {
             corners_old2new[facet_corner(f, lv)] = new_nb_corners++;
         facets_old2new[f] = new_nb_facets++;
     }
+    std::cerr << "compressing facet attributes\n";
     for (auto &wp : attr_facets)  if (auto spt = wp.lock())
         spt->compress(facets_old2new);
+    std::cerr << "compressing corner attributes\n";
     for (auto &wp : attr_corners) if (auto spt = wp.lock())
         spt->compress(corners_old2new);
 }
