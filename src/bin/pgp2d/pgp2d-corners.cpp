@@ -1,5 +1,7 @@
 #include <iostream>
+#include <limits>
 #include <cstdlib>
+#include "ultimaille/disjointset.h"
 #include "ultimaille/mesh_io.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/attributes.h"
@@ -22,7 +24,7 @@ double average_edge_length(const Surface &m) {
     return sum/nb;
 }
 
-void compute_frame_field(const Triangles &m, const SurfaceConnectivity &fec, FacetAttribute<double> &theta, FacetAttribute<mat<2,2>> &Bi) {
+void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, FacetAttribute<double> &theta, FacetAttribute<mat<2,2>> &Bi, CornerAttribute<int> &Rij) {
     { // compute the frame field at the boundary
         for (int c : range(m.ncorners())) {
             if (fec.opposite(c)>=0) continue;
@@ -88,69 +90,32 @@ void compute_frame_field(const Triangles &m, const SurfaceConnectivity &fec, Fac
         }
     }
 
-/*
-    { // compute the frame field at the boundary
-        for (int vi : range(m.nverts())) {
-            if (!fec.is_border_vert(vi)) continue;
-            vec2 n = {0,0};
-
-            int ci = fec.v2c[vi];
-            do {
-                if (fec.opposite(ci)<0) {
-                    vec3 edge = m.points[fec.to(ci)] - m.points[fec.from(ci)];
-                    vec2 rote = {edge.y, -edge.x};
-                    if (n.norm2()<1e-10) {
-                        n = rote;
-                    } else {
-                        double dist = -1;
-                        vec2 best = rote;
-                        for (int i=0; i<4; i++) {
-                            double tdist = (rote-n).norm2();
-                            if (dist<0 || tdist<dist) {
-                                dist = tdist;
-                                best = rote;
-                            }
-                            rote = {rote.y, -rote.x};
-                        }
-                        n += best;
-                    }
-                }
-                ci = fec.c2c[ci];
-            } while (ci != fec.v2c[vi]);
-
-            double angle = atan2(n.y, n.x);
-            while (std::abs(angle)>M_PI/4) angle += (angle>0 ? -1 : 1)*M_PI/2;
-            theta[vi] = angle;
-        }
-    }
-
-
-/*
-    std::vector<mat<2,2>> Rij(m.ncorners());
-
-    for (int vi : range(m.nverts()))
-        Bi[vi] = {{ {cos(theta[vi]), cos(M_PI/2+theta[vi])}, {sin(theta[vi]), sin(M_PI/2+theta[vi])} }};
+    for (int f : range(m.nfacets()))
+        Bi[f] = {{ {cos(theta[f]), cos(M_PI/2+theta[f])}, {sin(theta[f]), sin(M_PI/2+theta[f])} }};
 
     const mat<2,2> R90 = {{ {0,-1}, {1,0} }};
     for (int c : range(m.ncorners())) {
-        int i=fec.from(c), j=fec.to(c), opp=fec.opposite(c);
-        if (opp>=0 && i>j) continue;
+        int opp = fec.opposite(c);
+        if (opp<0 || opp<c) continue;
+        int f = fec.c2f[c], fopp = fec.c2f[opp];
+
+        double best_norm = std::numeric_limits<double>::max();
         mat<2,2> curr = mat<2,2>::identity();
-        Rij[c] = curr;
-        double best_norm = (Bi[i] - Bi[j]).norm();
-        for (int k=0; k<3; k++) {
-            curr = R90*curr;
-            double norm = (Bi[i] - curr*Bi[j]).norm();
+        for (int k=0; k<4; k++) {
+            double norm = (Bi[f] - curr*Bi[fopp]).norm();
             if (norm<best_norm) {
                 best_norm = norm;
-                Rij[c] = curr;
+                Rij[c] = k;
             }
-        }
-        if (opp>=0) {
-            Rij[opp] = Rij[c].transpose();
+            curr = R90*curr;
         }
     }
-*/
+
+    for (int c : range(m.ncorners())) {
+        int opp = fec.opposite(c);
+        if (opp<0 || opp>c) continue;
+        Rij[c] = (4-Rij[opp])%4;
+    }
 }
 
 
@@ -171,20 +136,47 @@ int main(int argc, char** argv) {
         // TODO assert manifoldity
     }
 
-
+    CornerAttribute<int> Rij(m);
     FacetAttribute<double> theta(m);
     FacetAttribute<mat<2,2>> Bi(m);
-
-//  FacetAttribute<int> ffsing(m);
 
     std::cerr << "Computing fec...";
     SurfaceConnectivity fec(m);
     std::cerr << "ok\n";
 
-    compute_frame_field(m, fec, theta, Bi);
+    std::cerr << "Computing cross field...";
+    compute_cross_field(m, fec, theta, Bi, Rij);
+    std::cerr << "ok\n";
 
-    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {} });
+    int nvars = m.ncorners()*2;
+    DisjointSetWithSign dset(nvars);
 
+    for (int c : range(m.ncorners())) {
+        assert(Rij[c]>=0 && Rij[c]<4);
+        int opp = fec.opposite(c);
+        if (opp<0) continue;
+        int ngh = fec.next(opp);
+        const bool sign[8] = { true, true, false, true, false, false, true, false };
+        int rij = Rij[c];
+//      if (rij!=0) continue;
+        dset.merge(c*2,   ngh*2+  rij%2, sign[rij*2  ]);
+        dset.merge(c*2+1, ngh*2+1-rij%2, sign[rij*2+1]);
+    }
+
+    std::vector<int> indices;
+    int nsets = dset.get_sets_id(indices);
+    std::cerr << nsets << " " << nvars << std::endl;
+    CornerAttribute<int> uvarid(m), vvarid(m);
+//  for (int z : range(nvars)) {
+//      std::cerr << indices[z] << std::endl;
+//  }
+    for (int c : range(m.ncorners())) {
+        uvarid[c] = indices[c*2];
+        vvarid[c] = indices[c*2+1];
+    }
+
+
+    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"Rij", Rij.ptr},{"uvarid", uvarid.ptr},{"vvarid", vvarid.ptr}} });
     return 0;
 }
 
