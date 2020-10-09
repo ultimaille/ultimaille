@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
     std::cerr << "ok\n";
 
     int nvars = m.ncorners()*2;
-    DisjointSetWithSign dset(nvars);
+    SignedPairwiseEquality dset(nvars);
 
     for (int c : range(m.ncorners())) {
         assert(Rij[c]>=0 && Rij[c]<4);
@@ -158,7 +158,6 @@ int main(int argc, char** argv) {
         int ngh = fec.next(opp);
         const bool sign[8] = { true, true, false, true, false, false, true, false };
         int rij = Rij[c];
-//      if (rij!=0) continue;
         dset.merge(c*2,   ngh*2+  rij%2, sign[rij*2  ]);
         dset.merge(c*2+1, ngh*2+1-rij%2, sign[rij*2+1]);
     }
@@ -166,17 +165,16 @@ int main(int argc, char** argv) {
     std::vector<int> indices;
     int nsets = dset.get_sets_id(indices);
     std::cerr << nsets << " " << nvars << std::endl;
-    CornerAttribute<int> uvarid(m), vvarid(m);
-//  for (int z : range(nvars)) {
-//      std::cerr << indices[z] << std::endl;
-//  }
+    CornerAttribute<int> uvarid(m), vvarid(m), uzero(m);
+
     for (int c : range(m.ncorners())) {
+        uzero[c] = dset.is_zero(c*2);
         uvarid[c] = indices[c*2];
         vvarid[c] = indices[c*2+1];
     }
 
 
-    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"Rij", Rij.ptr},{"uvarid", uvarid.ptr},{"vvarid", vvarid.ptr}} });
+    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"Rij", Rij.ptr},{"uvarid", uvarid.ptr},{"vvarid", vvarid.ptr}, {"uzero", uzero.ptr}} });
     return 0;
 }
 

@@ -80,16 +80,16 @@ struct DisjointSet {
     std::vector<int> m_size;
 };
 
-struct DisjointSetWithSign : DisjointSet {
-    DisjointSetWithSign(const int num) : DisjointSet(num), m_same_sign(num, true) { }
+struct SignedPairwiseEquality : DisjointSet {
+    SignedPairwiseEquality(const int num) : DisjointSet(num), m_same_sign(num, true), m_conflicts(num, false) { }
 
     void merge(const int a, const int b, const bool same_sign) {
         assert(a>=0 && b>=0 && a<size() && b<size());
         int rootA = root(a);
         int rootB = root(b);
-        if (rootA == rootB) {
-            // check that the new condition is consistent with the other constraints
-            assert((m_same_sign[a]==m_same_sign[b])==same_sign);
+        if (rootA == rootB) { // check that the new condition is consistent with the other constraints
+            if ((m_same_sign[a]==m_same_sign[b])!=same_sign)
+                m_conflicts[rootA] = true;
             return;
         }
 
@@ -123,6 +123,11 @@ struct DisjointSetWithSign : DisjointSet {
         return root_id;
     }
 
+    bool is_zero(const int i) {
+        assert(i>=0 && i<size());
+        return m_conflicts[root(i)];
+    }
+
     bool same(const int a, const int b) = delete;
     bool same(const int a, const int b, bool &same_sign) {
         assert(a>=0 && b>=0 && a<size() && b<size());
@@ -131,6 +136,7 @@ struct DisjointSetWithSign : DisjointSet {
     }
 
     std::vector<bool> m_same_sign;
+    std::vector<bool> m_conflicts;
 };
 
 #endif //__DISJOINTSET_H__

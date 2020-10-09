@@ -43,7 +43,7 @@ int main() {
     for (auto &v : values) v *= (std::rand()%2 ? 1 : -1); // random sign
 
     { // test signed disjoint set
-        DisjointSetWithSign dSet(n);
+        SignedPairwiseEquality dSet(n);
         for (auto const &v : perm)
             dSet.merge(v.first, v.second, values[v.first]==values[v.second]);
 
@@ -62,6 +62,7 @@ int main() {
                 assert((values[i]==values[j])==same_sign);
             }
         }
+        // TODO: add test for conflicting constraints implying zero
     }
 
     return 0;
