@@ -158,23 +158,112 @@ int main(int argc, char** argv) {
         int ngh = fec.next(opp);
         const bool sign[8] = { true, true, false, true, false, false, true, false };
         int rij = Rij[c];
-        dset.merge(c*2,   ngh*2+  rij%2, sign[rij*2  ]);
+        dset.merge(c*2+0, ngh*2+0+rij%2, sign[rij*2  ]);
         dset.merge(c*2+1, ngh*2+1-rij%2, sign[rij*2+1]);
     }
 
     std::vector<int> indices;
     int nsets = dset.get_sets_id(indices);
     std::cerr << nsets << " " << nvars << std::endl;
-    CornerAttribute<int> uvarid(m), vvarid(m), uzero(m);
+
+    CornerAttribute<vec2> ui(m);
+    {
+        double av_length = average_edge_length(m);
+        const double scale = 0.3/av_length;
+
+        nlNewContext();
+        nlSolverParameteri(NL_NB_VARIABLES, 2*nsets);
+        nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
+        nlBegin(NL_SYSTEM);
+
+        for (int v : range(nvars)) { // integer constraints for the singular vertices
+            if (dset.is_zero(v)) {
+                int ind = indices[v];
+                nlSetVariable(ind*2+0, 1);
+                nlSetVariable(ind*2+1, 0);
+                nlLockVariable(ind*2+0);
+                nlLockVariable(ind*2+1);
+            }
+        }
+
+        for (int c : range(m.ncorners())) { // integer constraints for the boundaries
+            if (fec.opposite(c)>=0) continue;
+            int i = fec.from(c), j = fec.to(c);
+            vec3 edge = m.points[j] - m.points[i];
+            vec2 n = {edge.y, -edge.x};
+            mat<2,2> &B = Bi[fec.c2f[c]];
+            int v = c*2 + static_cast<int>(std::abs(B.col(1)*n) > std::abs(B.col(0)*n));
+            int ind = indices[v];
+            nlSetVariable(ind*2+0, 1);
+            nlSetVariable(ind*2+1, 0);
+            nlLockVariable(ind*2+0);
+            nlLockVariable(ind*2+1);
+        }
+
+        nlBegin(NL_MATRIX);
+        for (int c : range(m.ncorners())) { // TODO work here
+            int i = fec.from(c), j = fec.to(c);
+            if (fec.opposite(c)>=0 && i>j) continue;
+            mat<2,2> &B = Bi[fec.c2f[c]];
+            vec3 edge = m.points[j] - m.points[i];
+            vec2 gij = B.transpose()*vec2(edge.x, edge.y)*scale;
+            for (int d : range(2)) {
+                int indi = indices[c*2+d];
+                int indj = indices[fec.next(c)*2+d];
+                nlBegin(NL_ROW);
+                nlCoefficient(indi*2+0,  cos(2*M_PI*gij[d]));
+                nlCoefficient(indi*2+1, -sin(2*M_PI*gij[d]));
+                nlCoefficient(indj*2+0, -1);
+                nlEnd(NL_ROW);
+
+                nlBegin(NL_ROW);
+                nlCoefficient(indi*2+1, cos(2*M_PI*gij[d]));
+                nlCoefficient(indi*2+0, sin(2*M_PI*gij[d]));
+                nlCoefficient(indj*2+1, -1);
+                nlEnd(NL_ROW);
+            }
+        }
+        /*
+        for (int v : range(nvars)) {
+            int ind = indices[v];
+            nlRowScaling(.01);
+            nlBegin(NL_ROW);
+            nlCoefficient(ind*2+0, 1);
+            nlRightHandSide(.134234);
+            nlEnd(NL_ROW);
+            nlBegin(NL_ROW);
+            nlCoefficient(ind*2+1, 1);
+            nlRightHandSide(.134234);
+            nlEnd(NL_ROW);
+        }
+        */
+
+        nlEnd(NL_MATRIX);
+        nlEnd(NL_SYSTEM);
+        nlSolve();
+
+        for (int c : range(m.ncorners())) {
+            for (int d : range(2)) {
+                int v = indices[c*2+d];
+                ui[c][d] = atan2(nlGetVariable(v*2+1), nlGetVariable(v*2+0))/(2.*M_PI);
+            }
+        }
+
+        nlDeleteContext(nlGetCurrent());
+    }
+
+
+    CornerAttribute<int> uvarid(m), vvarid(m), uzero(m),vzero(m);
 
     for (int c : range(m.ncorners())) {
         uzero[c] = dset.is_zero(c*2);
+        vzero[c] = dset.is_zero(c*2+1);
         uvarid[c] = indices[c*2];
         vvarid[c] = indices[c*2+1];
     }
 
 
-    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"Rij", Rij.ptr},{"uvarid", uvarid.ptr},{"vvarid", vvarid.ptr}, {"uzero", uzero.ptr}} });
+    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"ui", ui.ptr},{"Rij", Rij.ptr},{"uvarid", uvarid.ptr},{"vvarid", vvarid.ptr}, {"uzero", uzero.ptr}, {"vzero", vzero.ptr}} });
     return 0;
 }
 
