@@ -1,5 +1,5 @@
-#ifndef __DISJOINTSET_H__
-#define __DISJOINTSET_H__
+#ifndef __CONSTRAINTS_H__
+#define __CONSTRAINTS_H__
 #include <vector>
 #include <numeric>
 #include <cassert>
@@ -80,8 +80,6 @@ struct DisjointSet {
     std::vector<int> m_size;
 };
 
-/*
-
 struct SignedPairwiseEquality : DisjointSet {
     SignedPairwiseEquality(const int num) : DisjointSet(num), m_same_sign(num, true), m_conflicts(num, false) { }
 
@@ -101,6 +99,7 @@ struct SignedPairwiseEquality : DisjointSet {
         m_same_sign[rootA] = (m_same_sign[a]==m_same_sign[b])==same_sign;
         m_size[rootB] += m_size[rootA];
     }
+
     // connect a node and its parents to the root and return the root
     int root(const int i) {
         assert(i>=0 && i<size());
@@ -151,7 +150,6 @@ struct SignedPairwiseEquality : DisjointSet {
     std::vector<bool> m_same_sign;
     std::vector<bool> m_conflicts;
 };
-*/
 
-#endif //__DISJOINTSET_H__
+#endif //__CONSTRAINTS_H__
 

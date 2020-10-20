@@ -198,7 +198,7 @@ namespace {
             addData(static_cast<void const *>(values.data()), sizeof(double)*values.size());
         }
 
-//      protected:
+      protected:
         void addU64(uint64_t size) {
             addData(&size, 8);
         }
@@ -277,7 +277,6 @@ void write_geogram(const std::string filename, const PolyLine &pl, PolyLineAttri
 }
 
 void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr) {
-//    auto [pattr, fattr, cattr] = attr;
     try {
         GeogramGZWriter writer(filename);
         writer.addFileHeader();

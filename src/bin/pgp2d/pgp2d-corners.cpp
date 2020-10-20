@@ -1,8 +1,9 @@
 #include <iostream>
 #include <limits>
 #include <cstdlib>
-#include "ultimaille/disjointset.h"
+#include "ultimaille/constraints.h"
 #include "ultimaille/mesh_io.h"
+#include "ultimaille/polyline.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/attributes.h"
 #include "ultimaille/range.h"
@@ -22,6 +23,13 @@ double average_edge_length(const Surface &m) {
         }
     }
     return sum/nb;
+}
+
+vec3 facet_centroid(const Surface &m, const int f) {
+    vec3 ave(0, 0, 0);
+    for (int i : range(m.facet_size(f)))
+        ave += m.points[m.vert(f, i)];
+    return ave / double(m.facet_size(f));
 }
 
 void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, FacetAttribute<double> &theta, FacetAttribute<mat<2,2>> &Bi, CornerAttribute<int> &Rij) {
@@ -170,6 +178,31 @@ int main(int argc, char** argv) {
     int nsets = dset.reduce(redvar, redsign);
     std::cerr << nsets << " " << nvars << std::endl;
 
+    std::vector<int> resp(nsets, -1);
+    for (int i : range(redvar.size())) {
+        resp[redvar[i]] = dset.root(i);
+    }
+
+    PolyLine pl;
+    SegmentAttribute<int> pls(pl);
+    pl.create_segments(m.ncorners()*2);
+    for (int c : range(m.ncorners())) {
+        int i = fec.from(c);
+        vec3 p = m.points[i];
+        vec3 b = facet_centroid(m, fec.c2f[c]);
+        for (int d : range(2)) {
+            pl.points.push_back(p + (b-p)/10*(d+1));
+            pl.vert(c*2+d, 0) = c*2+d;
+            int r = resp[redvar[c*2+d]];
+            pl.vert(c*2+d, 1) = r;
+            pls[c*2+d] = redsign[c*2+d];
+        }
+    }
+    write_geogram("reduction_test.geogram", pl, {{}, {{"sign", pls.ptr}}});
+
+
+
+/*
     CornerAttribute<vec2> ui(m);
     {
         double av_length = average_edge_length(m);
@@ -281,6 +314,7 @@ int main(int argc, char** argv) {
 
 
     write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"tex_coord", ui.ptr},{"Rij", Rij.ptr},{"uvarid", uvarid.ptr},{"vvarid", vvarid.ptr}, {"uzero", uzero.ptr}, {"vzero", vzero.ptr}} });
+    */
     return 0;
 }
 
