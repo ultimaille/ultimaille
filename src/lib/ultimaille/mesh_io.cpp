@@ -93,7 +93,7 @@ void write_geogram_ascii(const std::string filename, const Surface &m, SurfaceAt
     }
 
     // TODO ugly, repair it
-    std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+    std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
     for (int i=0; i<3; i++) {
         auto att = A[i];
 
@@ -259,7 +259,7 @@ void write_geogram(const std::string filename, const Surface &m, SurfaceAttribut
 
 
         // TODO ugly, repair it
-        std::vector<std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > >  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+        std::vector<NamedContainer>  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
         for (int z=0; z<3; z++) {
             auto att = A[z];
 

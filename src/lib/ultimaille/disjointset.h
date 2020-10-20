@@ -128,6 +128,18 @@ struct SignedPairwiseEquality : DisjointSet {
         return m_conflicts[root(i)];
     }
 
+    int reduce(std::vector<int> &id, std::vector<int> &sign) {
+        int nsets = get_sets_id(id);
+        int nvar = m_ids.size();
+        sign = std::vector<int>(nvar, 0);
+        for (int i=0; i<nvar; i++) {
+            if (is_zero(i)) continue;
+            sign[i] = (m_same_sign[i] ? 1 : -1);
+//    bool s;same(i, root(i), s);            sign[i] = (s ? 1 : -1);
+        }
+        return nsets;
+    }
+
     bool same(const int a, const int b) = delete;
     bool same(const int a, const int b, bool &same_sign) {
         assert(a>=0 && b>=0 && a<size() && b<size());

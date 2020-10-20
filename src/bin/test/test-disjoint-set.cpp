@@ -8,10 +8,10 @@
 #include "ultimaille/disjointset.h"
 
 int main() {
-    const int n=1017, maxnsets=13;
+    const int n=10327, maxnsets=394;
     std::srand((unsigned int)std::time(nullptr));
     std::vector<int> values(n);
-    for (auto &v : values) v = std::rand()%maxnsets;
+    for (auto &v : values) v = 1 + std::rand()%maxnsets;
 
     // create the list of pairs
     std::vector<std::pair<int,int> > perm;
@@ -45,21 +45,19 @@ int main() {
     { // test signed disjoint set
         SignedPairwiseEquality dSet(n);
         for (auto const &v : perm)
-            dSet.merge(v.first, v.second, values[v.first]==values[v.second]);
+            dSet.merge(v.first, v.second, values[v.first]*values[v.second]>0);
 
-        std::vector<int> indices;
-        int nsets = dSet.get_sets_id(indices);
+        std::vector<int> redv, reds;
+        int nsets = dSet.reduce(redv, reds);
 
-        assert(indices.size()==n);
+        assert(redv.size()==n);
         assert(nsets<=maxnsets);
 
         for (int i=0; i<n; ++i) {
             for (int j=i+1; j<n; ++j) {
-                assert((std::abs(values[i])==std::abs(values[j])) == (indices[i]==indices[j]));
+                assert((std::abs(values[i])==std::abs(values[j])) == (redv[i]==redv[j]));
                 if (std::abs(values[i])!=std::abs(values[j])) continue;
-                bool same_sign = false;
-                assert(dSet.same(i, j, same_sign));
-                assert((values[i]==values[j])==same_sign);
+                assert((values[i]*values[j]>0) == (reds[i]==reds[j]));
             }
         }
         // TODO: add test for conflicting constraints implying zero
