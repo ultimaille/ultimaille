@@ -2,7 +2,7 @@
 #define __ATTRIBUTES_H__
 #include <vector>
 #include <memory>
-#include "segments.h"
+#include "polyline.h"
 #include "surface.h"
 #include "pointset.h"
 #include "permutation.h"
@@ -32,7 +32,7 @@ template <typename T> struct AttributeContainer : GenericAttributeContainer {
 
 typedef std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > NamedContainer;
 typedef std::tuple<std::vector<NamedContainer>,
-                   std::vector<NamedContainer> > SegmentsAttributes;
+                   std::vector<NamedContainer> > PolyLineAttributes;
 typedef std::tuple<std::vector<NamedContainer>,
                    std::vector<NamedContainer>,
                    std::vector<NamedContainer> > SurfaceAttributes;
@@ -48,7 +48,7 @@ template <typename T> struct GenericAttribute {
             if (pair.first!=name) continue;
             ptr = std::dynamic_pointer_cast<AttributeContainer<T> >(pair.second);
             assert(ptr.get());
-//          callbacks.push_back(ptr); // TODO: to bind or not to bind?
+//          callbacks.push_back(ptr); // TODO architectural choice: to bind or not to bind? At the moment the binding is done in mesh_io.cpp
             return;
         }
         ptr = std::make_shared<AttributeContainer<T> >(size);
@@ -63,7 +63,7 @@ template <typename T> struct PointAttribute : GenericAttribute<T> {
         pts.attr.push_back(this->ptr);
     }
 
-    PointAttribute(std::string name, SegmentsAttributes &attributes, Segments &seg) : GenericAttribute<T>() {
+    PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
         GenericAttribute<T>::bind(name, seg.nverts(), std::get<0>(attributes), seg.points.attr);
     }
 
@@ -73,11 +73,11 @@ template <typename T> struct PointAttribute : GenericAttribute<T> {
 };
 
 template <typename T> struct SegmentAttribute : GenericAttribute<T> {
-    SegmentAttribute(Segments &seg) : GenericAttribute<T>(seg.nsegments()) {
+    SegmentAttribute(PolyLine &seg) : GenericAttribute<T>(seg.nsegments()) {
         seg.attr.push_back(this->ptr);
     }
 
-    SegmentAttribute(std::string name, SegmentsAttributes &attributes, Segments &seg) : GenericAttribute<T>() {
+    SegmentAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
         GenericAttribute<T>::bind(name, seg.nsegments(), std::get<1>(attributes), seg.attr);
     }
 };
