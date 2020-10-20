@@ -8,7 +8,7 @@
 
 struct GenericAttributeContainer;
 
-struct PolyLine { // polygonal mesh interface
+struct PolyLine {
     PointSet points{};
     std::vector<int> segments{};
     std::vector<std::weak_ptr<GenericAttributeContainer> > attr{};
@@ -18,6 +18,7 @@ struct PolyLine { // polygonal mesh interface
     int nverts() const;
     int nsegments() const;
 
+    // TODO delete_vertices, delete_segments
     int create_segments(const int n);
     void resize_attrs();
 

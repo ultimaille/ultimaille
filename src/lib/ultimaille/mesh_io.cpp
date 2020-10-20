@@ -61,8 +61,9 @@ void write_wavefront_obj(const std::string filename, const Surface &m) {
     out.close();
 }
 
-// Attention: only int and double attributes
 typedef unsigned int index_t;
+/*
+// Attention: only int and double attributes
 void write_geogram_ascii(const std::string filename, const Surface &m, SurfaceAttributes attr) {
     auto [pattr, fattr, cattr] = attr;
     std::fstream file;
@@ -124,7 +125,7 @@ void write_geogram_ascii(const std::string filename, const Surface &m, SurfaceAt
 
     file.close();
 }
-
+*/
 
 namespace {
     struct GeogramGZWriter {
@@ -153,14 +154,14 @@ namespace {
             addU32(uint32_t(n));
         }
 
-        template <typename T> void addAttribute(std::string const &wh, std::string const &name, std::string const &type, std::vector<T> const &data) {
+        template <typename T> void addAttribute(std::string const &wh, std::string const &name, std::string const &type, std::vector<T> const &data, const int dim=1) {
             addHeader("ATTR");
             addU64((4+wh.length())+(4+name.length())+(4+type.length())+4+4+sizeof(T)*data.size());
             addString(wh);
             addString(name);
             addString(type);
             addU32(sizeof(T));
-            addU32(1);
+            addU32(dim);
             addData(static_cast<void const *>(data.data()), sizeof(T)*data.size());
         }
 
@@ -197,7 +198,7 @@ namespace {
             addData(static_cast<void const *>(values.data()), sizeof(double)*values.size());
         }
 
-        protected:
+//      protected:
         void addU64(uint64_t size) {
             addData(&size, 8);
         }
@@ -228,8 +229,55 @@ namespace {
     };
 }
 
+void write_geogram(const std::string filename, const PolyLine &pl, PolyLineAttributes attr) {
+    try {
+        GeogramGZWriter writer(filename);
+        writer.addFileHeader();
+        writer.addAttributeSize("GEO::Mesh::vertices", pl.nverts());
+        writer.addAttribute("GEO::Mesh::vertices", "point", *pl.points.data);
+
+        writer.addAttributeSize("GEO::Mesh::edges", pl.nsegments());
+        {
+            std::vector<index_t> segments;
+            for (int s : pl.segments) segments.push_back(s);
+            writer.addAttribute("GEO::Mesh::edges", "GEO::Mesh::edges::edge_vertex", "index_t", segments, 2);
+        }
+
+        std::vector<NamedContainer> A[2] = {std::get<0>(attr), std::get<1>(attr)};
+        for (int z=0; z<2; z++) {
+            auto &att = A[z];
+
+            for (int i=0; i<static_cast<int>(att.size()); i++) {
+                std::string name = att[i].first;
+                std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                std::string place = "";
+
+                if (z==0)
+                    place = "GEO::Mesh::vertices";
+                else if (z==1)
+                    place = "GEO::Mesh::edges";
+
+                std::cerr << place << " " << name << std::endl;
+                if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
+                    writer.addAttribute(place, name, "int", aint->data);
+                } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
+                    writer.addAttribute(place, name, "double", adouble->data);
+                } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
+                    writer.addAttribute(place, name, avec2->data);
+                } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
+                    writer.addAttribute(place, name, avec3->data);
+                } else {
+                    assert(false);
+                }
+            }
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
+    }
+}
+
 void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr) {
-    auto [pattr, fattr, cattr] = attr;
+//    auto [pattr, fattr, cattr] = attr;
     try {
         GeogramGZWriter writer(filename);
         writer.addFileHeader();
@@ -256,12 +304,9 @@ void write_geogram(const std::string filename, const Surface &m, SurfaceAttribut
         }
         writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet);
 
-
-
-        // TODO ugly, repair it
-        std::vector<NamedContainer>  A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+        std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
         for (int z=0; z<3; z++) {
-            auto att = A[z];
+            auto &att = A[z];
 
             for (int i=0; i<static_cast<int>(att.size()); i++) {
                 std::string name = att[i].first;
@@ -495,7 +540,7 @@ void read_geogram(const std::string filename, PointSet &pointset, PolyLine &poly
 //                  std::cerr << "size " << size <<std::endl;
                 } else if (attribute_name!="GEO::Mesh::facet_corners::corner_adjacent_facet") {
                     std::shared_ptr<GenericAttributeContainer> P;
-                    if (element_type=="int" || element_type=="signed_index_t") {
+                    if (element_type=="int" || element_type=="index_t" || element_type=="signed_index_t") {
                         GenericAttribute<int> A(nb_items);
                         void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
                         in.read_attribute(ptr, size);
@@ -554,7 +599,14 @@ SurfaceAttributes read_geogram(const std::string filename, Polygons &polygons) {
     PolyLine polyline;
     std::vector<NamedContainer> pt_attr, edg_attr, fct_attr, crn_attr;
     read_geogram(filename, polygons.points, polyline, polygons, pt_attr, edg_attr, fct_attr, crn_attr);
-    std::cerr << polyline.nsegments() << std::endl;
     return make_tuple(pt_attr, fct_attr, crn_attr);
+}
+
+PolyLineAttributes read_geogram(const std::string filename, PolyLine &pl) {
+    Polygons polygons;
+    pl = PolyLine();
+    std::vector<NamedContainer> pt_attr, edg_attr, fct_attr, crn_attr;
+    read_geogram(filename, pl.points, pl, polygons, pt_attr, edg_attr, fct_attr, crn_attr);
+    return make_tuple(pt_attr, edg_attr);
 }
 

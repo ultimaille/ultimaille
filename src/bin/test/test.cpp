@@ -4,6 +4,7 @@
 #include "ultimaille/surface.h"
 #include "ultimaille/attributes.h"
 #include "ultimaille/range.h"
+#include "ultimaille/polyline.h"
 #include <cstdio>
 
 #include <algorithm>
@@ -128,6 +129,13 @@ int main(int argc, char** argv) {
         std::cerr << "Usage: " << argv[0] << " model.obj" << std::endl;
         return 1;
     }
+    {
+        PolyLine pl;
+        PolyLineAttributes attributes = read_geogram(argv[1], pl);
+        write_geogram("pl_write_test.geogram", pl, attributes);
+    }
+
+    return 0;
 
     Polygons pm;
     SurfaceAttributes attributes = read_geogram(argv[1], pm);
