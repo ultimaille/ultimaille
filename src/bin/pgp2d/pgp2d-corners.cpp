@@ -186,18 +186,24 @@ int main(int argc, char** argv) {
             }
         }
 
-        for (int c : range(m.ncorners())) { // integer constraints for the boundaries
+        for (int c : range(m.ncorners())) { // integer constraints for the boundaries TODO:polish this
             if (fec.opposite(c)>=0) continue;
             int i = fec.from(c), j = fec.to(c);
             vec3 edge = m.points[j] - m.points[i];
             vec2 n = {edge.y, -edge.x};
             mat<2,2> &B = Bi[fec.c2f[c]];
-            int v = c*2 + static_cast<int>(std::abs(B.col(1)*n) > std::abs(B.col(0)*n));
-            int ind = indices[v];
-            nlSetVariable(ind*2+0, 1);
-            nlSetVariable(ind*2+1, 0);
-            nlLockVariable(ind*2+0);
-            nlLockVariable(ind*2+1);
+            int vi = c*2 + static_cast<int>(std::abs(B.col(1)*n) > std::abs(B.col(0)*n));
+            int vj = fec.next(c)*2 + static_cast<int>(std::abs(B.col(1)*n) > std::abs(B.col(0)*n));
+            int indi = indices[vi];
+            int indj = indices[vj];
+            nlSetVariable(indi*2+0, 1);
+            nlSetVariable(indi*2+1, 0);
+            nlLockVariable(indi*2+0);
+            nlLockVariable(indi*2+1);
+            nlSetVariable(indj*2+0, 1);
+            nlSetVariable(indj*2+1, 0);
+            nlLockVariable(indj*2+0);
+            nlLockVariable(indj*2+1);
         }
 
         nlBegin(NL_MATRIX);
