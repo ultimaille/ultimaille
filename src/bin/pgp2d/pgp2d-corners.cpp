@@ -31,6 +31,16 @@ vec3 facet_centroid(const Surface &m, const int f) {
     return ave / double(m.facet_size(f));
 }
 
+mat<2,2> R90_k(const int k) {
+    assert(k>=0 && k<4);
+    const mat<2,2> R90 = {{ {0,-1}, {1,0} }};
+    mat<2,2> curr = mat<2,2>::identity();
+    for (int i=0; i<k; i++)
+        curr = R90*curr;
+    return curr;
+}
+
+
 void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, FacetAttribute<double> &theta, FacetAttribute<mat<2,2>> &Bi, CornerAttribute<int> &Rij) {
     { // compute the frame field at the boundary
         for (int c : range(m.ncorners())) {
@@ -91,9 +101,7 @@ void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, Fac
             nlSolve();
 
             for (int f : range(m.nfacets()))
-                theta[f] = atan2(nlGetVariable(2*f+1), nlGetVariable(2*f))/4;// + M_PI/2 * (m.points[m.vert(f, 0)].x>5); + (rand()%4)*M_PI/2.;
-
-//          for (int i : range(100)) theta[rand()%m.nfacets()] += M_PI/2;
+                theta[f] = atan2(nlGetVariable(2*f+1), nlGetVariable(2*f))/4 + M_PI/2 * (m.points[m.vert(f, 0)].x>5) + (rand()%4)*M_PI/2.;
 
             nlDeleteContext(nlGetCurrent());
         }
@@ -158,149 +166,187 @@ int main(int argc, char** argv) {
     std::cerr << "ok\n";
 
     int nvars = m.ncorners()*2;
-    SignedPairwiseEquality dset(nvars);
+    SignedPairwiseEquality speq(nvars);
 
     for (int c : range(m.ncorners())) {
-        assert(Rij[c]>=0 && Rij[c]<4);
+        int rij = Rij[c];
+        assert(rij>=0 && rij<4);
         int opp = fec.opposite(c);
         if (opp<0) continue;
         int ngh = fec.next(opp);
+        // rij=0 -> ui=+uj, vi=+vj
+        // rij=1 -> ui=+vj, vi=-uj
+        // rij=2 -> ui=-uj, vi=-vj
+        // rij=3 -> ui=-vj, vi=+uj
         const bool sign[8] = { true, true, true, false, false, false, false, true };
-        int rij = Rij[c];
-        dset.merge(c*2+0, ngh*2+0+rij%2, sign[rij*2  ]);
-        dset.merge(c*2+1, ngh*2+1-rij%2, sign[rij*2+1]);
+        speq.merge(c*2+0, ngh*2+  rij%2, sign[rij*2  ]);
+        speq.merge(c*2+1, ngh*2+1-rij%2, sign[rij*2+1]);
     }
 
-    std::vector<int> redvar, redsign;
-    int nsets = dset.reduce(redvar, redsign);
-    std::cerr << nsets << " " << nvars << std::endl;
+    std::vector<int> redvar, redsgn;
+    int nsets = speq.reduce(redvar, redsgn);
 
-    std::vector<int> resp(nsets, -1);
-    for (int i : range(redvar.size())) {
-        resp[redvar[i]] = dset.root(i);
-    }
+#if 0
+    { // drop var reduction debug
+        std::vector<int> resp(nsets, -1);
+        for (int i : range(redvar.size()))
+            resp[redvar[i]] = speq.root(i);
 
-    PolyLine pl;
-    SegmentAttribute<int> pls(pl);
-    pl.create_segments(m.ncorners()*2);
-    for (int c : range(m.ncorners())) {
-        int i = fec.from(c);
-        vec3 p = m.points[i];
-        vec3 b = facet_centroid(m, fec.c2f[c]);
-        for (int d : range(2)) {
-            pl.points.push_back(p + (b-p)/10*(d+1));
-            pl.vert(c*2+d, 0) = c*2+d;
-            int r = resp[redvar[c*2+d]];
-            pl.vert(c*2+d, 1) = r;
-            pls[c*2+d] = redsign[c*2+d];
+        PolyLine pl;
+        SegmentAttribute<int> pls(pl);
+        pl.create_segments(m.ncorners()*2);
+        for (int c : range(m.ncorners())) {
+            int i = fec.from(c);
+            vec3 p = m.points[i];
+            vec3 b = facet_centroid(m, fec.c2f[c]);
+            for (int d : range(2)) {
+                pl.points.push_back(p + (b-p)/10*(d+1));
+                pl.vert(c*2+d, 0) = c*2+d;
+                int r = resp[redvar[c*2+d]];
+                pl.vert(c*2+d, 1) = r;
+                pls[c*2+d] = redsgn[c*2+d];
+            }
         }
+        write_geogram("reduction_test.geogram", pl, {{}, {{"sign", pls.ptr}}});
     }
-    write_geogram("reduction_test.geogram", pl, {{}, {{"sign", pls.ptr}}});
+#endif
 
 
-    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"Rij", Rij.ptr}} });
-
-    CornerAttribute<vec2> ui(m);
+    CornerAttribute<vec2> tex_coord(m);
     {
+        CornerAttribute<vec2> frac_coord(m);
         double av_length = average_edge_length(m);
         const double scale = 0.3/av_length;
 
-        nlNewContext();
-        nlSolverParameteri(NL_NB_VARIABLES, 2*nsets);
-        nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
-        nlBegin(NL_SYSTEM);
-
-        for (int v : range(nvars)) { // integer constraints for the singular vertices
-            if (redsign[v]) continue;
-            int ind = redvar[v];
-            nlSetVariable(ind*2+0, 1);
-            nlSetVariable(ind*2+1, 0);
-            nlLockVariable(ind*2+0);
-            nlLockVariable(ind*2+1);
-        }
-
-        for (int c : range(m.ncorners())) { // integer constraints for the boundaries
-            if (fec.opposite(c)>=0) continue;
-            int i = fec.from(c), j = fec.to(c);
-            vec3 edge = m.points[j] - m.points[i];
-            vec2 n = {edge.y, -edge.x};
-            mat<2,2> &B = Bi[fec.c2f[c]];
-            bool v = (std::abs(B.col(1)*n) > std::abs(B.col(0)*n));
-            int vari = v+2*c;
-            int varj = v+2*fec.next(c);
-            nlSetVariable(redvar[vari]*2+0, 1);
-            nlSetVariable(redvar[vari]*2+1, 0);
-            nlSetVariable(redvar[varj]*2+0, 1);
-            nlSetVariable(redvar[varj]*2+1, 0);
-            nlLockVariable(redvar[vari]*2+0);
-            nlLockVariable(redvar[vari]*2+1);
-            nlLockVariable(redvar[varj]*2+0);
-            nlLockVariable(redvar[varj]*2+1);
-        }
-
-        nlBegin(NL_MATRIX);
-
-#if 1
-//      CornerAttribute<vec2> gij(m);
-//      for (int c : range(m.ncorners())) {
-//          mat<2,2> &B = Bi[fec.c2f[c]];
-//          vec3 edge = m.points[fec.to(c)] - m.points[fec.from(c)];
-//          gij[c] = B.transpose()*vec2(edge.x, edge.y)*scale;
-//      }
-
-        for (int c : range(m.ncorners())) { // TODO
-//            if (fec.opposite(c)>=0 && i>j) continue;
-            mat<2,2> &B = Bi[fec.c2f[c]];
-            int i = fec.from(c), j = fec.to(c);
-            vec3 edge = m.points[j] - m.points[i];
-            vec2 gij = B.transpose()*vec2(edge.x, edge.y)*scale;
-            for (int d : range(2)) {
-                int indi = redvar[c*2+d];
-                int indj = redvar[fec.next(c)*2+d];
-                nlBegin(NL_ROW);
-                nlCoefficient(indi*2+0,  cos(2*M_PI*gij[d]));
-                nlCoefficient(indi*2+1, -sin(2*M_PI*gij[d])*redsign[c*2+d]);
-                nlCoefficient(indj*2+0, -1);
-                nlEnd(NL_ROW);
-
-                nlBegin(NL_ROW);
-                nlCoefficient(indi*2+1, cos(2*M_PI*gij[d])*redsign[c*2+d]);
-                nlCoefficient(indi*2+0, sin(2*M_PI*gij[d]));
-                nlCoefficient(indj*2+1, -1*redsign[fec.next(c)*2+d]);
-                nlEnd(NL_ROW);
-            }
-        }
-#else
-        for (int v : range(nvars)) {
-             int ind = redvar[v];
-             nlRowScaling(.01);
-             nlBegin(NL_ROW);
-             nlCoefficient(ind*2+0, 1);
-             nlRightHandSide(.134234);
-             nlEnd(NL_ROW);
-             nlBegin(NL_ROW);
-             nlCoefficient(ind*2+1, 1);
-             nlRightHandSide(.134234);
-             nlEnd(NL_ROW);
-         }
-#endif
-        nlEnd(NL_MATRIX);
-        nlEnd(NL_SYSTEM);
-        nlSolve();
-
+        CornerAttribute<vec2> gij(m); // N.B. this is an edge attribute, thus only resp. half-edges are filled
         for (int c : range(m.ncorners())) {
-            for (int d : range(2)) {
-                int v = redvar[c*2+d];
-                ui[c][d] = atan2(redsign[c*2+d]*nlGetVariable(v*2+1), nlGetVariable(v*2+0))/(2.*M_PI);
-//                ui[c][d] = atan2(nlGetVariable(v*2+1), nlGetVariable(v*2+0))/(2.*M_PI);
-            }
+            int opp = fec.opposite(c);
+            int i = fec.from(c), j = fec.to(c);
+            mat<2,2> &B = Bi[fec.c2f[c]];
+            vec3 edge = m.points[j] - m.points[i];
+            vec2 gij_ = B.transpose()*vec2(edge.x, edge.y)*scale;
+            if (opp<0 || i<j)
+                gij[c] += gij_/(2-int(opp<0));
+            else
+                gij[opp] += -(R90_k(Rij[c])*gij_)/2; // note Rij[c] and not Rij[opp]!
         }
 
-        nlDeleteContext(nlGetCurrent());
+        for (int iter : range(3)) {
+            nlNewContext();
+            nlSolverParameteri(NL_NB_VARIABLES, 2*nsets);
+            nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
+            nlBegin(NL_SYSTEM);
+
+            for (int v : range(nvars)) { // integer constraints for the singular vertices
+                if (redsgn[v]) continue;
+                int ind = redvar[v];
+                nlSetVariable(ind*2+0, 1);
+                nlSetVariable(ind*2+1, 0);
+                nlLockVariable(ind*2+0);
+                nlLockVariable(ind*2+1);
+            }
+
+            for (int c : range(m.ncorners())) { // integer constraints for the boundaries
+                if (fec.opposite(c)>=0) continue;
+                vec3 edge = m.points[fec.to(c)] - m.points[fec.from(c)];
+                vec2 n = {edge.y, -edge.x};
+                mat<2,2> &B = Bi[fec.c2f[c]];
+                bool v = (std::abs(B.col(1)*n) > std::abs(B.col(0)*n));
+                int vari = redvar[v+2*c];
+                int varj = redvar[v+2*fec.next(c)];
+                nlSetVariable(vari*2+0, 1); // no need to use the sign for integer constraints
+                nlSetVariable(vari*2+1, 0);
+                nlSetVariable(varj*2+0, 1);
+                nlSetVariable(varj*2+1, 0);
+                nlLockVariable(vari*2+0);
+                nlLockVariable(vari*2+1);
+                nlLockVariable(varj*2+0);
+                nlLockVariable(varj*2+1);
+            }
+
+            nlBegin(NL_MATRIX);
+
+            if (iter) for (int c : range(m.ncorners())) { // enforce non-zero field norm
+                for (int d : range(2)) {
+                    int var = redvar[c*2+d];
+                    int sgn = redsgn[c*2+d];
+
+                    nlRowScaling(.05*iter);
+                    nlBegin(NL_ROW);
+                    nlCoefficient(var*2+0, 1);
+                    nlRightHandSide(cos(2*M_PI*frac_coord[c][d]));
+                    nlEnd(NL_ROW);
+
+                    nlRowScaling(.05*iter);
+                    nlBegin(NL_ROW);
+                    nlCoefficient(var*2+1, sgn);
+                    nlRightHandSide(sin(2*M_PI*frac_coord[c][d]));
+                    nlEnd(NL_ROW);
+                }
+            }
+
+            for (int c : range(m.ncorners())) { // actual PGP energy
+                int i = fec.from(c), j = fec.to(c);
+                if (fec.opposite(c)>=0 && i>j) continue;
+
+                for (int d : range(2)) {
+                    int vari = redvar[d+2*c];
+                    int sgni = redsgn[d+2*c];
+                    int varj = redvar[d+2*fec.next(c)];
+                    int sgnj = redsgn[d+2*fec.next(c)];
+
+                    nlRowScaling(1);
+                    nlBegin(NL_ROW);
+                    nlCoefficient(vari*2+0,  cos(2*M_PI*gij[c][d]));
+                    nlCoefficient(vari*2+1, -sin(2*M_PI*gij[c][d])*sgni);
+                    nlCoefficient(varj*2+0, -1);
+                    nlEnd(NL_ROW);
+
+                    nlRowScaling(1);
+                    nlBegin(NL_ROW);
+                    nlCoefficient(vari*2+1, cos(2*M_PI*gij[c][d])*sgni);
+                    nlCoefficient(vari*2+0, sin(2*M_PI*gij[c][d]));
+                    nlCoefficient(varj*2+1, -sgnj);
+                    nlEnd(NL_ROW);
+                }
+            }
+
+            nlEnd(NL_MATRIX);
+            nlEnd(NL_SYSTEM);
+            nlSolve();
+
+            for (int c : range(m.ncorners())) { // project the solution to fractional coords
+                for (int d : range(2)) {
+                    int var = redvar[c*2+d];
+                    int sgn = redsgn[c*2+d];
+                    frac_coord[c][d] = atan2(sgn*nlGetVariable(var*2+1), nlGetVariable(var*2+0))/(2.*M_PI);
+                    tex_coord[c][d] = frac_coord[c][d];
+                }
+            }
+
+            for (int f : range(m.nfacets())) { // recover the integer part
+                for (int lv : range(2)) {
+                    int c = m.facet_corner(f, lv);
+
+                    vec2 gij_ = gij[c];
+                    int opp = fec.opposite(c);
+                    int i = fec.from(c), j = fec.to(c);
+                    if (opp>=0 && i>j)
+                        gij_ = -(R90_k(Rij[opp])*gij[opp])/2;
+
+                    for (int d : range(2)) {
+                        while (tex_coord[fec.next(c)][d] - tex_coord[c][d] - gij_[d] >  .5) tex_coord[fec.next(c)][d] -= 1;
+                        while (tex_coord[fec.next(c)][d] - tex_coord[c][d] - gij_[d] < -.5) tex_coord[fec.next(c)][d] += 1;
+                    }
+
+                }
+            }
+
+            nlDeleteContext(nlGetCurrent());
+        }
     }
 
-
-    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"tex_coord", ui.ptr},{"Rij", Rij.ptr}} });
+    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"tex_coord", tex_coord.ptr},{"Rij", Rij.ptr}} });
 
     return 0;
 }
