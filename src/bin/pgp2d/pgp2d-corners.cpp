@@ -24,12 +24,14 @@ double average_edge_length(const Surface &m) {
     return sum/nb;
 }
 
+#if 0
 vec3 facet_centroid(const Surface &m, const int f) {
     vec3 ave(0, 0, 0);
     for (int i : range(m.facet_size(f)))
         ave += m.points[m.vert(f, i)];
     return ave / double(m.facet_size(f));
 }
+#endif
 
 mat<2,2> R90_k(const int k) {
     assert(k>=0 && k<4);
@@ -39,7 +41,6 @@ mat<2,2> R90_k(const int k) {
         curr = R90*curr;
     return curr;
 }
-
 
 void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, FacetAttribute<double> &theta, FacetAttribute<mat<2,2>> &Bi, CornerAttribute<int> &Rij) {
     { // compute the frame field at the boundary
@@ -218,20 +219,28 @@ int main(int argc, char** argv) {
         double av_length = average_edge_length(m);
         const double scale = 0.3/av_length;
 
-        CornerAttribute<vec2> gij(m); // N.B. this is an edge attribute, thus only resp. half-edges are filled
-        for (int c : range(m.ncorners())) {
-            int opp = fec.opposite(c);
-            int i = fec.from(c), j = fec.to(c);
-            mat<2,2> &B = Bi[fec.c2f[c]];
-            vec3 edge = m.points[j] - m.points[i];
-            vec2 gij_ = B.transpose()*vec2(edge.x, edge.y)*scale;
-            if (opp<0 || i<j)
-                gij[c] += gij_/(2-int(opp<0));
-            else
-                gij[opp] += -(R90_k(Rij[c])*gij_)/2; // note Rij[c] and not Rij[opp]!
+        CornerAttribute<vec2> gij(m);
+        { // N.B. this is an edge attribute, so only the resp. half-edges are filled in the 1st pass, and the non-resp are assigned in the 2nd pass
+            for (int c : range(m.ncorners())) {
+                int opp = fec.opposite(c);
+                int i = fec.from(c), j = fec.to(c);
+                mat<2,2> &B = Bi[fec.c2f[c]];
+                vec3 edge = m.points[j] - m.points[i];
+                vec2 gij_ = B.transpose()*vec2(edge.x, edge.y)*scale;
+                if (opp<0 || i<j)
+                    gij[c] += gij_/(2-int(opp<0));
+                else
+                    gij[opp] += -(R90_k(Rij[c])*gij_)/2; // note Rij[c] and not Rij[opp]!
+            }
+            for (int c : range(m.ncorners())) { // 2nd pass: fill non-resp. half-edges
+                int opp = fec.opposite(c);
+                int i = fec.from(c), j = fec.to(c);
+                if (opp<0 || i<j) continue;
+                gij[c] = -(R90_k(Rij[opp])*gij[opp]);
+            }
         }
 
-        for (int iter : range(3)) {
+        for (int iter : range(3)) { // few passes to enforce non-zero field norm
             nlNewContext();
             nlSolverParameteri(NL_NB_VARIABLES, 2*nsets);
             nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
@@ -325,20 +334,13 @@ int main(int argc, char** argv) {
             }
 
             for (int f : range(m.nfacets())) { // recover the integer part
-                for (int lv : range(2)) {
-                    int c = m.facet_corner(f, lv);
-
-                    vec2 gij_ = gij[c];
-                    int opp = fec.opposite(c);
-                    int i = fec.from(c), j = fec.to(c);
-                    if (opp>=0 && i>j)
-                        gij_ = -(R90_k(Rij[opp])*gij[opp])/2;
-
+                for (int lv : range(2)) { // N.B. 2 and not 3: tex_coord[m.facet_corner(f,0)] is fixed
+                    int ci = m.facet_corner(f, lv);
+                    int cj = fec.next(ci);
                     for (int d : range(2)) {
-                        while (tex_coord[fec.next(c)][d] - tex_coord[c][d] - gij_[d] >  .5) tex_coord[fec.next(c)][d] -= 1;
-                        while (tex_coord[fec.next(c)][d] - tex_coord[c][d] - gij_[d] < -.5) tex_coord[fec.next(c)][d] += 1;
+                        while (tex_coord[cj][d] - tex_coord[ci][d] - gij[ci][d] >  .5) tex_coord[cj][d] -= 1;
+                        while (tex_coord[cj][d] - tex_coord[ci][d] - gij[ci][d] < -.5) tex_coord[cj][d] += 1;
                     }
-
                 }
             }
 
