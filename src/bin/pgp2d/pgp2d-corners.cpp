@@ -10,7 +10,6 @@
 
 #include <OpenNL_psm/OpenNL_psm.h>
 
-
 double average_edge_length(const Surface &m) {
     double sum = 0;
     int nb = 0;
@@ -92,11 +91,9 @@ void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, Fac
             nlSolve();
 
             for (int f : range(m.nfacets()))
-                theta[f] = atan2(nlGetVariable(2*f+1), nlGetVariable(2*f))/4;// + M_PI/2 * (m.points[m.vert(f, 0)].x>5);// + (rand()%4)*M_PI/2.;
+                theta[f] = atan2(nlGetVariable(2*f+1), nlGetVariable(2*f))/4;// + M_PI/2 * (m.points[m.vert(f, 0)].x>5); + (rand()%4)*M_PI/2.;
 
-            for (int i : range(100)) {
-                theta[rand()%m.nfacets()] += M_PI/2;
-            }
+//          for (int i : range(100)) theta[rand()%m.nfacets()] += M_PI/2;
 
             nlDeleteContext(nlGetCurrent());
         }
@@ -201,8 +198,8 @@ int main(int argc, char** argv) {
     write_geogram("reduction_test.geogram", pl, {{}, {{"sign", pls.ptr}}});
 
 
+    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"Rij", Rij.ptr}} });
 
-/*
     CornerAttribute<vec2> ui(m);
     {
         double av_length = average_edge_length(m);
@@ -303,18 +300,8 @@ int main(int argc, char** argv) {
     }
 
 
-    CornerAttribute<int> uvarid(m), vvarid(m), uzero(m),vzero(m);
+    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"tex_coord", ui.ptr},{"Rij", Rij.ptr}} });
 
-    for (int c : range(m.ncorners())) {
-        uzero[c] = dset.is_zero(c*2);
-        vzero[c] = dset.is_zero(c*2+1);
-        uvarid[c] = redvar[c*2];
-        vvarid[c] = redvar[c*2+1];
-    }
-
-
-    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"tex_coord", ui.ptr},{"Rij", Rij.ptr},{"uvarid", uvarid.ptr},{"vvarid", vvarid.ptr}, {"uzero", uzero.ptr}, {"vzero", vzero.ptr}} });
-    */
     return 0;
 }
 
