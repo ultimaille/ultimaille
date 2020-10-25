@@ -82,7 +82,7 @@ struct Permutation {
             destinations[i] = -1 - destinations[i];
     }
 #else
-    template <typename T> inline void apply(std::vector<T>& data) {
+    template <typename T> inline void apply(std::vector<T>& data) const {
         int n = destinations.size();
         assert(data.size()==static_cast<size_t>(n));
         std::vector<bool> marked(n, false);
