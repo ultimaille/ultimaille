@@ -1,0 +1,5 @@
+add_subdirectory(2d-interpolation)
+add_subdirectory(pgp2d)
+add_subdirectory(test-permutation)
+add_subdirectory(embed)
+add_subdirectory(test)
