@@ -44,7 +44,7 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    int Tetrahedra::cell_type(const int c) const {
+    int Tetrahedra::cell_type() const {
         return 0;
     }
 
@@ -86,7 +86,7 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    int Hexahedra::cell_type(const int c) const {
+    int Hexahedra::cell_type() const {
         return 1;
     }
 

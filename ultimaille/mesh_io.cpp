@@ -128,154 +128,154 @@ namespace UM {
 	}
 	*/
 
-	namespace {
-		struct GeogramGZWriter {
-		    GeogramGZWriter(std::string const &fName) : file_() {
-		        file_ = gzopen(fName.c_str(), "wb");
-		        if (!file_)
-		            throw std::runtime_error("Can not open file");
-		    }
+    namespace {
+        struct GeogramGZWriter {
+            GeogramGZWriter(std::string const &fName) : file_() {
+                file_ = gzopen(fName.c_str(), "wb");
+                if (!file_)
+                    throw std::runtime_error("Can not open file");
+            }
 
-		    ~GeogramGZWriter() {
-		        if (file_)
-		            gzclose(file_);
-		    }
+            ~GeogramGZWriter() {
+                if (file_)
+                    gzclose(file_);
+            }
 
-		    void addFileHeader() {
-		        addHeader("HEAD");
-		        addU64(4+7+4+3);
-		        addString("GEOGRAM");
-		        addString("1.0");
-		    }
+            void addFileHeader() {
+                addHeader("HEAD");
+                addU64(4+7+4+3);
+                addString("GEOGRAM");
+                addString("1.0");
+            }
 
-		    void addAttributeSize(std::string const &wh, size_t n) {
-		        addHeader("ATTS");
-		        addU64(4+wh.length()+4);
-		        addString(wh);
-		        addU32(uint32_t(n));
-		    }
+            void addAttributeSize(std::string const &wh, size_t n) {
+                addHeader("ATTS");
+                addU64(4+wh.length()+4);
+                addString(wh);
+                addU32(uint32_t(n));
+            }
 
-		    template <typename T> void addAttribute(std::string const &wh, std::string const &name, std::string const &type, std::vector<T> const &data, const int dim=1) {
-		        addHeader("ATTR");
-		        addU64((4+wh.length())+(4+name.length())+(4+type.length())+4+4+sizeof(T)*data.size());
-		        addString(wh);
-		        addString(name);
-		        addString(type);
-		        addU32(sizeof(T));
-		        addU32(dim);
-		        addData(static_cast<void const *>(data.data()), sizeof(T)*data.size());
-		    }
+            template <typename T> void addAttribute(std::string const &wh, std::string const &name, std::string const &type, std::vector<T> const &data, const int dim=1) {
+                addHeader("ATTR");
+                addU64((4+wh.length())+(4+name.length())+(4+type.length())+4+4+sizeof(T)*data.size());
+                addString(wh);
+                addString(name);
+                addString(type);
+                addU32(sizeof(T));
+                addU32(dim);
+                addData(static_cast<void const *>(data.data()), sizeof(T)*data.size());
+            }
 
-		    void addAttribute(std::string const &wh, std::string const &name, std::vector<vec2> const &data) {
-		        addHeader("ATTR");
-		        addU64((4+wh.length())+(4+name.length())+(4+6)+4+4+sizeof(double)*2*data.size());
-		        addString(wh);
-		        addString(name);
-		        addString("double");
-		        addU32(8);
-		        addU32(2);
-		        std::vector<double> values;
-		        for (const auto &p : data) {
-		            values.push_back(p.x);
-		            values.push_back(p.y);
-		        }
-		        addData(static_cast<void const *>(values.data()), sizeof(double)*values.size());
-		    }
+            void addAttribute(std::string const &wh, std::string const &name, std::vector<vec2> const &data) {
+                addHeader("ATTR");
+                addU64((4+wh.length())+(4+name.length())+(4+6)+4+4+sizeof(double)*2*data.size());
+                addString(wh);
+                addString(name);
+                addString("double");
+                addU32(8);
+                addU32(2);
+                std::vector<double> values;
+                for (const auto &p : data) {
+                    values.push_back(p.x);
+                    values.push_back(p.y);
+                }
+                addData(static_cast<void const *>(values.data()), sizeof(double)*values.size());
+            }
 
-		    void addAttribute(std::string const &wh, std::string const &name, std::vector<vec3> const &data) {
-		        addHeader("ATTR");
-		        addU64((4+wh.length())+(4+name.length())+(4+6)+4+4+sizeof(double)*3*data.size());
-		        addString(wh);
-		        addString(name);
-		        addString("double");
-		        addU32(8);
-		        addU32(3);
-		        std::vector<double> values;
-		        for (const auto &p : data) {
-		            values.push_back(p.x);
-		            values.push_back(p.y);
-		            values.push_back(p.z);
-		        }
-		        addData(static_cast<void const *>(values.data()), sizeof(double)*values.size());
-		    }
+            void addAttribute(std::string const &wh, std::string const &name, std::vector<vec3> const &data) {
+                addHeader("ATTR");
+                addU64((4+wh.length())+(4+name.length())+(4+6)+4+4+sizeof(double)*3*data.size());
+                addString(wh);
+                addString(name);
+                addString("double");
+                addU32(8);
+                addU32(3);
+                std::vector<double> values;
+                for (const auto &p : data) {
+                    values.push_back(p.x);
+                    values.push_back(p.y);
+                    values.push_back(p.z);
+                }
+                addData(static_cast<void const *>(values.data()), sizeof(double)*values.size());
+            }
 
-		  protected:
-		    void addU64(uint64_t size) {
-		        addData(&size, 8);
-		    }
+            protected:
+            void addU64(uint64_t size) {
+                addData(&size, 8);
+            }
 
-		    void addU32(uint32_t index) {
-		        addData(&index, 4);
-		    }
+            void addU32(uint32_t index) {
+                addData(&index, 4);
+            }
 
-		    void addHeader(std::string const &header) {
-		        if (header.length()!=4)
-		            throw std::runtime_error("GeogramGZWriter::bad header");
-		        addData(static_cast<void const *>(header.c_str()), 4);
-		    }
+            void addHeader(std::string const &header) {
+                if (header.length()!=4)
+                    throw std::runtime_error("GeogramGZWriter::bad header");
+                addData(static_cast<void const *>(header.c_str()), 4);
+            }
 
-		    void addString(std::string const &str) {
-		        size_t len = str.length();
-		        addU32(uint32_t(len));
-		        addData(str.c_str(),len);
-		    }
+            void addString(std::string const &str) {
+                size_t len = str.length();
+                addU32(uint32_t(len));
+                addData(str.c_str(),len);
+            }
 
-		    void addData(void const *data, size_t len) {
-		        int check = gzwrite(file_, data, (unsigned int)(len));
-		        if (size_t(check) != len)
-		            throw std::runtime_error("Could not write attribute data");
-		    }
+            void addData(void const *data, size_t len) {
+                int check = gzwrite(file_, data, (unsigned int)(len));
+                if (size_t(check) != len)
+                    throw std::runtime_error("Could not write attribute data");
+            }
 
-		    gzFile file_;
-		};
-	}
+            gzFile file_;
+        };
+    }
 
-	void write_geogram(const std::string filename, const PolyLine &pl, PolyLineAttributes attr) {
-		try {
-		    GeogramGZWriter writer(filename);
-		    writer.addFileHeader();
-		    writer.addAttributeSize("GEO::Mesh::vertices", pl.nverts());
-		    writer.addAttribute("GEO::Mesh::vertices", "point", *pl.points.data);
+    void write_geogram(const std::string filename, const PolyLine &pl, PolyLineAttributes attr) {
+        try {
+            GeogramGZWriter writer(filename);
+            writer.addFileHeader();
+            writer.addAttributeSize("GEO::Mesh::vertices", pl.nverts());
+            writer.addAttribute("GEO::Mesh::vertices", "point", *pl.points.data);
 
-		    writer.addAttributeSize("GEO::Mesh::edges", pl.nsegments());
-		    {
-		        std::vector<index_t> segments;
-		        for (int s : pl.segments) segments.push_back(s);
-		        writer.addAttribute("GEO::Mesh::edges", "GEO::Mesh::edges::edge_vertex", "index_t", segments, 2);
-		    }
+            writer.addAttributeSize("GEO::Mesh::edges", pl.nsegments());
+            {
+                std::vector<index_t> segments;
+                for (int s : pl.segments) segments.push_back(s);
+                writer.addAttribute("GEO::Mesh::edges", "GEO::Mesh::edges::edge_vertex", "index_t", segments, 2);
+            }
 
-		    std::vector<NamedContainer> A[2] = {std::get<0>(attr), std::get<1>(attr)};
-		    for (int z=0; z<2; z++) {
-		        auto &att = A[z];
+            std::vector<NamedContainer> A[2] = {std::get<0>(attr), std::get<1>(attr)};
+            for (int z=0; z<2; z++) {
+                auto &att = A[z];
 
-		        for (int i=0; i<static_cast<int>(att.size()); i++) {
-		            std::string name = att[i].first;
-		            std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
-		            std::string place = "";
+                for (int i=0; i<static_cast<int>(att.size()); i++) {
+                    std::string name = att[i].first;
+                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                    std::string place = "";
 
-		            if (z==0)
-		                place = "GEO::Mesh::vertices";
-		            else if (z==1)
-		                place = "GEO::Mesh::edges";
+                    if (z==0)
+                        place = "GEO::Mesh::vertices";
+                    else if (z==1)
+                        place = "GEO::Mesh::edges";
 
-		            std::cerr << place << " " << name << std::endl;
-		            if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-		                writer.addAttribute(place, name, "int", aint->data);
-		            } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
-		                writer.addAttribute(place, name, "double", adouble->data);
-		            } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
-		                writer.addAttribute(place, name, avec2->data);
-		            } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
-		                writer.addAttribute(place, name, avec3->data);
-		            } else {
-		                assert(false);
-		            }
-		        }
-		    }
-		} catch (const std::exception& e) {
-		    std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
-		}
-	}
+                    std::cerr << place << " " << name << std::endl;
+                    if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
+                        writer.addAttribute(place, name, "int", aint->data);
+                    } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", adouble->data);
+                    } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
+                        writer.addAttribute(place, name, avec2->data);
+                    } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
+                        writer.addAttribute(place, name, avec3->data);
+                    } else {
+                        assert(false);
+                    }
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
+        }
+    }
 
     void write_geogram(const std::string filename, const Volume &m, VolumeAttributes attr) {
         try {
@@ -290,7 +290,7 @@ namespace UM {
                 writer.addAttributeSize("GEO::Mesh::cells", m.ncells());
 
                 std::vector<char> cell_type(m.ncells());
-                for (int c=0; c<m.ncells(); c++) cell_type[c] = m.cell_type(c);
+                for (int c=0; c<m.ncells(); c++) cell_type[c] = m.cell_type();
                 writer.addAttribute("GEO::Mesh::cells", "GEO::Mesh::cells::cell_type", "char", cell_type);
 
                 std::vector<index_t> cell_ptr(m.ncells());
@@ -707,19 +707,19 @@ namespace UM {
 
                     std::shared_ptr<GenericAttributeContainer> P;
                     if (element_type=="char") {
-                        assert(dimension == 1); // TODO
+                        assert(dimension == 1);
                         std::vector<char> tmp(nb_items);
                         in.read_attribute(tmp.data(), size);
                         GenericAttribute<int> A(nb_items);
                         for (int i=0; i<nb_items; i++) {
                             A[i] = tmp[i];
                         }
-//                      void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
                         P = A.ptr;
                     } else if (element_type=="int" || element_type=="index_t" || element_type=="signed_index_t") {
-                        if (attribute_name=="GEO::Mesh::edges::edge_vertex") continue; // TODO Bruno!
-                        assert(dimension == 1); // TODO
                         GenericAttribute<int> A(nb_items);
+                        if (attribute_name=="GEO::Mesh::edges::edge_vertex")
+                            A = GenericAttribute<int>(nb_items*2); // TODO AARGH Bruno!
+                        assert(dimension == 1 || (attribute_name=="GEO::Mesh::edges::edge_vertex" && dimension == 2));
                         void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
                         in.read_attribute(ptr, size);
                         P = A.ptr;
@@ -772,9 +772,7 @@ namespace UM {
         for (int i=0; i<(int)attr.size(); i++) {
             if (attr[i].first != "GEO::Mesh::cell_corners::corner_vertex") continue;
             std::shared_ptr<AttributeContainer<int> > ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(attr[i].second);
-            corner_vertex.resize(ptr->data.size());
-            for (int c=0; c<(int)corner_vertex.size(); c++)
-                corner_vertex[c] = ptr->data[c];
+            corner_vertex = ptr->data;
             attr.erase(attr.begin()+i);
             i--;
         }
@@ -788,9 +786,6 @@ namespace UM {
             arr = ptr->data;
             attr.erase(attr.begin()+i);
             i--;
-//          arr.resize(ptr->data.size());
-//          for (int c=0; c<(int)arr.size(); c++)
-//              arr[c] = ptr->data[c];
         }
     }
 

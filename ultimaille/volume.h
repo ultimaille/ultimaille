@@ -31,11 +31,8 @@ namespace UM {
 
         virtual int  nverts_per_cell() const = 0;
         virtual int nfacets_per_cell() const = 0;
+        virtual int cell_type() const = 0;
 
-        virtual int cell_type(const int c) const = 0;
-
-        ////	virtual int facet_size(const int fi) const = 0;
-        ////	virtual int facet_corner(const int fi, const int ci) const = 0;
         virtual int  vert(const int c, const int lv) const = 0;
         virtual int &vert(const int c, const int lv)       = 0;
     };
@@ -43,11 +40,11 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Tetrahedra : Volume { // simplicial mesh implementation
-        int cell_type(const int c) const;
+        int cell_type() const;
         int  nverts_per_cell() const;
         int nfacets_per_cell() const;
-        int ncorners() const;
 
+        int ncorners() const;
         int ncells()  const;
         int nfacets() const;
         int create_tets(const int n);
@@ -57,78 +54,17 @@ namespace UM {
     };
 
     struct Hexahedra : Volume { // hex mesh implementation
-        int cell_type(const int c) const;
+        int cell_type() const;
         int  nverts_per_cell() const;
         int nfacets_per_cell() const;
-        int ncorners() const;
 
+        int ncorners() const;
         int ncells()  const;
         int nfacets() const;
         int create_hexa(const int n);
         int  vert(const int c, const int lv) const;
         int &vert(const int c, const int lv);
     };
-/*
-
-	struct Triangles : Surface { // simplicial mesh implementation
-		int create_facets(const int n);
-
-		int nfacets()  const;
-		int facet_size(const int) const;
-		int facet_corner(const int fi, const int ci) const;
-		int  vert(const int fi, const int lv) const;
-		int &vert(const int fi, const int lv);
-	};
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	struct Quads : Surface { // quad mesh implementation
-		int create_facets(const int n);
-
-		int nfacets()  const;
-		int facet_size(const int) const;
-		int facet_corner(const int fi, const int ci) const;
-		int  vert(const int fi, const int lv) const;
-		int &vert(const int fi, const int lv);
-	};
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	struct Polygons : Surface { // polygonal mesh implementation
-		std::vector<int> offset;
-		Polygons();
-
-		int create_facets(const int n, const int size);
-		virtual void delete_facets(const std::vector<bool> &to_kill);
-		void extract_triangles(Triangles &tri);
-		void extract_quads(Quads &quads);
-
-		int nfacets()  const;
-		int facet_size(const int fi) const;
-		int facet_corner(const int fi, const int ci) const;
-		int  vert(const int fi, const int lv) const;
-		int &vert(const int fi, const int lv);
-	};
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	struct SurfaceConnectivity { // half-edge-like connectivity interface
-		SurfaceConnectivity(const Surface &p_m);
-
-		int from(const int corner_id) const;
-		int   to(const int corner_id) const;
-		int prev(const int corner_id) const;
-		int next(const int corner_id) const;
-		int opposite(const int corner_id) const;
-		bool is_border_vert(const int v) const;
-		int next_around_vertex(const int corner_id) const;
-
-		const Surface &m;
-		std::vector<int> v2c; // vertex to corner
-		std::vector<int> c2f; // corner to facet
-		std::vector<int> c2c; // corner to next corner sharing the same vertex (unordered)
-	};
-    */
 }
 
 #endif //__VOLUME_H__
