@@ -1,7 +1,11 @@
 
 add_executable(test test.cpp)
-target_link_libraries(test m ${CMAKE_DL_LIBS} ultimaille)
+target_link_libraries(test  ${CMAKE_DL_LIBS} ultimaille)
 
 add_executable(test-disjoint-set test-disjoint-set.cpp)
-target_link_libraries(test-disjoint-set m ${CMAKE_DL_LIBS} ultimaille)
+target_link_libraries(test-disjoint-set  ${CMAKE_DL_LIBS} ultimaille)
 
+IF (NOT WIN32)
+	target_link_libraries(test-disjoint-set m)
+	target_link_libraries(test m)
+ENDIF()
