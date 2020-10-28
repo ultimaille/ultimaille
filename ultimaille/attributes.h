@@ -36,6 +36,10 @@ namespace UM {
 	typedef std::tuple<std::vector<NamedContainer>,
 		               std::vector<NamedContainer>,
 		               std::vector<NamedContainer> > SurfaceAttributes;
+	typedef std::tuple<std::vector<NamedContainer>,
+		               std::vector<NamedContainer>,
+		               std::vector<NamedContainer>,
+		               std::vector<NamedContainer> > VolumeAttributes;
 
 	template <typename T> struct GenericAttribute {
 		GenericAttribute() : ptr(nullptr) {}

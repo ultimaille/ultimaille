@@ -11,8 +11,10 @@ namespace UM {
     struct Volume { // polyhedral mesh interface
         PointSet points{};
         std::vector<int> cells{};
-        ////	std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
-        ////	std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
+
+        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_cells{};
+        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
+        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
 
         Volume() = default;
 
@@ -22,26 +24,49 @@ namespace UM {
         void compress_attrs(const std::vector<bool> &cells_to_kill);
 
         int nverts() const;
-        virtual int ncells() const = 0;
-        //		int ncorners() const;
 
-        ////	virtual int nfacets() const = 0;
+        virtual int ncells()   const = 0;
+        virtual int nfacets()  const = 0;
+        virtual int ncorners() const = 0;
+
+        virtual int  nverts_per_cell() const = 0;
+        virtual int nfacets_per_cell() const = 0;
+
+        virtual int cell_type(const int c) const = 0;
+
         ////	virtual int facet_size(const int fi) const = 0;
         ////	virtual int facet_corner(const int fi, const int ci) const = 0;
-        ////	virtual int  vert(const int fi, const int lv) const = 0;
-        ////	virtual int &vert(const int fi, const int lv)       = 0;
+        virtual int  vert(const int c, const int lv) const = 0;
+        virtual int &vert(const int c, const int lv)       = 0;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Tetrahedra : Volume { // simplicial mesh implementation
-        int ncells() const;
+        int cell_type(const int c) const;
+        int  nverts_per_cell() const;
+        int nfacets_per_cell() const;
+        int ncorners() const;
+
+        int ncells()  const;
+        int nfacets() const;
         int create_tets(const int n);
+
+        int  vert(const int c, const int lv) const;
+        int &vert(const int c, const int lv);
     };
 
     struct Hexahedra : Volume { // hex mesh implementation
-        int ncells() const;
+        int cell_type(const int c) const;
+        int  nverts_per_cell() const;
+        int nfacets_per_cell() const;
+        int ncorners() const;
+
+        int ncells()  const;
+        int nfacets() const;
         int create_hexa(const int n);
+        int  vert(const int c, const int lv) const;
+        int &vert(const int c, const int lv);
     };
 /*
 

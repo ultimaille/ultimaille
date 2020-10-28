@@ -277,209 +277,287 @@ namespace UM {
 		}
 	}
 
-	void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr) {
-		try {
-		    GeogramGZWriter writer(filename);
-		    writer.addFileHeader();
-		    writer.addAttributeSize("GEO::Mesh::vertices", m.nverts());
-		    writer.addAttribute("GEO::Mesh::vertices", "point", *m.points.data);
+    void write_geogram(const std::string filename, const Volume &m, VolumeAttributes attr) {
+        try {
+            GeogramGZWriter writer(filename);
+            if (m.nverts()>0) {
+                writer.addFileHeader();
+                writer.addAttributeSize("GEO::Mesh::vertices", m.nverts());
+                writer.addAttribute("GEO::Mesh::vertices", "point", *m.points.data);
+            }
 
-		    writer.addAttributeSize("GEO::Mesh::facets", m.nfacets());
-		    std::vector<index_t> facet_ptr;
-		    for (int f=0; f<m.nfacets(); f++) facet_ptr.push_back(m.facet_corner(f,0));
-		    writer.addAttribute("GEO::Mesh::facets", "GEO::Mesh::facets::facet_ptr", "index_t", facet_ptr);
+            if (m.ncells()>0) {
+                writer.addAttributeSize("GEO::Mesh::cells", m.ncells());
 
-		    writer.addAttributeSize("GEO::Mesh::facet_corners", m.ncorners());
-		    std::vector<index_t> corner_vertex;
-		    for (int f=0; f<m.nfacets(); f++)
-		        for (int v=0; v<m.facet_size(f); v++)
-		            corner_vertex.push_back(m.vert(f,v));
-		    writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex);
+                std::vector<char> cell_type(m.ncells());
+                for (int c=0; c<m.ncells(); c++) cell_type[c] = m.cell_type(c);
+                writer.addAttribute("GEO::Mesh::cells", "GEO::Mesh::cells::cell_type", "char", cell_type);
 
-		    std::vector<index_t> corner_adjacent_facet;
-		    SurfaceConnectivity fec(m);
-		    for (int c=0; c<m.ncorners(); c++) {
-		        int opp = fec.opposite(c);
-		        corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : fec.c2f[opp]);
-		    }
-		    writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet);
+                std::vector<index_t> cell_ptr(m.ncells());
+                for (int c=1; c<m.ncells(); c++) cell_ptr[c] = cell_ptr[c-1]+m.nverts_per_cell();
+                writer.addAttribute("GEO::Mesh::cells", "GEO::Mesh::cells::cell_ptr", "index_t", cell_ptr);
 
-		    std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
-		    for (int z=0; z<3; z++) {
-		        auto &att = A[z];
+                writer.addAttributeSize("GEO::Mesh::cell_corners", m.ncorners());
+                std::vector<index_t> corner_vertex;
+                for (int c=0; c<m.ncells(); c++)
+                    for (int v=0; v<m.nverts_per_cell(); v++)
+                        corner_vertex.push_back(m.vert(c,v));
+                writer.addAttribute("GEO::Mesh::cell_corners", "GEO::Mesh::cell_corners::corner_vertex", "index_t", corner_vertex);
+            }
 
-		        for (int i=0; i<static_cast<int>(att.size()); i++) {
-		            std::string name = att[i].first;
-		            std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
-		            std::string place = "";
+            // TODO GEO::Mesh::cell_facets::adjacent_cell
+            // TODO attributes
+/*
 
-		            if (z==0)
-		                place = "GEO::Mesh::vertices";
-		            else if (z==1)
-		                place = "GEO::Mesh::facets";
-		            else
-		                place = "GEO::Mesh::facet_corners";
+            std::vector<index_t> corner_adjacent_facet;
+            SurfaceConnectivity fec(m);
+            for (int c=0; c<m.ncorners(); c++) {
+                int opp = fec.opposite(c);
+                corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : fec.c2f[opp]);
+            }
+            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet);
 
-		            if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-		                writer.addAttribute(place, name, "int", aint->data);
-		            } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
-		                writer.addAttribute(place, name, "double", adouble->data);
-		            } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
-		                writer.addAttribute(place, name, avec2->data);
-		            } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
-		                writer.addAttribute(place, name, avec3->data);
-		            } else {
-		                //      std::cerr << place << std::endl;
-		                //        TODO : ignore adjacency
-		                assert(false);
-		            }
-		        }
-		    }
-		} catch (const std::exception& e) {
-		    std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
-		}
-	}
+            std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+            for (int z=0; z<3; z++) {
+                auto &att = A[z];
+
+                for (int i=0; i<static_cast<int>(att.size()); i++) {
+                    std::string name = att[i].first;
+                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                    std::string place = "";
+
+                    if (z==0)
+                        place = "GEO::Mesh::vertices";
+                    else if (z==1)
+                        place = "GEO::Mesh::facets";
+                    else
+                        place = "GEO::Mesh::facet_corners";
+
+                    if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
+                        writer.addAttribute(place, name, "int", aint->data);
+                    } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", adouble->data);
+                    } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
+                        writer.addAttribute(place, name, avec2->data);
+                    } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
+                        writer.addAttribute(place, name, avec3->data);
+                    } else {
+                        //      std::cerr << place << std::endl;
+                        //        TODO : ignore adjacency
+                        assert(false);
+                    }
+                }
+            }
+*/
+        } catch (const std::exception& e) {
+            std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
+        }
+    }
+
+    void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr) {
+        try {
+            GeogramGZWriter writer(filename);
+            writer.addFileHeader();
+            writer.addAttributeSize("GEO::Mesh::vertices", m.nverts());
+            writer.addAttribute("GEO::Mesh::vertices", "point", *m.points.data);
+
+            writer.addAttributeSize("GEO::Mesh::facets", m.nfacets());
+            std::vector<index_t> facet_ptr;
+            for (int f=0; f<m.nfacets(); f++) facet_ptr.push_back(m.facet_corner(f,0));
+            writer.addAttribute("GEO::Mesh::facets", "GEO::Mesh::facets::facet_ptr", "index_t", facet_ptr);
+
+            writer.addAttributeSize("GEO::Mesh::facet_corners", m.ncorners());
+            std::vector<index_t> corner_vertex;
+            for (int f=0; f<m.nfacets(); f++)
+                for (int v=0; v<m.facet_size(f); v++)
+                    corner_vertex.push_back(m.vert(f,v));
+            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex);
+
+            std::vector<index_t> corner_adjacent_facet;
+            SurfaceConnectivity fec(m);
+            for (int c=0; c<m.ncorners(); c++) {
+                int opp = fec.opposite(c);
+                corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : fec.c2f[opp]);
+            }
+            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet);
+
+            std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+            for (int z=0; z<3; z++) {
+                auto &att = A[z];
+
+                for (int i=0; i<static_cast<int>(att.size()); i++) {
+                    std::string name = att[i].first;
+                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                    std::string place = "";
+
+                    if (z==0)
+                        place = "GEO::Mesh::vertices";
+                    else if (z==1)
+                        place = "GEO::Mesh::facets";
+                    else
+                        place = "GEO::Mesh::facet_corners";
+
+                    if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
+                        writer.addAttribute(place, name, "int", aint->data);
+                    } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", adouble->data);
+                    } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
+                        writer.addAttribute(place, name, avec2->data);
+                    } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
+                        writer.addAttribute(place, name, avec3->data);
+                    } else {
+                        //      std::cerr << place << std::endl;
+                        //        TODO : ignore adjacency
+                        assert(false);
+                    }
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
+        }
+    }
 
 
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	struct GeogramGZReader {
-		GeogramGZReader(std::string const &filename) :
-		    file_(nullptr),
-		    current_chunk_class_("0000"),
-		    current_chunk_size_(0),
-		    current_chunk_file_pos_(0) {
+    struct GeogramGZReader {
+        GeogramGZReader(std::string const &filename) :
+            file_(nullptr),
+            current_chunk_class_("0000"),
+            current_chunk_size_(0),
+            current_chunk_file_pos_(0) {
 
-	//        std::cerr << "GeogramGZReader()\n";
-		    file_ = gzopen(filename.c_str(), "rb");
-		    if (!file_)
-		        throw std::runtime_error("Can not open file");
+                //        std::cerr << "GeogramGZReader()\n";
+                file_ = gzopen(filename.c_str(), "rb");
+                if (!file_)
+                    throw std::runtime_error("Can not open file");
 
-	//        std::cerr << "read_chunk_header()\n";
-		    read_chunk_header();
-		    if (current_chunk_class_ != "HEAD") {
-		        throw std::runtime_error(filename + " Does not start with HEAD chunk");
-		    }
+                //        std::cerr << "read_chunk_header()\n";
+                read_chunk_header();
+                if (current_chunk_class_ != "HEAD") {
+                    throw std::runtime_error(filename + " Does not start with HEAD chunk");
+                }
 
-	//        std::cerr << "read_string()\n";
-		    std::string magic = read_string();
-		    if(magic != "GEOGRAM") {
-		        throw std::runtime_error(filename + " is not a GEOGRAM file");
-		    }
-		    std::string version = read_string();
-		    //          Logger::out("I/O") << "GeoFile version: " << version << std::endl;
-		    check_chunk_size();
-		}
+                //        std::cerr << "read_string()\n";
+                std::string magic = read_string();
+                if(magic != "GEOGRAM") {
+                    throw std::runtime_error(filename + " is not a GEOGRAM file");
+                }
+                std::string version = read_string();
+                //          Logger::out("I/O") << "GeoFile version: " << version << std::endl;
+                check_chunk_size();
+            }
 
-		~GeogramGZReader() {
-		    if (file_)
-		        gzclose(file_);
-		}
+        ~GeogramGZReader() {
+            if (file_)
+                gzclose(file_);
+        }
 
-		index_t read_int() {
-		    std::uint32_t result = 0;
-		    int check = gzread(file_, &result, sizeof(std::uint32_t));
-		    if (!check && gzeof(file_))
-		        result = std::uint32_t(-1);
-		    else if(size_t(check) != sizeof(std::uint32_t))
-		        throw std::runtime_error("Could not read integer from file");
-		    return result;
-		}
+        index_t read_int() {
+            std::uint32_t result = 0;
+            int check = gzread(file_, &result, sizeof(std::uint32_t));
+            if (!check && gzeof(file_))
+                result = std::uint32_t(-1);
+            else if(size_t(check) != sizeof(std::uint32_t))
+                throw std::runtime_error("Could not read integer from file");
+            return result;
+        }
 
-		std::string read_string() {
-		    std::string result;
-		    index_t len = read_int();
-		    result.resize(len);
-		    if (len) {
-		        int check = gzread(file_, &result[0], (unsigned int)(len));
-		        if (index_t(check) != len)
-		            throw std::runtime_error("Could not read string data from file");
-		    }
-		    return result;
-		}
+        std::string read_string() {
+            std::string result;
+            index_t len = read_int();
+            result.resize(len);
+            if (len) {
+                int check = gzread(file_, &result[0], (unsigned int)(len));
+                if (index_t(check) != len)
+                    throw std::runtime_error("Could not read string data from file");
+            }
+            return result;
+        }
 
-		void check_chunk_size() {
-		    long chunk_size = gztell(file_) - current_chunk_file_pos_;
-		    if (current_chunk_size_ != chunk_size)
-		        throw std::runtime_error(std::string("Chunk size mismatch: ") + " expected " + std::to_string(current_chunk_size_) + "/ got " + std::to_string(chunk_size));
-		}
+        void check_chunk_size() {
+            long chunk_size = gztell(file_) - current_chunk_file_pos_;
+            if (current_chunk_size_ != chunk_size)
+                throw std::runtime_error(std::string("Chunk size mismatch: ") + " expected " + std::to_string(current_chunk_size_) + "/ got " + std::to_string(chunk_size));
+        }
 
-		std::string read_chunk_class() {
-		    std::string result;
-		    result.resize(4,'\0');
-		    int check = gzread(file_, &result[0], 4);
-		    if (check == 0 && gzeof(file_))
-		        result = "EOFL";
-		    else if (check != 4)
-		        throw std::runtime_error("Could not read chunk class from file");
-		    return result;
-		}
+        std::string read_chunk_class() {
+            std::string result;
+            result.resize(4,'\0');
+            int check = gzread(file_, &result[0], 4);
+            if (check == 0 && gzeof(file_))
+                result = "EOFL";
+            else if (check != 4)
+                throw std::runtime_error("Could not read chunk class from file");
+            return result;
+        }
 
-		size_t read_size() {
-		    std::uint64_t result = 0;
-		    int check = gzread(file_, &result, sizeof(std::uint64_t));
-		    if (check == 0 && gzeof(file_))
-		        result = size_t(-1);
-		    else
-		        if (size_t(check) != sizeof(std::uint64_t))
-		            throw std::runtime_error("Could not read size from file");
-		    return size_t(result);
-		}
+        size_t read_size() {
+            std::uint64_t result = 0;
+            int check = gzread(file_, &result, sizeof(std::uint64_t));
+            if (check == 0 && gzeof(file_))
+                result = size_t(-1);
+            else
+                if (size_t(check) != sizeof(std::uint64_t))
+                    throw std::runtime_error("Could not read size from file");
+            return size_t(result);
+        }
 
-		void read_chunk_header() {
-		    current_chunk_class_ = read_chunk_class();
-		    if (gzeof(file_)) {
-		        gzclose(file_);
-		        file_ = nullptr;
-		        current_chunk_size_ = 0;
-		        current_chunk_class_ = "EOFL";
-		        return;
-		    }
-		    current_chunk_size_ = long(read_size());
-		    current_chunk_file_pos_ = gztell(file_);
-		}
+        void read_chunk_header() {
+            current_chunk_class_ = read_chunk_class();
+            if (gzeof(file_)) {
+                gzclose(file_);
+                file_ = nullptr;
+                current_chunk_size_ = 0;
+                current_chunk_class_ = "EOFL";
+                return;
+            }
+            current_chunk_size_ = long(read_size());
+            current_chunk_file_pos_ = gztell(file_);
+        }
 
-		void skip_chunk() {
-		    gzseek(file_, current_chunk_size_ + current_chunk_file_pos_, SEEK_SET);
-		}
+        void skip_chunk() {
+            gzseek(file_, current_chunk_size_ + current_chunk_file_pos_, SEEK_SET);
+        }
 
-		const std::string& next_chunk() {
-		    // If the file pointer did not advance as expected
-		    // between two consecutive calls of next_chunk, it
-		    // means that the client code does not want to
-		    // read the current chunk, then it needs to be
-		    // skipped.
-		    if (gztell(file_) != current_chunk_file_pos_ + current_chunk_size_)
-		        skip_chunk();
+        const std::string& next_chunk() {
+            // If the file pointer did not advance as expected
+            // between two consecutive calls of next_chunk, it
+            // means that the client code does not want to
+            // read the current chunk, then it needs to be
+            // skipped.
+            if (gztell(file_) != current_chunk_file_pos_ + current_chunk_size_)
+                skip_chunk();
 
-		    read_chunk_header();
-		    return current_chunk_class_;
-		}
+            read_chunk_header();
+            return current_chunk_class_;
+        }
 
-		void read_attribute(void* addr, size_t size) {
-		    assert(current_chunk_class_ == "ATTR");
-		    int check = gzread(file_, addr, (unsigned int)(size));
-		    if (size_t(check) != size)
-		        throw std::runtime_error("Could not read attribute  (" + std::to_string(check) + "/" + std::to_string(size) + " bytes read)");
-		    check_chunk_size();
-		}
+        void read_attribute(void* addr, size_t size) {
+            assert(current_chunk_class_ == "ATTR");
+            int check = gzread(file_, addr, (unsigned int)(size));
+            if (size_t(check) != size)
+                throw std::runtime_error("Could not read attribute  (" + std::to_string(check) + "/" + std::to_string(size) + " bytes read)");
+            check_chunk_size();
+        }
 
-		gzFile file_;
-		std::string current_chunk_class_;
-		long current_chunk_size_;
-		long current_chunk_file_pos_;
-	};
+        gzFile file_;
+        std::string current_chunk_class_;
+        long current_chunk_size_;
+        long current_chunk_file_pos_;
+    };
 
-	void read_geogram(const std::string filename, PointSet &pointset, PolyLine &polyline, Polygons &polygons, std::vector<NamedContainer> &pt_attr, std::vector<NamedContainer> &edg_attr, std::vector<NamedContainer> &fct_attr, std::vector<NamedContainer> &crn_attr) {
+/*
+	void read_geogram(const std::string filename, PointSet &pointset, PolyLine &polyline, Polygons &polygons, std::vector<NamedContainer> &pt_attr, std::vector<NamedContainer> &edg_attr, std::vector<NamedContainer> &fct_attr, std::vector<NamedContainer> &crn_attr, std::vector<NamedContainer> &cell_attr, std::vector<NamedContainer> &cell_fct_attr, std::vector<NamedContainer> &cell_crn_attr) {
 		try {
 		    GeogramGZReader in(filename);
 		    std::string chunk_class;
@@ -593,12 +671,198 @@ namespace UM {
 	//  for (auto &a : fct_attr) polygons.attr_facets.emplace_back(a.second);
 	//  for (auto &a : crn_attr) polygons.attr_corners.emplace_back(a.second);
 	}
+*/
+
+    const std::string attrib_set_names[7] = {"GEO::Mesh::vertices", "GEO::Mesh::edges", "GEO::Mesh::facets", "GEO::Mesh::facet_corners", "GEO::Mesh::cells", "GEO::Mesh::cell_facets", "GEO::Mesh::cell_corners"};
+    void read_geogram(const std::string filename, std::vector<NamedContainer> attr[7]) {
+        int set_size[7] = {-1, -1, -1, -1, -1, -1, -1};
+        try {
+            GeogramGZReader in(filename);
+            std::string chunk_class;
+            for (chunk_class=in.next_chunk(); chunk_class!="EOFL"; chunk_class=in.next_chunk()) {
+                if (chunk_class == "ATTS") {
+                    std::string attribute_set_name = in.read_string();
+                    index_t nb_items = in.read_int();
+                    in.check_chunk_size();
+                    std::cerr << "ATTS " << attribute_set_name << " " << nb_items << std::endl;
+                    for (int i=0; i<7; i++)
+                        if (attribute_set_name == attrib_set_names[i])
+                            set_size[i] = nb_items;
+                } else if (chunk_class == "ATTR") {
+                    std::string attribute_set_name = in.read_string();
+                    int nb_items = -1;
+                    for (int i=0; i<7; i++)
+                        if (attribute_set_name == attrib_set_names[i])
+                            nb_items = set_size[i];
+
+                    assert(nb_items>0);
+
+                    std::string attribute_name = in.read_string();
+                    std::string element_type   = in.read_string();
+                    index_t element_size = in.read_int();
+                    index_t dimension    = in.read_int();
+                    size_t size = size_t(element_size) * size_t(dimension) * size_t(nb_items);
+
+                    std::cerr << "ATTR " << attribute_set_name << " " << attribute_name << " " << element_type << " " << element_size << " " << dimension << "\n";
+
+                    std::shared_ptr<GenericAttributeContainer> P;
+                    if (element_type=="char") {
+                        assert(dimension == 1); // TODO
+                        std::vector<char> tmp(nb_items);
+                        in.read_attribute(tmp.data(), size);
+                        GenericAttribute<int> A(nb_items);
+                        for (int i=0; i<nb_items; i++) {
+                            A[i] = tmp[i];
+                        }
+//                      void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
+                        P = A.ptr;
+                    } else if (element_type=="int" || element_type=="index_t" || element_type=="signed_index_t") {
+                        if (attribute_name=="GEO::Mesh::edges::edge_vertex") continue; // TODO Bruno!
+                        assert(dimension == 1); // TODO
+                        GenericAttribute<int> A(nb_items);
+                        void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
+                        in.read_attribute(ptr, size);
+                        P = A.ptr;
+                    } else if (element_type=="double") {
+                        assert(element_size==8);
+                        std::vector<double> raw(nb_items*dimension);
+                        in.read_attribute((void *)raw.data(), size);
+
+                        if (1==dimension) {
+                            GenericAttribute<double> A(nb_items);
+                            for (int i=0; i<nb_items; i++)
+                                A[i] = raw[i];
+                            P = A.ptr;
+                        } if (2==dimension) {
+                            GenericAttribute<vec2> A(nb_items);
+                            for (int i=0; i<nb_items; i++)
+                                A[i] = {raw[i*2+0], raw[i*2+1]};
+                            P = A.ptr;
+                        } if (3==dimension) {
+                            GenericAttribute<vec3> A(nb_items);
+                            for (int i=0; i<nb_items; i++)
+                                A[i] = {raw[i*3+0], raw[i*3+1], raw[i*3+2]};
+                            P = A.ptr;
+                        }
+                    }
+
+                    for (int i=0; i<7; i++)
+                        if (attribute_set_name == attrib_set_names[i])
+                            attr[i].emplace_back(attribute_name, P);
+                } // chunk_class = ATTR
+            } // chunks
+        } catch (const std::exception& e) {
+            std::cerr << "Ooops: catch error= " << e.what() << " when reading " << filename << "\n";
+        }
+    }
+
+    void parse_pointset_attributes(PointSet &pts, std::vector<NamedContainer> &attr) {
+        for (int i=0; i<(int)attr.size(); i++) {
+            if (attr[i].first != "point") continue;
+            std::shared_ptr<AttributeContainer<vec3> > ptr = std::dynamic_pointer_cast<AttributeContainer<vec3> >(attr[i].second);
+            pts.resize(ptr->data.size());
+            for (int v=0; v<pts.size(); v++)
+                pts[v] = ptr->data[v];
+            attr.erase(attr.begin()+i);
+            i--;
+        }
+    }
+
+    void parse_corner_vertex(std::vector<int> &corner_vertex, std::vector<NamedContainer> &attr) {
+        for (int i=0; i<(int)attr.size(); i++) {
+            if (attr[i].first != "GEO::Mesh::cell_corners::corner_vertex") continue;
+            std::shared_ptr<AttributeContainer<int> > ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(attr[i].second);
+            corner_vertex.resize(ptr->data.size());
+            for (int c=0; c<(int)corner_vertex.size(); c++)
+                corner_vertex[c] = ptr->data[c];
+            attr.erase(attr.begin()+i);
+            i--;
+        }
+    }
+
+    void parse_cell_type_cell_ptr(std::vector<int> &cell_type, std::vector<int> &cell_ptr, std::vector<NamedContainer> &attr) {
+        for (int i=0; i<(int)attr.size(); i++) {
+            if (attr[i].first != "GEO::Mesh::cells::cell_type" && attr[i].first != "GEO::Mesh::cells::cell_ptr") continue;
+            std::vector<int> &arr =  (attr[i].first == "GEO::Mesh::cells::cell_type" ? cell_type : cell_ptr);
+            std::shared_ptr<AttributeContainer<int> > ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(attr[i].second);
+            arr = ptr->data;
+            attr.erase(attr.begin()+i);
+            i--;
+//          arr.resize(ptr->data.size());
+//          for (int c=0; c<(int)arr.size(); c++)
+//              arr[c] = ptr->data[c];
+        }
+    }
+
+    void parse_volume_data(const std::string filename, PointSet &pts, std::vector<int> &corner_vertex, int type2keep) {
+        std::vector<NamedContainer> attrib[7];
+        read_geogram(filename, attrib);
+        parse_pointset_attributes(pts, attrib[0]);
+
+        std::vector<int> old_corner_vertex;
+        parse_corner_vertex(old_corner_vertex, attrib[6]);
+        std::vector<int> cell_type(old_corner_vertex.size()/4, 0);
+        std::vector<int> cell_ptr(old_corner_vertex.size()/4, 0);
+        for (int i=0; i<(int)cell_type.size(); i++) cell_ptr[i] = i*4;
+        parse_cell_type_cell_ptr(cell_type, cell_ptr, attrib[4]);
+
+        int ncells = cell_type.size();
+        assert(cell_ptr.size()==cell_type.size());
+        cell_ptr.push_back(old_corner_vertex.size());
+
+        corner_vertex = std::vector<int>();
+        corner_vertex.reserve(old_corner_vertex.size());
+        int currcell = 0;
+        for (int c=0; c<ncells; c++) {
+            if (type2keep!=cell_type[c]) continue;
+            for (int v=cell_ptr[c]; v<cell_ptr[c+1]; v++) {
+                corner_vertex.push_back(old_corner_vertex[v]);
+            }
+            currcell++;
+        }
+
+//      corner_vertex = old_corner_vertex;
+
+//      std::vector<int> old2new(size(),  -1);
+//      int new_nb_cells = 0;
+//      for (int c=0; c<ncells; c++) {
+//          if (to_kill[c]) continue;
+
+//          data->at(new_nb_pts) = data->at(v);
+//          old2new[v] = new_nb_pts++;
+//      }
+
+    }
+
+    VolumeAttributes read_geogram(const std::string filename, Tetrahedra &m) {
+        std::vector<int> corner_vertex;
+        parse_volume_data(filename, m.points, corner_vertex, 0);
+        assert(corner_vertex.size()%4==0);
+
+        int nhexa = corner_vertex.size()*4;
+        m.create_tets(nhexa);
+        m.cells = corner_vertex;
+
+        return {{}, {}, {}, {}};
+    }
+
+    VolumeAttributes read_geogram(const std::string filename, Hexahedra &m) {
+        std::vector<int> corner_vertex;
+        parse_volume_data(filename, m.points, corner_vertex, 1);
+        assert(corner_vertex.size()%8==0);
+
+        int nhexa = corner_vertex.size()*8;
+        m.create_hexa(nhexa);
+        m.cells = corner_vertex;
+
+        return {{}, {}, {}, {}};
+    }
 
 	SurfaceAttributes read_geogram(const std::string filename, Polygons &polygons) {
 		polygons = Polygons();
 		PolyLine polyline;
-		std::vector<NamedContainer> pt_attr, edg_attr, fct_attr, crn_attr;
-		read_geogram(filename, polygons.points, polyline, polygons, pt_attr, edg_attr, fct_attr, crn_attr);
+		std::vector<NamedContainer> pt_attr, edg_attr, fct_attr, crn_attr, cell_attr, cell_fct_attr, cell_crn_attr;
+////	read_geogram(filename, polygons.points, polyline, polygons, pt_attr, edg_attr, fct_attr, crn_attr);
 		return make_tuple(pt_attr, fct_attr, crn_attr);
 	}
 
@@ -606,8 +870,9 @@ namespace UM {
 		Polygons polygons;
 		pl = PolyLine();
 		std::vector<NamedContainer> pt_attr, edg_attr, fct_attr, crn_attr;
-		read_geogram(filename, pl.points, pl, polygons, pt_attr, edg_attr, fct_attr, crn_attr);
+////	read_geogram(filename, pl.points, pl, polygons, pt_attr, edg_attr, fct_attr, crn_attr);
 		return make_tuple(pt_attr, edg_attr);
 	}
+
 }
 

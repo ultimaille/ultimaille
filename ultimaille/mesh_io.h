@@ -4,17 +4,24 @@
 #include <vector>
 #include <cstring>
 #include "attributes.h"
+#include "volume.h"
 #include "surface.h"
 #include "polyline.h"
-namespace UM {
-	void read_wavefront_obj(const std::string filename, Polygons &m);
-	void write_wavefront_obj(const std::string filename, const Surface &m);
 
-	//void write_geogram_ascii(const std::string filename, const Surface &m, SurfaceAttributes attr = {{}, {}, {}});
-	void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr = {{}, {}, {}});
-	void write_geogram(const std::string filename, const PolyLine &pl, PolyLineAttributes attr = {{}, {}});
-	SurfaceAttributes read_geogram(const std::string filename, Polygons &m);
-	PolyLineAttributes read_geogram(const std::string filename, PolyLine &pl);
+namespace UM {
+    void read_wavefront_obj(const std::string filename, Polygons &m);
+    void write_wavefront_obj(const std::string filename, const Surface &m);
+
+    //void write_geogram_ascii(const std::string filename, const Surface &m, SurfaceAttributes attr = {{}, {}, {}});
+
+    void write_geogram(const std::string filename, const PolyLine &pl, PolyLineAttributes attr = {{}, {}});
+    void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr = {{}, {}, {}});
+    void write_geogram(const std::string filename, const Volume  &m,  VolumeAttributes attr = {{}, {}, {}, {}});
+
+    PolyLineAttributes read_geogram(const std::string filename, PolyLine &m);
+    SurfaceAttributes  read_geogram(const std::string filename, Polygons &m);
+    VolumeAttributes   read_geogram(const std::string filename, Tetrahedra &m);
+    VolumeAttributes   read_geogram(const std::string filename, Hexahedra  &m);
 }
 
 #endif // __MESH_IO_H__
