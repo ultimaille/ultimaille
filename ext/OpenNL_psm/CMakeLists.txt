@@ -3,7 +3,7 @@ if (BUILD_SHARED_LIBS)
 endif ()
 
 add_library(OpenNL_psm OpenNL_psm.c)
-target_link_libraries(OpenNL_psm dl)
+target_link_libraries(OpenNL_psm ${CMAKE_DL_LIBS})
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(OpenNL_psm OpenMP::OpenMP_CXX)
