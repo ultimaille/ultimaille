@@ -166,40 +166,6 @@ namespace UM {
                 addData(static_cast<void const *>(data), sizeof(T)*nb_items*dim);
             }
 
-/*
-            void addAttribute(std::string const &wh, std::string const &name, std::vector<vec2> const &data) {
-                addHeader("ATTR");
-                addU64((4+wh.length())+(4+name.length())+(4+6)+4+4+sizeof(double)*2*data.size());
-                addString(wh);
-                addString(name);
-                addString("double");
-                addU32(8);
-                addU32(2);
-                std::vector<double> values;
-                for (const auto &p : data) {
-                    values.push_back(p.x);
-                    values.push_back(p.y);
-                }
-                addData(static_cast<void const *>(values.data()), sizeof(double)*values.size());
-            }
-
-            void addAttribute(std::string const &wh, std::string const &name, std::vector<vec3> const &data) {
-                addHeader("ATTR");
-                addU64((4+wh.length())+(4+name.length())+(4+6)+4+4+sizeof(double)*3*data.size());
-                addString(wh);
-                addString(name);
-                addString("double");
-                addU32(8);
-                addU32(3);
-                std::vector<double> values;
-                for (const auto &p : data) {
-                    values.push_back(p.x);
-                    values.push_back(p.y);
-                    values.push_back(p.z);
-                }
-                addData(static_cast<void const *>(values.data()), sizeof(double)*values.size());
-            }
-*/
             protected:
             void addU64(uint64_t size) {
                 addData(&size, 8);
@@ -316,7 +282,6 @@ namespace UM {
             std::vector<index_t> cell_ptr(m.ncells());
             for (int c=1; c<m.ncells(); c++) cell_ptr[c] = cell_ptr[c-1]+m.nverts_per_cell();
             writer.addAttribute("GEO::Mesh::cells", "GEO::Mesh::cells::cell_ptr", "index_t", cell_ptr.data(), m.ncells(), 1);
-
 
             writer.addAttributeSize("GEO::Mesh::cell_corners", m.ncorners());
             std::vector<index_t> corner_vertex;
