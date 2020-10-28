@@ -1,6 +1,8 @@
 #include <iostream>
 
 #include <ultimaille/mesh_io.h>
+#include <ultimaille/polyline.h>
+#include <ultimaille/surface.h>
 #include <ultimaille/volume.h>
 #include <ultimaille/attributes.h>
 
@@ -12,9 +14,18 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    PolyLine mseg;
+    Triangles mtri;
+    Quads mquads;
+    Polygons mpoly;
     Tetrahedra mtet;
     Hexahedra mhex;
+
     VolumeAttributes tetattr = read_geogram(argv[1], mtet);
+    CellFacetAttribute<int> rnd("rnd", tetattr, mtet);
+    for (int f=0; f<mtet.nfacets(); f++)
+        rnd[f] = rand()%12465;
+
     VolumeAttributes hexattr = read_geogram(argv[1], mhex);
 
     write_geogram("tet.geogram", mtet, tetattr);

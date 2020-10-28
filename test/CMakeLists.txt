@@ -4,7 +4,7 @@ OPTION (BIN_PERMU "Permutation test binary " Off)
 OPTION (BIN_EMBED "Embeding  binaries" Off)
 OPTION (BIN_TEST "Basic tests binary" On)
 
-OPTION (BIN_IO "Basic IO tests" On)
+OPTION (BIN_TEST_IO "Basic IO tests" On)
 
 
 
@@ -25,6 +25,6 @@ endif()
 if(BIN_TEST)
 	add_subdirectory(test)
 endif()
-if(BIN_IO)
-	add_subdirectory(meshIO)
+if(BIN_TEST_IO)
+	add_subdirectory(test-io)
 endif()
