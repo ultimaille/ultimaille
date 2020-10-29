@@ -51,22 +51,85 @@ namespace UM {
         GenericAttribute() : ptr(nullptr) {}
         GenericAttribute(int size) : ptr(new AttributeContainer<T>(size)) {}
         GenericAttribute(std::shared_ptr<AttributeContainer<T> > p) : ptr(p) {}
+        GenericAttribute(const GenericAttribute<T>& rhs) = delete;
+        GenericAttribute<bool>& operator=(const GenericAttribute<T>& rhs) = delete;
         T& operator[](const int i)       { return ptr->data[i]; }
         T  operator[](const int i) const { return ptr->data[i]; }
-        void bind(const std::string name, const int size, std::vector<NamedContainer> &containers, std::vector<std::weak_ptr<GenericAttributeContainer> > &callbacks) {
-            for (auto &pair : containers) {
-                if (pair.first!=name) continue;
-                ptr = std::dynamic_pointer_cast<AttributeContainer<T> >(pair.second);
-                assert(ptr.get());
-                //          callbacks.push_back(ptr); // TODO architectural choice: to bind or not to bind? At the moment the binding is done in mesh_io.cpp
-                return;
-            }
-            ptr = std::make_shared<AttributeContainer<T> >(size);
-            callbacks.push_back(ptr);
-            containers.emplace_back(name, ptr);
-        }
         std::shared_ptr<AttributeContainer<T> > ptr;
     };
+
+    template <> struct GenericAttribute<bool> {
+        GenericAttribute() : ptr(nullptr) {}
+        GenericAttribute(int size) : ptr(new AttributeContainer<bool>(size)) {}
+        GenericAttribute(std::shared_ptr<AttributeContainer<bool> > p) : ptr(p) {}
+        GenericAttribute(const GenericAttribute<bool>& rhs) = delete;
+        GenericAttribute<bool>& operator=(const GenericAttribute<bool>& rhs) = delete;
+
+        struct ConstBoolAttributeAccessor {
+            ConstBoolAttributeAccessor(const GenericAttribute<bool>& attribute, int index) : attribute_(&attribute), index_(index) {}
+            operator bool() const {
+//              return attribute_->element(index_);
+            }
+            const GenericAttribute<bool>* attribute_;
+            int index_;
+        };
+
+        struct BoolAttributeAccessor {
+            BoolAttributeAccessor(GenericAttribute<bool>& attribute, int index) : attribute_(&attribute), index_(index) { }
+            operator bool() const {
+//              return (attribute_->element(index_) != 0);
+            }
+
+            BoolAttributeAccessor(const BoolAttributeAccessor& rhs) {
+                attribute_ = rhs.attribute_;
+                index_ = rhs.index_;
+            }
+
+            BoolAttributeAccessor& operator=(bool x) {
+//              attribute_->element(index_) = Numeric::uint8(x);
+                return *this;
+            }
+
+            BoolAttributeAccessor& operator=(const BoolAttributeAccessor& rhs) {
+                if (&rhs != this) {
+//                  attribute_->element(index_) = rhs.attribute_->element(rhs.index_);
+                }
+                return *this;
+            }
+
+            BoolAttributeAccessor& operator=(const ConstBoolAttributeAccessor& rhs) {
+//              attribute_->element(index_) = rhs.attribute_->element(rhs.index_);
+                return *this;
+            }
+
+            GenericAttribute<bool>* attribute_;
+            int index_;
+        };
+
+        BoolAttributeAccessor operator[](const int i) {
+            return BoolAttributeAccessor(*this, i);
+        }
+
+        ConstBoolAttributeAccessor operator[](const int i) const {
+            return ConstBoolAttributeAccessor(*this, i);
+        }
+
+        std::shared_ptr<AttributeContainer<bool> > ptr;
+    };
+
+
+    template <typename T> void bind(GenericAttribute<T> *A, const std::string name, const int size, std::vector<NamedContainer> &containers, std::vector<std::weak_ptr<GenericAttributeContainer> > &callbacks) {
+        for (auto &pair : containers) {
+            if (pair.first!=name) continue;
+            A->ptr = std::dynamic_pointer_cast<AttributeContainer<T> >(pair.second);
+            assert(A->ptr.get());
+            //   callbacks.push_back(ptr); // TODO architectural choice: to bind or not to bind? At the moment the binding is done in mesh_io.cpp
+            return;
+        }
+        A->ptr = std::make_shared<AttributeContainer<T> >(size);
+        callbacks.push_back(A->ptr);
+        containers.emplace_back(name, A->ptr);
+    }
 
     template <typename T> struct PointAttribute : GenericAttribute<T> {
         PointAttribute(PointSet &pts) : GenericAttribute<T>(pts.size()) {
@@ -74,15 +137,15 @@ namespace UM {
         }
 
         PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, seg.nverts(), std::get<0>(attributes), seg.points.attr);
+            bind(this, name, seg.nverts(), std::get<0>(attributes), seg.points.attr);
         }
 
         PointAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, m.nverts(), std::get<0>(attributes), m.points.attr);
+            bind(this, name, m.nverts(), std::get<0>(attributes), m.points.attr);
         }
 
         PointAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, m.nverts(), std::get<0>(attributes), m.points.attr);
+            bind(this, name, m.nverts(), std::get<0>(attributes), m.points.attr);
         }
     };
 
@@ -92,7 +155,7 @@ namespace UM {
         }
 
         SegmentAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, seg.nsegments(), std::get<1>(attributes), seg.attr);
+            bind(this, name, seg.nsegments(), std::get<1>(attributes), seg.attr);
         }
     };
 
@@ -102,7 +165,7 @@ namespace UM {
         }
 
         FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, m.nfacets(), std::get<1>(attributes), m.attr_facets);
+            bind(this, name, m.nfacets(), std::get<1>(attributes), m.attr_facets);
         }
     };
 
@@ -112,7 +175,7 @@ namespace UM {
         }
 
         CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, m.ncorners(), std::get<2>(attributes), m.attr_corners);
+            bind(this, name, m.ncorners(), std::get<2>(attributes), m.attr_corners);
         }
     };
 
@@ -122,7 +185,7 @@ namespace UM {
         }
 
         CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, m.ncells(), std::get<1>(attributes), m.attr_cells);
+            bind(this, name, m.ncells(), std::get<1>(attributes), m.attr_cells);
         }
     };
 
@@ -132,7 +195,7 @@ namespace UM {
         }
 
         CellFacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, m.nfacets(), std::get<2>(attributes), m.attr_facets);
+            bind(this, name, m.nfacets(), std::get<2>(attributes), m.attr_facets);
         }
     };
 
@@ -142,7 +205,7 @@ namespace UM {
         }
 
         CellCornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, m.ncorners(), std::get<3>(attributes), m.attr_corners);
+            bind(this, name, m.ncorners(), std::get<3>(attributes), m.attr_corners);
         }
     };
 

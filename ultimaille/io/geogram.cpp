@@ -125,6 +125,74 @@ namespace UM {
         */
     }
 
+
+    void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr) {
+    /*
+        try {
+            GeogramGZWriter writer(filename);
+            writer.addFileHeader();
+            writer.addAttributeSize("GEO::Mesh::vertices", m.nverts());
+            writer.addAttribute("GEO::Mesh::vertices", "point", *m.points.data);
+
+            writer.addAttributeSize("GEO::Mesh::facets", m.nfacets());
+            std::vector<index_t> facet_ptr;
+            for (int f=0; f<m.nfacets(); f++) facet_ptr.push_back(m.facet_corner(f,0));
+            writer.addAttribute("GEO::Mesh::facets", "GEO::Mesh::facets::facet_ptr", "index_t", facet_ptr);
+
+            writer.addAttributeSize("GEO::Mesh::facet_corners", m.ncorners());
+            std::vector<index_t> corner_vertex;
+            for (int f=0; f<m.nfacets(); f++)
+                for (int v=0; v<m.facet_size(f); v++)
+                    corner_vertex.push_back(m.vert(f,v));
+            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex);
+
+            std::vector<index_t> corner_adjacent_facet;
+            SurfaceConnectivity fec(m);
+            for (int c=0; c<m.ncorners(); c++) {
+                int opp = fec.opposite(c);
+                corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : fec.c2f[opp]);
+            }
+            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet);
+
+            std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+            for (int z=0; z<3; z++) {
+                auto &att = A[z];
+
+                for (int i=0; i<static_cast<int>(att.size()); i++) {
+                    std::string name = att[i].first;
+                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                    std::string place = "";
+
+                    if (z==0)
+                        place = "GEO::Mesh::vertices";
+                    else if (z==1)
+                        place = "GEO::Mesh::facets";
+                    else
+                        place = "GEO::Mesh::facet_corners";
+
+                    if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
+                        writer.addAttribute(place, name, "int", aint->data);
+                    } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", adouble->data);
+                    } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
+                        writer.addAttribute(place, name, avec2->data);
+                    } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
+                        writer.addAttribute(place, name, avec3->data);
+                    } else {
+                        //      std::cerr << place << std::endl;
+                        //        TODO : ignore adjacency
+                        assert(false);
+                    }
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
+        }
+      */
+    }
+
+
+
     const int   geogram_nb_verts_per_cell_type[5] = {4, 8, 6, 5, 4}; // geogram types: tet, hex, prism, pyramid, connector
     const int  geogram_nb_facets_per_cell_type[5] = {4, 6, 5, 5, 3}; //
     const int geogram_nb_padding_per_cell_type[5] = {0, 2, 1, 0, 1}; // geogram cell facet padding. AARGH Bruno!
@@ -195,18 +263,23 @@ namespace UM {
                         std::vector<int> tmp = contptr->data;
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "int", tmp.data(), tmp.size(), 1);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); cont_ptr.get()!=nullptr) {
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr.get()!=nullptr) {
                         std::vector<double> tmp = cont_ptr->data;
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "double", tmp.data(), tmp.size(), 1);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); cont_ptr.get()!=nullptr) {
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
                         std::vector<vec2> tmp = cont_ptr->data;
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(tmp.data()), tmp.size(), 2);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); cont_ptr.get()!=nullptr) {
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr.get()!=nullptr) {
                         std::vector<vec3> tmp = cont_ptr->data;
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(tmp.data()), tmp.size(), 3);
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr.get()!=nullptr) {
+                        std::vector<char> tmp(cont_ptr->data.size());
+                        for (int i=0; i<(int)cont_ptr->data.size(); i++) tmp[i] = cont_ptr->data[i];
+                        if (2==z) pad_attribute(m, tmp);
+                        writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                     } else {
                         assert(false);
                     }
@@ -215,71 +288,6 @@ namespace UM {
         } catch (const std::exception& e) {
             std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
         }
-    }
-
-    void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr) {
-    /*
-        try {
-            GeogramGZWriter writer(filename);
-            writer.addFileHeader();
-            writer.addAttributeSize("GEO::Mesh::vertices", m.nverts());
-            writer.addAttribute("GEO::Mesh::vertices", "point", *m.points.data);
-
-            writer.addAttributeSize("GEO::Mesh::facets", m.nfacets());
-            std::vector<index_t> facet_ptr;
-            for (int f=0; f<m.nfacets(); f++) facet_ptr.push_back(m.facet_corner(f,0));
-            writer.addAttribute("GEO::Mesh::facets", "GEO::Mesh::facets::facet_ptr", "index_t", facet_ptr);
-
-            writer.addAttributeSize("GEO::Mesh::facet_corners", m.ncorners());
-            std::vector<index_t> corner_vertex;
-            for (int f=0; f<m.nfacets(); f++)
-                for (int v=0; v<m.facet_size(f); v++)
-                    corner_vertex.push_back(m.vert(f,v));
-            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex);
-
-            std::vector<index_t> corner_adjacent_facet;
-            SurfaceConnectivity fec(m);
-            for (int c=0; c<m.ncorners(); c++) {
-                int opp = fec.opposite(c);
-                corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : fec.c2f[opp]);
-            }
-            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet);
-
-            std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
-            for (int z=0; z<3; z++) {
-                auto &att = A[z];
-
-                for (int i=0; i<static_cast<int>(att.size()); i++) {
-                    std::string name = att[i].first;
-                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
-                    std::string place = "";
-
-                    if (z==0)
-                        place = "GEO::Mesh::vertices";
-                    else if (z==1)
-                        place = "GEO::Mesh::facets";
-                    else
-                        place = "GEO::Mesh::facet_corners";
-
-                    if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-                        writer.addAttribute(place, name, "int", aint->data);
-                    } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
-                        writer.addAttribute(place, name, "double", adouble->data);
-                    } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
-                        writer.addAttribute(place, name, avec2->data);
-                    } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
-                        writer.addAttribute(place, name, avec3->data);
-                    } else {
-                        //      std::cerr << place << std::endl;
-                        //        TODO : ignore adjacency
-                        assert(false);
-                    }
-                }
-            }
-        } catch (const std::exception& e) {
-            std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
-        }
-      */
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -583,7 +591,7 @@ namespace UM {
                     } else if (element_type=="int" || element_type=="index_t" || element_type=="signed_index_t") {
                         GenericAttribute<int> A(nb_items);
                         if (attribute_name=="GEO::Mesh::edges::edge_vertex")
-                            A = GenericAttribute<int>(nb_items*2); // TODO AARGH Bruno!
+                            A.ptr->data.resize(nb_items*2); // TODO AARGH Bruno!
                         assert(dimension == 1 || (attribute_name=="GEO::Mesh::edges::edge_vertex" && dimension == 2));
                         void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
                         in.read_attribute(ptr, size);
@@ -599,6 +607,12 @@ namespace UM {
                     } else if ((element_type=="vec3" && 1==dimension) || (element_type=="double" && 3==dimension)) {
                         GenericAttribute<vec3> A(nb_items);
                         in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<vec3> >(A.ptr)->data.data(), size);
+                        P = A.ptr;
+                    } else if (element_type=="bool" && 1==dimension) {
+                        std::vector<char> tmp(nb_items, 0);
+                        in.read_attribute(tmp.data(), size);
+                        GenericAttribute<bool> A(nb_items);
+                        for (int i=0; i<nb_items; i++) A[i] = tmp[i];
                         P = A.ptr;
                     } else {
                         // TODO bool
