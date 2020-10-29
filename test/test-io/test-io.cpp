@@ -1,10 +1,6 @@
 #include <iostream>
 
-#include <ultimaille/mesh_io.h>
-#include <ultimaille/polyline.h>
-#include <ultimaille/surface.h>
-#include <ultimaille/volume.h>
-#include <ultimaille/attributes.h>
+#include <ultimaille/all.h>
 
 using namespace UM;
 

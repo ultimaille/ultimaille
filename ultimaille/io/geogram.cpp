@@ -2,200 +2,79 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
-#include "surface.h"
-#include "attributes.h"
-#include "mesh_io.h"
 
+#include "ultimaille/io/geogram.h"
 #include <zlib/zlib.h>
 
 namespace UM {
-	// supposes .obj file to have "f " entries without slashes
-	// TODO: improve the parser
-	// TODO: export vn and vt attributes
-	void read_wavefront_obj(const std::string filename, Polygons &m) {
-		m = Polygons();
-		std::ifstream in;
-		in.open (filename, std::ifstream::in);
-		if (in.fail()) {
-		    std::cerr << "Failed to open " << filename << std::endl;
-		    return;
-		}
-		std::string line;
-		while (!in.eof()) {
-		    std::getline(in, line);
-		    std::istringstream iss(line.c_str());
-		    char trash;
-		    if (!line.compare(0, 2, "v ")) {
-		        iss >> trash;
-		        vec3 v;
-		        for (int i=0;i<3;i++) iss >> v[i];
-		        m.points.data->push_back(v);
-		    } else if (!line.compare(0, 2, "f ")) {
-		        std::vector<int> f;
-		        int idx;
-		        iss >> trash;
-		        while (iss >> idx) {
-		            f.push_back(--idx);  // in wavefront obj all indices start at 1, not zero
-		        }
-		        int off_f = m.create_facets(1, f.size());
-		        for (int i=0; i<static_cast<int>(f.size()); i++) {
-		            m.vert(off_f, i) = f[i];
-		        }
-		    }
-		}
-		in.close();
-		std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;
-	}
+    typedef unsigned int index_t;
 
-	void write_wavefront_obj(const std::string filename, const Surface &m) {
-		std::fstream out;
-		out.open(filename, std::ios_base::out);
-		out << std::fixed << std::setprecision(4);
-		for (int v=0; v<m.nverts(); v++)
-		    out << "v " << m.points[v] << std::endl;
-		for (int f=0; f<m.nfacets(); f++) {
-		    out << "f ";
-		    for (int v=0; v<m.facet_size(f); v++)
-		        out << (m.vert(f,v)+1) << " ";
-		    out << std::endl;
-		}
-		out.close();
-	}
+    struct GeogramGZWriter {
+        GeogramGZWriter(std::string const &fName) : file_() {
+            file_ = gzopen(fName.c_str(), "wb");
+            if (!file_)
+                throw std::runtime_error("Can not open file");
+        }
 
-	typedef unsigned int index_t;
-	/*
-	// Attention: only int and double attributes
-	void write_geogram_ascii(const std::string filename, const Surface &m, SurfaceAttributes attr) {
-		auto [pattr, fattr, cattr] = attr;
-		std::fstream file;
-		file.open(filename, std::ios_base::out);
-		file << "[HEAD]\n\"GEOGRAM\"\n\"1.0\"\n[ATTS]\n\"GEO::Mesh::vertices\"\n";
-		file << m.nverts() << "\n";
-		file << "[ATTR]\n\"GEO::Mesh::vertices\"\n\"point\"\n\"double\"\n8 # this is the size of an element (in bytes)\n3 # this is the number of elements per item\n";
-		file << std::fixed << std::setprecision(4);
-		for (const vec3 &p : m.points)
-		    file << p.x << "\n" << p.y << "\n" << p.z << "\n";
-		file << "[ATTS]\n\"GEO::Mesh::facets\"\n";
-		file << m.nfacets() << "\n";
-		file << "[ATTR]\n\"GEO::Mesh::facets\"\n\"GEO::Mesh::facets::facet_ptr\"\n\"index_t\"\n4\n1\n";
-		for (int f=0; f<m.nfacets(); f++)
-		    file << m.facet_corner(f,0) << "\n";
+        ~GeogramGZWriter() {
+            if (file_)
+                gzclose(file_);
+        }
 
-		file << "[ATTS]\n\"GEO::Mesh::facet_corners\"\n";
-		file << m.ncorners() << "\n";
-		file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"GEO::Mesh::facet_corners::corner_vertex\"\n\"index_t\"\n4\n1\n";
-		for (int f=0; f<m.nfacets(); f++)
-		    for (int v=0; v<m.facet_size(f); v++)
-		       file << m.vert(f,v) << "\n";
-		file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"GEO::Mesh::facet_corners::corner_adjacent_facet\"\n\"index_t\"\n4\n1\n";
-		SurfaceConnectivity fec(m);
-		for (int c=0; c<m.ncorners(); c++) {
-		    int opp = fec.opposite(c);
-		    file << (opp < 0 ? index_t(-1) : fec.c2f[opp]) << "\n";
-		}
+        void addFileHeader() {
+            addHeader("HEAD");
+            addU64(4+7+4+3);
+            addString("GEOGRAM");
+            addString("1.0");
+        }
 
-		// TODO ugly, repair it
-		std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
-		for (int i=0; i<3; i++) {
-		    auto att = A[i];
+        void addAttributeSize(std::string const &wh, size_t n) {
+            addHeader("ATTS");
+            addU64(4+wh.length()+4);
+            addString(wh);
+            addU32(uint32_t(n));
+        }
 
-		    for (int i=0; i<static_cast<int>(att.size()); i++) {
-		        std::string name = att[i].first;
-		        std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+        template <typename T> void addAttribute(std::string const &wh, std::string const &name, std::string const &type, T* const data, const int nb_items, const int dim) {
+            addHeader("ATTR");
+            addU64((4+wh.length())+(4+name.length())+(4+type.length())+4+4+sizeof(T)*dim*nb_items);
+            addString(wh);
+            addString(name);
+            addString(type);
+            addU32(sizeof(T));
+            addU32(dim);
+            addData(static_cast<void const *>(data), sizeof(T)*nb_items*dim);
+        }
 
-		        if (i==0)
-		            file << "[ATTR]\n\"GEO::Mesh::vertices\"\n\"" << name << "\"\n";
-		        else if (i==1)
-		            file << "[ATTR]\n\"GEO::Mesh::facets\"\n\"" << name << "\"\n";
-		        else
-		            file << "[ATTR]\n\"GEO::Mesh::facet_corners\"\n\"" << name << "\"\n";
+        protected:
+        void addU64(uint64_t size) {
+            addData(&size, 8);
+        }
 
-		        if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-		            file << "\"int\"\n4\n1\n";
-		            for (const auto &v : aint->data)
-		                file << v << "\n";
-		        } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
-		            file << "\"double\"\n8\n1\n";
-		            for (const auto &v : adouble->data)
-		                file << v << "\n";
-		        } else {
-		            assert(false);
-		        }
-		    }
-		}
+        void addU32(uint32_t index) {
+            addData(&index, 4);
+        }
 
-		file.close();
-	}
-	*/
+        void addHeader(std::string const &header) {
+            if (header.length()!=4)
+                throw std::runtime_error("GeogramGZWriter::bad header");
+            addData(static_cast<void const *>(header.c_str()), 4);
+        }
 
-    namespace {
-        struct GeogramGZWriter {
-            GeogramGZWriter(std::string const &fName) : file_() {
-                file_ = gzopen(fName.c_str(), "wb");
-                if (!file_)
-                    throw std::runtime_error("Can not open file");
-            }
+        void addString(std::string const &str) {
+            size_t len = str.length();
+            addU32(uint32_t(len));
+            addData(str.c_str(),len);
+        }
 
-            ~GeogramGZWriter() {
-                if (file_)
-                    gzclose(file_);
-            }
+        void addData(void const *data, size_t len) {
+            int check = gzwrite(file_, data, (unsigned int)(len));
+            if (size_t(check) != len)
+                throw std::runtime_error("Could not write attribute data");
+        }
 
-            void addFileHeader() {
-                addHeader("HEAD");
-                addU64(4+7+4+3);
-                addString("GEOGRAM");
-                addString("1.0");
-            }
-
-            void addAttributeSize(std::string const &wh, size_t n) {
-                addHeader("ATTS");
-                addU64(4+wh.length()+4);
-                addString(wh);
-                addU32(uint32_t(n));
-            }
-
-            template <typename T> void addAttribute(std::string const &wh, std::string const &name, std::string const &type, T* const data, const int nb_items, const int dim) {
-                addHeader("ATTR");
-                addU64((4+wh.length())+(4+name.length())+(4+type.length())+4+4+sizeof(T)*dim*nb_items);
-                addString(wh);
-                addString(name);
-                addString(type);
-                addU32(sizeof(T));
-                addU32(dim);
-                addData(static_cast<void const *>(data), sizeof(T)*nb_items*dim);
-            }
-
-            protected:
-            void addU64(uint64_t size) {
-                addData(&size, 8);
-            }
-
-            void addU32(uint32_t index) {
-                addData(&index, 4);
-            }
-
-            void addHeader(std::string const &header) {
-                if (header.length()!=4)
-                    throw std::runtime_error("GeogramGZWriter::bad header");
-                addData(static_cast<void const *>(header.c_str()), 4);
-            }
-
-            void addString(std::string const &str) {
-                size_t len = str.length();
-                addU32(uint32_t(len));
-                addData(str.c_str(),len);
-            }
-
-            void addData(void const *data, size_t len) {
-                int check = gzwrite(file_, data, (unsigned int)(len));
-                if (size_t(check) != len)
-                    throw std::runtime_error("Could not write attribute data");
-            }
-
-            gzFile file_;
-        };
-    }
+        gzFile file_;
+    };
 
     void write_geogram(const std::string filename, const PolyLine &pl, PolyLineAttributes attr) {
     /*

@@ -1,11 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include <ultimaille/mesh_io.h>
-#include <ultimaille/surface.h>
-#include <ultimaille/attributes.h>
-#include <ultimaille/range.h>
-#include <ultimaille/polyline.h>
+#include <ultimaille/all.h>
 
 #include <cstdio>
 

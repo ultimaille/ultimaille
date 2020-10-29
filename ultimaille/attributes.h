@@ -142,7 +142,7 @@ namespace UM {
         }
 
         CellCornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
-            GenericAttribute<T>::bind(name, m.ncorners(), std::get<2>(attributes), m.attr_corners);
+            GenericAttribute<T>::bind(name, m.ncorners(), std::get<3>(attributes), m.attr_corners);
         }
     };
 

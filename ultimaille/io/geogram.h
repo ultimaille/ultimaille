@@ -3,10 +3,10 @@
 
 #include <vector>
 #include <cstring>
-#include "attributes.h"
-#include "volume.h"
-#include "surface.h"
-#include "polyline.h"
+#include "ultimaille/attributes.h"
+#include "ultimaille/volume.h"
+#include "ultimaille/surface.h"
+#include "ultimaille/polyline.h"
 
 namespace UM {
     void read_wavefront_obj(const std::string filename, Polygons &m);
