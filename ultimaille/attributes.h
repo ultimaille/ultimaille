@@ -68,16 +68,16 @@ namespace UM {
         struct ConstBoolAttributeAccessor {
             ConstBoolAttributeAccessor(const GenericAttribute<bool>& attribute, int index) : attribute_(&attribute), index_(index) {}
             operator bool() const {
-//              return attribute_->element(index_);
+                return attribute_->ptr->data[index_];
             }
             const GenericAttribute<bool>* attribute_;
-            int index_;
+            const int index_;
         };
 
         struct BoolAttributeAccessor {
             BoolAttributeAccessor(GenericAttribute<bool>& attribute, int index) : attribute_(&attribute), index_(index) { }
             operator bool() const {
-//              return (attribute_->element(index_) != 0);
+                return attribute_->ptr->data[index_];
             }
 
             BoolAttributeAccessor(const BoolAttributeAccessor& rhs) {
@@ -86,19 +86,18 @@ namespace UM {
             }
 
             BoolAttributeAccessor& operator=(bool x) {
-//              attribute_->element(index_) = Numeric::uint8(x);
+                attribute_->ptr->data[index_] = x;
                 return *this;
             }
 
             BoolAttributeAccessor& operator=(const BoolAttributeAccessor& rhs) {
-                if (&rhs != this) {
-//                  attribute_->element(index_) = rhs.attribute_->element(rhs.index_);
-                }
+                if (&rhs != this)
+                    attribute_->ptr->data[index_] = rhs.attribute_->ptr->data[rhs.index_];
                 return *this;
             }
 
             BoolAttributeAccessor& operator=(const ConstBoolAttributeAccessor& rhs) {
-//              attribute_->element(index_) = rhs.attribute_->element(rhs.index_);
+                attribute_->ptr->data[index_] = rhs.attribute_->ptr->data[rhs.index_];
                 return *this;
             }
 
@@ -116,7 +115,6 @@ namespace UM {
 
         std::shared_ptr<AttributeContainer<bool> > ptr;
     };
-
 
     template <typename T> void bind(GenericAttribute<T> *A, const std::string name, const int size, std::vector<NamedContainer> &containers, std::vector<std::weak_ptr<GenericAttributeContainer> > &callbacks) {
         for (auto &pair : containers) {
