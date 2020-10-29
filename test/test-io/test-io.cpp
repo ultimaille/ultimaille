@@ -17,6 +17,8 @@ int main(int argc, char** argv) {
     Tetrahedra mtet;
     Hexahedra mhex;
 
+    SurfaceAttributes polyattr = read_geogram(argv[1], mpoly);
+
     VolumeAttributes tetattr = read_geogram(argv[1], mtet);
     CellFacetAttribute<int> rnd("rnd", tetattr, mtet);
     for (int f=0; f<mtet.nfacets(); f++)
@@ -24,6 +26,7 @@ int main(int argc, char** argv) {
 
     VolumeAttributes hexattr = read_geogram(argv[1], mhex);
 
+    write_geogram("poly.geogram", mpoly, polyattr);
     write_geogram("tet.geogram", mtet, tetattr);
     write_geogram("hex.geogram", mhex, hexattr);
 

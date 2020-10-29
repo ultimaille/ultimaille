@@ -125,26 +125,27 @@ namespace UM {
         */
     }
 
-
     void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr) {
-    /*
         try {
             GeogramGZWriter writer(filename);
+
+            if (!m.nverts()) return;
+
             writer.addFileHeader();
             writer.addAttributeSize("GEO::Mesh::vertices", m.nverts());
-            writer.addAttribute("GEO::Mesh::vertices", "point", *m.points.data);
+            writer.addAttribute("GEO::Mesh::vertices", "point", "double", reinterpret_cast<const double *>(m.points.data->data()), m.nverts(), 3);
 
             writer.addAttributeSize("GEO::Mesh::facets", m.nfacets());
             std::vector<index_t> facet_ptr;
             for (int f=0; f<m.nfacets(); f++) facet_ptr.push_back(m.facet_corner(f,0));
-            writer.addAttribute("GEO::Mesh::facets", "GEO::Mesh::facets::facet_ptr", "index_t", facet_ptr);
+            writer.addAttribute("GEO::Mesh::facets", "GEO::Mesh::facets::facet_ptr", "index_t", facet_ptr.data(), m.nfacets(), 1);
 
             writer.addAttributeSize("GEO::Mesh::facet_corners", m.ncorners());
             std::vector<index_t> corner_vertex;
             for (int f=0; f<m.nfacets(); f++)
                 for (int v=0; v<m.facet_size(f); v++)
                     corner_vertex.push_back(m.vert(f,v));
-            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex);
+            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex.data(), m.ncorners(), 1);
 
             std::vector<index_t> corner_adjacent_facet;
             SurfaceConnectivity fec(m);
@@ -152,7 +153,7 @@ namespace UM {
                 int opp = fec.opposite(c);
                 corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : fec.c2f[opp]);
             }
-            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet);
+            writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet.data(), m.ncorners(), 1);
 
             std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
             for (int z=0; z<3; z++) {
@@ -170,17 +171,20 @@ namespace UM {
                     else
                         place = "GEO::Mesh::facet_corners";
 
-                    if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-                        writer.addAttribute(place, name, "int", aint->data);
-                    } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
-                        writer.addAttribute(place, name, "double", adouble->data);
-                    } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
-                        writer.addAttribute(place, name, avec2->data);
-                    } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
-                        writer.addAttribute(place, name, avec3->data);
+                    // TODO externalize that
+                    if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr.get()!=nullptr) {
+                        writer.addAttribute(place, name, "int", cont_ptr->data.data(), cont_ptr->data.size(), 1);
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", cont_ptr->data.data(), cont_ptr->data.size(), 1);
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 2);
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 3);
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr.get()!=nullptr) {
+                        std::vector<char> tmp(cont_ptr->data.size());
+                        for (int i=0; i<(int)cont_ptr->data.size(); i++) tmp[i] = cont_ptr->data[i];
+                        writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                     } else {
-                        //      std::cerr << place << std::endl;
-                        //        TODO : ignore adjacency
                         assert(false);
                     }
                 }
@@ -188,10 +192,7 @@ namespace UM {
         } catch (const std::exception& e) {
             std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
         }
-      */
     }
-
-
 
     const int   geogram_nb_verts_per_cell_type[5] = {4, 8, 6, 5, 4}; // geogram types: tet, hex, prism, pyramid, connector
     const int  geogram_nb_facets_per_cell_type[5] = {4, 6, 5, 5, 3}; //
@@ -259,8 +260,8 @@ namespace UM {
                     else
                         place = "GEO::Mesh::cell_corners";
 
-                    if (auto contptr = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); contptr.get()!=nullptr) {
-                        std::vector<int> tmp = contptr->data;
+                    if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr.get()!=nullptr) {
+                        std::vector<int> tmp = cont_ptr->data;
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "int", tmp.data(), tmp.size(), 1);
                     } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr.get()!=nullptr) {
@@ -615,7 +616,6 @@ namespace UM {
                         for (int i=0; i<nb_items; i++) A[i] = tmp[i];
                         P = A.ptr;
                     } else {
-                        // TODO bool
                         continue;
                     }
 
@@ -651,12 +651,11 @@ namespace UM {
         }
     }
 
-    void parse_cell_type_cell_ptr(std::vector<int> &cell_type, std::vector<int> &cell_ptr, std::vector<NamedContainer> &attr) {
+    void parse_int_array(const std::string &name, std::vector<int> &array, std::vector<NamedContainer> &attr) {
         for (int i=0; i<(int)attr.size(); i++) {
-            if (attr[i].first != "GEO::Mesh::cells::cell_type" && attr[i].first != "GEO::Mesh::cells::cell_ptr") continue;
-            std::vector<int> &arr =  (attr[i].first == "GEO::Mesh::cells::cell_type" ? cell_type : cell_ptr);
+            if (attr[i].first != name) continue;
             std::shared_ptr<AttributeContainer<int> > ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(attr[i].second);
-            arr = ptr->data;
+            array = ptr->data;
             attr.erase(attr.begin()+i);
             i--;
         }
@@ -672,7 +671,9 @@ namespace UM {
         std::vector<int> cell_type(old_corner_vertex.size()/4, 0); // if cell_type and cell_ptr are not present in .geogram, create it (tet mesh)
         std::vector<int> cell_ptr(old_corner_vertex.size()/4, 0);
         for (int i=0; i<(int)cell_type.size(); i++) cell_ptr[i] = i*4;
-        parse_cell_type_cell_ptr(cell_type, cell_ptr, attrib[4]);
+
+        parse_int_array("GEO::Mesh::cells::cell_type", cell_type, attrib[4]);
+        parse_int_array("GEO::Mesh::cells::cell_ptr",  cell_ptr,  attrib[4]);
 
         int ncells = cell_type.size();
         assert(cell_ptr.size()==cell_type.size());
@@ -730,6 +731,7 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Tetrahedra &m) {
+        m = Tetrahedra();
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, 0);
@@ -743,6 +745,7 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Hexahedra &m) {
+        m = Hexahedra();
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, 1);
@@ -755,13 +758,19 @@ namespace UM {
         return va;
     }
 
-	SurfaceAttributes read_geogram(const std::string filename, Polygons &polygons) {
-		polygons = Polygons();
-		PolyLine polyline;
-		std::vector<NamedContainer> pt_attr, edg_attr, fct_attr, crn_attr, cell_attr, cell_fct_attr, cell_crn_attr;
-////	read_geogram(filename, polygons.points, polyline, polygons, pt_attr, edg_attr, fct_attr, crn_attr);
-		return make_tuple(pt_attr, fct_attr, crn_attr);
-	}
+    SurfaceAttributes read_geogram(const std::string filename, Polygons &polygons) {
+        polygons = Polygons();
+
+        std::vector<NamedContainer> attrib[7];
+        read_geogram(filename, attrib);
+        parse_pointset_attributes(polygons.points, attrib[0]);
+
+        parse_int_array("GEO::Mesh::facets::facet_ptr", polygons.offset, attrib[2]);
+        parse_int_array("GEO::Mesh::facet_corners::corner_vertex", polygons.facets, attrib[3]);
+        polygons.offset.push_back(polygons.facets.size());
+
+        return make_tuple(attrib[0], attrib[2], attrib[3]);
+    }
 
 	PolyLineAttributes read_geogram(const std::string filename, PolyLine &pl) {
 		Polygons polygons;
@@ -770,6 +779,5 @@ namespace UM {
 ////	read_geogram(filename, pl.points, pl, polygons, pt_attr, edg_attr, fct_attr, crn_attr);
 		return make_tuple(pt_attr, edg_attr);
 	}
-
 }
 
