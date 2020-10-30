@@ -7,25 +7,25 @@
 #include "pointset.h"
 
 namespace UM {
-	struct GenericAttributeContainer;
+    struct GenericAttributeContainer;
 
-	struct PolyLine {
-		PointSet points{};
-		std::vector<int> segments{};
-		std::vector<std::weak_ptr<GenericAttributeContainer> > attr{};
+    struct PolyLine {
+        PointSet points{};
+        std::vector<int> segments{};
+        std::vector<std::weak_ptr<GenericAttributeContainer> > attr{};
 
-		PolyLine() = default;
+        PolyLine() = default;
 
-		int nverts() const;
-		int nsegments() const;
+        int nverts() const;
+        int nsegments() const;
 
-		// TODO delete_vertices, delete_segments
-		int create_segments(const int n);
-		void resize_attrs();
+        // TODO delete_vertices, delete_segments
+        int create_segments(const int n);
+        void resize_attrs();
 
-		int  vert(const int s, const int lv) const;
-		int &vert(const int s, const int lv)      ;
-	};
+        int  vert(const int s, const int lv) const;
+        int &vert(const int s, const int lv)      ;
+    };
 }
 
 #endif //__POLYLINE_H__

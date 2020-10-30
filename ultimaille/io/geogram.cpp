@@ -77,18 +77,17 @@ namespace UM {
     };
 
     void write_geogram(const std::string filename, const PolyLine &pl, PolyLineAttributes attr) {
-    /*
         try {
             GeogramGZWriter writer(filename);
             writer.addFileHeader();
             writer.addAttributeSize("GEO::Mesh::vertices", pl.nverts());
-            writer.addAttribute("GEO::Mesh::vertices", "point", *pl.points.data);
+            writer.addAttribute("GEO::Mesh::vertices", "point", "double", reinterpret_cast<const double *>(pl.points.data->data()), pl.nverts(), 3);
 
             writer.addAttributeSize("GEO::Mesh::edges", pl.nsegments());
             {
                 std::vector<index_t> segments;
                 for (int s : pl.segments) segments.push_back(s);
-                writer.addAttribute("GEO::Mesh::edges", "GEO::Mesh::edges::edge_vertex", "index_t", segments, 2);
+                writer.addAttribute("GEO::Mesh::edges", "GEO::Mesh::edges::edge_vertex", "index_t", reinterpret_cast<const index_t *>(segments.data()), pl.nsegments(), 2);
             }
 
             std::vector<NamedContainer> A[2] = {std::get<0>(attr), std::get<1>(attr)};
@@ -105,15 +104,19 @@ namespace UM {
                     else if (z==1)
                         place = "GEO::Mesh::edges";
 
-                    std::cerr << place << " " << name << std::endl;
-                    if (auto aint = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); aint.get()!=nullptr) {
-                        writer.addAttribute(place, name, "int", aint->data);
-                    } else if (auto adouble = std::dynamic_pointer_cast<AttributeContainer<double> >(ptr); adouble.get()!=nullptr) {
-                        writer.addAttribute(place, name, "double", adouble->data);
-                    } else if (auto avec2 = std::dynamic_pointer_cast<AttributeContainer<vec2> >(ptr); avec2.get()!=nullptr) {
-                        writer.addAttribute(place, name, avec2->data);
-                    } else if (auto avec3 = std::dynamic_pointer_cast<AttributeContainer<vec3> >(ptr); avec3.get()!=nullptr) {
-                        writer.addAttribute(place, name, avec3->data);
+                    // TODO externalize that
+                    if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr.get()!=nullptr) {
+                        writer.addAttribute(place, name, "int", cont_ptr->data.data(), cont_ptr->data.size(), 1);
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", cont_ptr->data.data(), cont_ptr->data.size(), 1);
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 2);
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 3);
+                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr.get()!=nullptr) {
+                        std::vector<char> tmp(cont_ptr->data.size());
+                        for (int i=0; i<(int)cont_ptr->data.size(); i++) tmp[i] = cont_ptr->data[i];
+                        writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                     } else {
                         assert(false);
                     }
@@ -122,7 +125,6 @@ namespace UM {
         } catch (const std::exception& e) {
             std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
         }
-        */
     }
 
     void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr) {
@@ -428,123 +430,6 @@ namespace UM {
         long current_chunk_file_pos_;
     };
 
-/*
-	void read_geogram(const std::string filename, PointSet &pointset, PolyLine &polyline, Polygons &polygons, std::vector<NamedContainer> &pt_attr, std::vector<NamedContainer> &edg_attr, std::vector<NamedContainer> &fct_attr, std::vector<NamedContainer> &crn_attr, std::vector<NamedContainer> &cell_attr, std::vector<NamedContainer> &cell_fct_attr, std::vector<NamedContainer> &cell_crn_attr) {
-		try {
-		    GeogramGZReader in(filename);
-		    std::string chunk_class;
-		    for (chunk_class=in.next_chunk(); chunk_class!="EOFL"; chunk_class=in.next_chunk()) {
-		        if (chunk_class == "ATTS") {
-		            std::string attribute_set_name = in.read_string();
-		            index_t nb_items = in.read_int();
-		            in.check_chunk_size();
-		            std::cerr << "ATTS " << attribute_set_name << " " << nb_items << std::endl;
-
-		            if (attribute_set_name == "GEO::Mesh::vertices") {
-		                pointset.resize(nb_items);
-		            } else if (attribute_set_name == "GEO::Mesh::facets") {
-		                polygons.offset.resize(nb_items+1);
-		                for (index_t o=0; o<nb_items+1; o++) polygons.offset[o] = 3*o;
-		            } else if (attribute_set_name == "GEO::Mesh::facet_corners") {
-		                polygons.facets.resize(nb_items);
-		            } else if (attribute_set_name == "GEO::Mesh::edges") {
-		                polyline.segments.resize(nb_items*2);
-		            }
-		        } else if (chunk_class == "ATTR") {
-		            std::string attribute_set_name = in.read_string();
-		            int nb_items = 0;
-		            if (attribute_set_name == "GEO::Mesh::vertices") {
-		                nb_items = pointset.size();
-		            } else if (attribute_set_name == "GEO::Mesh::facets") {
-		                nb_items = polygons.offset.size()-1;
-		            } else if (attribute_set_name == "GEO::Mesh::facet_corners") {
-		                nb_items = polygons.facets.size();
-		            } else if (attribute_set_name == "GEO::Mesh::edges") {
-		                nb_items = polyline.nsegments();
-		            } else {
-		                continue;
-		            }
-		            assert(nb_items>0);
-
-		            std::string attribute_name = in.read_string();
-		            std::string element_type = in.read_string();
-		            index_t element_size = in.read_int();
-		            index_t dimension = in.read_int();
-		            size_t size = size_t(element_size) * size_t(dimension) * size_t(nb_items);
-
-		            std::cerr << "ATTR " << attribute_set_name << " " << attribute_name << " " << element_type << " " << element_size << " " << dimension << "\n";
-
-		            if (attribute_set_name == "GEO::Mesh::vertices" && attribute_name == "point") {
-		                assert(element_size==8);
-		                std::vector<double> raw(nb_items*dimension);
-		                in.read_attribute((void *)raw.data(), size);
-		                for (int v=0; v<nb_items; v++)
-		                    pointset[v] = {raw[v*3+0], raw[v*3+1], raw[v*3+2]};
-		            } else if (attribute_set_name == "GEO::Mesh::facets" && attribute_name == "GEO::Mesh::facets::facet_ptr") {
-		                in.read_attribute((void *)polygons.offset.data(), size);
-		            } else if (attribute_set_name == "GEO::Mesh::facet_corners" && attribute_name == "GEO::Mesh::facet_corners::corner_vertex") {
-		                in.read_attribute((void *)polygons.facets.data(), size);
-	//                  std::cerr << "size " << size <<std::endl;
-		            } else if (attribute_set_name == "GEO::Mesh::edges" && attribute_name == "GEO::Mesh::edges::edge_vertex") {
-		                in.read_attribute((void *)polyline.segments.data(), size);
-	//                  std::cerr << "size " << size <<std::endl;
-		            } else if (attribute_name!="GEO::Mesh::facet_corners::corner_adjacent_facet") {
-		                std::shared_ptr<GenericAttributeContainer> P;
-		                if (element_type=="int" || element_type=="index_t" || element_type=="signed_index_t") {
-		                    GenericAttribute<int> A(nb_items);
-		                    void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
-		                    in.read_attribute(ptr, size);
-		                    P = A.ptr;
-		                } else if (element_type=="double") {
-		                    assert(element_size==8);
-		                    std::vector<double> raw(nb_items*dimension);
-		                    in.read_attribute((void *)raw.data(), size);
-
-		                    if (1==dimension) {
-		                        GenericAttribute<double> A(nb_items);
-		                        for (int i=0; i<nb_items; i++)
-		                            A[i] = raw[i];
-		                        P = A.ptr;
-		                    } if (2==dimension) {
-		                        GenericAttribute<vec2> A(nb_items);
-		                        for (int i=0; i<nb_items; i++)
-		                                A[i] = {raw[i*2+0], raw[i*2+1]};
-		                         P = A.ptr;
-		                   } if (3==dimension) {
-		                        GenericAttribute<vec3> A(nb_items);
-		                        for (int i=0; i<nb_items; i++)
-		                                A[i] = {raw[i*3+0], raw[i*3+1], raw[i*3+2]};
-		                         P = A.ptr;
-		                   }
-		                }
-
-		                if (attribute_set_name == "GEO::Mesh::vertices") {
-		                    pt_attr.emplace_back(attribute_name, P);
-		                    pointset.attr.emplace_back(P);
-		                } else if (attribute_set_name == "GEO::Mesh::facets") {
-		                    fct_attr.emplace_back(attribute_name, P);
-		                    polygons.attr_facets.emplace_back(P);
-		                } else if (attribute_set_name == "GEO::Mesh::facet_corners") {
-		                    crn_attr.emplace_back(attribute_name, P);
-		                    polygons.attr_corners.emplace_back(P);
-		                } else if (attribute_set_name == "GEO::Mesh::edges") {
-		                    edg_attr.emplace_back(attribute_name, P);
-		                    polyline.attr.emplace_back(P);
-		                }
-		            }
-		        } // chunk_class = ATTR
-		    } // chunks
-		    polygons.offset.back() = polygons.facets.size();
-		} catch (const std::exception& e) {
-		    std::cerr << "Ooops: catch error= " << e.what() << " when reading " << filename << "\n";
-		}
-
-	//  for (auto &a :  pt_attr) pointset.attr.emplace_back(a.second);
-	//  for (auto &a : fct_attr) polygons.attr_facets.emplace_back(a.second);
-	//  for (auto &a : crn_attr) polygons.attr_corners.emplace_back(a.second);
-	}
-*/
-
     const std::string attrib_set_names[7] = {"GEO::Mesh::vertices", "GEO::Mesh::edges", "GEO::Mesh::facets", "GEO::Mesh::facet_corners", "GEO::Mesh::cells", "GEO::Mesh::cell_facets", "GEO::Mesh::cell_corners"};
     void read_geogram(const std::string filename, std::vector<NamedContainer> attr[7]) {
         int set_size[7] = {-1, -1, -1, -1, -1, -1, -1};
@@ -641,16 +526,6 @@ namespace UM {
         }
     }
 
-    void parse_corner_vertex(std::vector<int> &corner_vertex, std::vector<NamedContainer> &attr) {
-        for (int i=0; i<(int)attr.size(); i++) {
-            if (attr[i].first != "GEO::Mesh::cell_corners::corner_vertex") continue;
-            std::shared_ptr<AttributeContainer<int> > ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(attr[i].second);
-            corner_vertex = ptr->data;
-            attr.erase(attr.begin()+i);
-            i--;
-        }
-    }
-
     void parse_int_array(const std::string &name, std::vector<int> &array, std::vector<NamedContainer> &attr) {
         for (int i=0; i<(int)attr.size(); i++) {
             if (attr[i].first != name) continue;
@@ -667,7 +542,7 @@ namespace UM {
         parse_pointset_attributes(pts, attrib[0]);
 
         std::vector<int> old_corner_vertex;
-        parse_corner_vertex(old_corner_vertex, attrib[6]);
+        parse_int_array("GEO::Mesh::cell_corners::corner_vertex", old_corner_vertex, attrib[6]);
         std::vector<int> cell_type(old_corner_vertex.size()/4, 0); // if cell_type and cell_ptr are not present in .geogram, create it (tet mesh)
         std::vector<int> cell_ptr(old_corner_vertex.size()/4, 0);
         for (int i=0; i<(int)cell_type.size(); i++) cell_ptr[i] = i*4;
@@ -741,6 +616,11 @@ namespace UM {
         m.create_tets(nhexa);
         m.cells = corner_vertex;
 
+        for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
+        for (auto &a : std::get<1>(va)) m.attr_cells.emplace_back(a.second);
+        for (auto &a : std::get<2>(va)) m.attr_facets.emplace_back(a.second);
+        for (auto &a : std::get<3>(va)) m.attr_corners.emplace_back(a.second);
+
         return va;
     }
 
@@ -754,6 +634,11 @@ namespace UM {
         int nhexa = corner_vertex.size()*8;
         m.create_hexa(nhexa);
         m.cells = corner_vertex;
+
+        for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
+        for (auto &a : std::get<1>(va)) m.attr_cells.emplace_back(a.second);
+        for (auto &a : std::get<2>(va)) m.attr_facets.emplace_back(a.second);
+        for (auto &a : std::get<3>(va)) m.attr_corners.emplace_back(a.second);
 
         return va;
     }
@@ -769,15 +654,56 @@ namespace UM {
         parse_int_array("GEO::Mesh::facet_corners::corner_vertex", polygons.facets, attrib[3]);
         polygons.offset.push_back(polygons.facets.size());
 
+        for (auto &a : attrib[0]) polygons.points.attr.emplace_back(a.second);
+        for (auto &a : attrib[2]) polygons.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[3]) polygons.attr_corners.emplace_back(a.second);
+
         return make_tuple(attrib[0], attrib[2], attrib[3]);
     }
 
-	PolyLineAttributes read_geogram(const std::string filename, PolyLine &pl) {
-		Polygons polygons;
-		pl = PolyLine();
-		std::vector<NamedContainer> pt_attr, edg_attr, fct_attr, crn_attr;
-////	read_geogram(filename, pl.points, pl, polygons, pt_attr, edg_attr, fct_attr, crn_attr);
-		return make_tuple(pt_attr, edg_attr);
-	}
+    SurfaceAttributes read_geogram(const std::string filename, Triangles &m) {
+        Polygons mpoly;
+        SurfaceAttributes polyattr = read_geogram(filename, mpoly);
+        std::vector<bool> to_kill(mpoly.nfacets(), false);
+        for (int f=0; f<mpoly.nfacets(); f++)
+            to_kill[f] = (3!=mpoly.facet_size(f));
+        mpoly.delete_facets(to_kill);
+        m.points = mpoly.points;
+        m.facets = mpoly.facets;
+        m.attr_facets = mpoly.attr_facets;
+        m.attr_corners = mpoly.attr_corners;
+
+        return polyattr;
+    }
+
+    SurfaceAttributes read_geogram(const std::string filename, Quads &m) {
+        Polygons mpoly;
+        SurfaceAttributes polyattr = read_geogram(filename, mpoly);
+        std::vector<bool> to_kill(mpoly.nfacets(), false);
+        for (int f=0; f<mpoly.nfacets(); f++)
+            to_kill[f] = (4!=mpoly.facet_size(f));
+        mpoly.delete_facets(to_kill);
+        m.points = mpoly.points;
+        m.facets = mpoly.facets;
+        m.attr_facets = mpoly.attr_facets;
+        m.attr_corners = mpoly.attr_corners;
+
+        return polyattr;
+    }
+
+    PolyLineAttributes read_geogram(const std::string filename, PolyLine &pl) {
+        pl = PolyLine();
+
+        std::vector<NamedContainer> attrib[7];
+        read_geogram(filename, attrib);
+        parse_pointset_attributes(pl.points, attrib[0]);
+
+        parse_int_array("GEO::Mesh::edges::edge_vertex", pl.segments, attrib[1]);
+
+        for (auto &a : attrib[0]) pl.points.attr.emplace_back(a.second);
+        for (auto &a : attrib[1]) pl.attr.emplace_back(a.second);
+
+        return make_tuple(attrib[0], attrib[1]);
+    }
 }
 

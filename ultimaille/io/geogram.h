@@ -13,8 +13,10 @@ namespace UM {
     void write_geogram(const std::string filename, const Surface &m, SurfaceAttributes attr = {{}, {}, {}});
     void write_geogram(const std::string filename, const Volume  &m,  VolumeAttributes attr = {{}, {}, {}, {}});
 
-    PolyLineAttributes read_geogram(const std::string filename, PolyLine &m);
-    SurfaceAttributes  read_geogram(const std::string filename, Polygons &m);
+    PolyLineAttributes read_geogram(const std::string filename, PolyLine   &m);
+    SurfaceAttributes  read_geogram(const std::string filename, Triangles  &m);
+    SurfaceAttributes  read_geogram(const std::string filename, Quads      &m);
+    SurfaceAttributes  read_geogram(const std::string filename, Polygons   &m);
     VolumeAttributes   read_geogram(const std::string filename, Tetrahedra &m);
     VolumeAttributes   read_geogram(const std::string filename, Hexahedra  &m);
 }
