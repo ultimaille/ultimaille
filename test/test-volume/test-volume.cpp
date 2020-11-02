@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     { // create independent voxels
         for (int i : range(BUNW)) for (int j : range(BUNH)) for (int k : range(BUND)) {
             if (!bunny(i,j,k)) continue;
-            int off_c = m.create_hexa(1);
+            int off_c = m.create_cells(1);
             vec3 bbox[2] = {vec3(i,j,-k), vec3(i,j,-k)+vec3(1,1,1)};
             for (int u : range(2)) for (int v : range(2)) for (int w : range(2)) {
                 vec3 p = {bbox[u].x, bbox[v].y, bbox[w].z};

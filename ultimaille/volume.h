@@ -18,22 +18,25 @@ namespace UM {
 
         Volume() = default;
 
+        int  create_cells(const int n);
         void delete_cells(const std::vector<bool> &to_kill);
         void delete_vertices(const std::vector<bool> &to_kill);
+
         void resize_attrs();
         void compress_attrs(const std::vector<bool> &cells_to_kill);
 
-        int nverts() const;
+        int nverts()   const;
+        int ncells()   const;
+        int nfacets()  const;
+        int ncorners() const;
+        int cell_from_facet (const int f) const;
+        int cell_from_corner(const int c) const;
         int  vert(const int c, const int lv) const;
         int &vert(const int c, const int lv);
 
-        virtual int ncells()   const = 0;
-        virtual int nfacets()  const = 0;
-        virtual int ncorners() const = 0;
-
+        virtual int cell_type() const = 0; // TODO convert it to enum
         virtual int  nverts_per_cell() const = 0;
         virtual int nfacets_per_cell() const = 0;
-        virtual int cell_type() const = 0;
 
         virtual int facet_size(const int c, const int lf) const = 0;
         virtual int facet_vert(const int c, const int lf, const int lv) const = 0;
@@ -48,11 +51,6 @@ namespace UM {
         int  nverts_per_cell() const;
         int nfacets_per_cell() const;
 
-        int ncorners() const;
-        int ncells()  const;
-        int nfacets() const;
-        int create_tets(const int n);
-
         int facet_size(const int c, const int lf) const;
         int facet_vert(const int c, const int lf, const int lv) const;
         int  facet(const int c, const int lf) const;
@@ -64,16 +62,13 @@ namespace UM {
         int  nverts_per_cell() const;
         int nfacets_per_cell() const;
 
-        int ncorners() const;
-        int ncells()  const;
-        int nfacets() const;
-        int create_hexa(const int n);
-
         int facet_size(const int c, const int lf) const;
         int facet_vert(const int c, const int lf, const int lv) const;
         int  facet(const int c, const int lf) const;
         int corner(const int c, const int lc) const;
     };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct VolumeConnectivity { // half-edge-like connectivity interface
         VolumeConnectivity(const Volume &p_m);
@@ -88,6 +83,28 @@ namespace UM {
 
     inline int Volume::nverts() const {
         return points.size();
+    }
+
+    inline int Volume::ncorners() const {
+        return cells.size();
+    }
+
+    inline int Volume::ncells() const {
+        return cells.size()/nverts_per_cell();
+    }
+
+    inline int Volume::nfacets() const {
+        return ncells()*nfacets_per_cell();
+    }
+
+    inline int Volume::cell_from_facet (const int f) const {
+        assert(f>=0 && f<nfacets());
+        return f/nfacets_per_cell();
+    }
+
+    inline int Volume::cell_from_corner(const int c) const {
+        assert(c>=0 && c<ncorners());
+        return c/nverts_per_cell();
     }
 
     inline int Volume::vert(const int c, const int lv) const {
@@ -110,18 +127,6 @@ namespace UM {
 
     inline int Tetrahedra::nfacets_per_cell() const {
         return 4;
-    }
-
-    inline int Tetrahedra::ncorners() const {
-        return ncells()*4;
-    }
-
-    inline int Tetrahedra::ncells() const {
-        return cells.size()/4;
-    }
-
-    inline int Tetrahedra::nfacets() const {
-        return ncells()*4;
     }
 
     inline int Tetrahedra::facet_size(const int c, const int lf) const {
@@ -156,18 +161,6 @@ namespace UM {
 
     inline int Hexahedra::nfacets_per_cell() const {
         return 6;
-    }
-
-    inline int Hexahedra::ncorners() const {
-        return ncells()*8;
-    }
-
-    inline int Hexahedra::ncells() const {
-        return cells.size()/8;
-    }
-
-    inline int Hexahedra::nfacets() const {
-        return ncells()*6;
     }
 
     inline int Hexahedra::facet_size(const int c, const int lf) const {

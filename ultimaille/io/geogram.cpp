@@ -612,8 +612,8 @@ namespace UM {
         parse_volume_data(filename, m.points, va, corner_vertex, 0);
         assert(corner_vertex.size()%4==0);
 
-        int nhexa = corner_vertex.size()*4;
-        m.create_tets(nhexa);
+        int ntetra = corner_vertex.size()*4;
+        m.create_cells(ntetra);
         m.cells = corner_vertex;
 
         for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
@@ -632,7 +632,7 @@ namespace UM {
         assert(corner_vertex.size()%8==0);
 
         int nhexa = corner_vertex.size()*8;
-        m.create_hexa(nhexa);
+        m.create_cells(nhexa);
         m.cells = corner_vertex;
 
         for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);

@@ -9,6 +9,7 @@
 #include "ultimaille/polyline.h"
 
 namespace UM {
+    // TODO: export vn and vt attributes
     void read_wavefront_obj(const std::string filename, Polygons &m);
     void write_wavefront_obj(const std::string filename, const Surface &m);
 }

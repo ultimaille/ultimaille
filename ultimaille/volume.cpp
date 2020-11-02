@@ -85,16 +85,8 @@ namespace UM {
             v = old2new[v];
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    int Tetrahedra::create_tets(const int n) {
-        cells.resize(cells.size()+n*4);
-        resize_attrs();
-        return ncells()-n;
-    }
-
-    int Hexahedra::create_hexa(const int n) {
-        cells.resize(cells.size()+n*8);
+    int Volume::create_cells(const int n) {
+        cells.resize(cells.size()+n*nverts_per_cell());
         resize_attrs();
         return ncells()-n;
     }
