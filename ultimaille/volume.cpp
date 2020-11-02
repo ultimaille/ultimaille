@@ -41,89 +41,10 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline int Tetrahedra::cell_type() const {
-        return 0;
-    }
-
-    inline int Tetrahedra::nverts_per_cell() const {
-        return 4;
-    }
-
-    inline int Tetrahedra::nfacets_per_cell() const {
-        return 4;
-    }
-
-    inline int Tetrahedra::ncells() const {
-        return cells.size()/4;
-    }
-
-    inline int Tetrahedra::nfacets() const {
-        return ncells()*4;
-    }
-
-    inline int Tetrahedra::ncorners() const {
-        return ncells()*4;
-    }
-
     int Tetrahedra::create_tets(const int n) {
         cells.resize(cells.size()+n*4);
         resize_attrs();
         return ncells()-n;
-    }
-
-    inline int Tetrahedra::facet_size(const int c, const int lf) const {
-        return 3;
-    }
-
-    int Tetrahedra::facet_vert(const int c, const int lf, const int lv) const {
-        assert(c>=0 && c<ncells() && lf>=0 && lf<4 && lv>=0 && lv<3);
-        const int facet_vertex[4][3] = {{1,3,2}, {0,2,3}, {3,1,0}, {0,1,2}};
-        return vert(c, facet_vertex[lf][lv]);
-    }
-
-    inline int Tetrahedra::facet(const int c, const int lf) const {
-        assert(c>=0 && c<ncells() && lf>=0 && lf<4);
-        return c*4 + lf;
-    }
-
-    inline int Tetrahedra::corner(const int c, const int lc) const {
-        assert(c>=0 && c<ncells() && lc>=0 && lc<4);
-        return c*4 + lc;
-    }
-
-//  inline int Tetrahedra::vert(const int c, const int lv) const {
-//      return cells[corner(c, lv)];
-//  }
-
-//  inline int &Tetrahedra::vert(const int c, const int lv) {
-//      return cells[corner(c, lv)];
-//  }
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline int Hexahedra::cell_type() const {
-        return 1;
-    }
-
-    inline int Hexahedra::nverts_per_cell() const {
-        return 8;
-    }
-
-    inline int Hexahedra::nfacets_per_cell() const {
-        return 6;
-    }
-
-    inline int Hexahedra::ncells() const {
-        return cells.size()/8;
-    }
-
-    inline int Hexahedra::nfacets() const {
-        return ncells()*6;
-    }
-
-    inline int Hexahedra::ncorners() const {
-        return ncells()*8;
     }
 
     int Hexahedra::create_hexa(const int n) {
@@ -132,34 +53,21 @@ namespace UM {
         return ncells()-n;
     }
 
-    inline int Hexahedra::facet_size(const int c, const int lf) const {
-        return 4;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    bool are_facets_adjacent(const Volume &m, int c1, int c2, int lf1, int lf2) {
+        int n = m.facet_size(c1, lf1);
+        if (n!=m.facet_size(c2, lf2)) return false;
+
+        for (int i=0; i<n; i++) {
+            bool found = true;
+            for (int j=0; found && j<n; j++)
+                found = (m.facet_vert(c1, lf1, (i+j)%n) == m.facet_vert(c2, lf2, n-j-1));
+            if (found) return true;
+        }
+
+        return false;
     }
-
-    int Hexahedra::facet_vert(const int c, const int lf, const int lv) const {
-        assert(c>=0 && c<ncells() && lf>=0 && lf<6 && lv>=0 && lv<4);
-        const int facet_vertex[6][4] = {{0,2,6,4}, {3,1,5,7}, {1,0,4,5}, {2,3,7,6}, {1,3,2,0}, {4,6,7,5}};
-        return vert(c, facet_vertex[lf][lv]);
-    }
-
-    inline int Hexahedra::facet(const int c, const int lf) const {
-        assert(c>=0 && c<ncells() && lf>=0 && lf<6);
-        return c*6 + lf;
-    }
-
-    inline int Hexahedra::corner(const int c, const int lc) const {
-        assert(c>=0 && c<ncells() && lc>=0 && lc<8);
-        return c*8 + lc;
-    }
-
-//  inline int Hexahedra::vert(const int c, const int lv) const {
-//      return cells[corner(c, lv)];
-//  }
-
-//  inline int &Hexahedra::vert(const int c, const int lv) {
-//      return cells[corner(c, lv)];
-//  }
-
 
     VolumeConnectivity::VolumeConnectivity(const Volume &p_m) : m(p_m), adjacent(m.nfacets(), -1) {
         std::vector<int> c2c(m.ncorners(), -1);
@@ -173,19 +81,32 @@ namespace UM {
         // step 2: chain cell corners around vertices
         for (int c=0; c<m.ncells(); c++) {
             for (int lv=0; lv<m.nverts_per_cell(); lv++) {
-                int c = m.corner(c, lv);
+                int crn = m.corner(c, lv);
                 int v = m.vert(c, lv);
-                c2c[c] = v2c[v];
-                v2c[v] = c;
+                c2c[crn] = v2c[v];
+                v2c[v] = crn;
             }
         }
 
         // step 3: connect cells
         for (int c1=0; c1<m.ncells(); c1++) {
             for (int lf1=0; lf1<m.nfacets_per_cell(); lf1++) {
-                if (adjacent[m.facet(c1, lf1)]>=0) continue;
-//              int c = m.corner(c1, lv);
-//              int v = m.vert(c1, lv);
+                int f1 = m.facet(c1, lf1);
+                if (adjacent[f1]>=0) continue;
+                int crn1 = v2c[m.facet_vert(c1, lf1, 0)];
+                int crn2 = crn1;
+                do {
+                    int c2 = crn2 / m.nverts_per_cell();
+                    if (c2!=c1) {
+                        for (int lf2=0; lf2<m.nfacets_per_cell(); lf2++) {
+                            if (!are_facets_adjacent(m, c1, c2, lf1, lf2)) continue;
+                            int f2 = m.facet(c2, lf2);
+                            adjacent[f1] = f2;
+                            adjacent[f2] = f1;
+                        }
+                    }
+                    crn2 = c2c[crn2];
+                } while (crn2!=crn1 && adjacent[f1]<0);
             }
         }
 

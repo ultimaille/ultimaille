@@ -207,7 +207,7 @@ namespace UM {
 //      std::cerr << "PADDING; bruno_nfacets: " << bruno_nfacets << " nfacets: " << m.nfacets() << std::endl;
         tmp.resize(bruno_nfacets);
         for (int c=m.ncells(); c--;)
-            for (int f=0; f<fct_per_cell; f++)
+            for (int f=fct_per_cell; f--;)
                 tmp[c*bruno_fct_per_cell+f] = tmp[c*fct_per_cell+f];
     }
 

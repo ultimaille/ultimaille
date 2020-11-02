@@ -53,8 +53,6 @@ namespace UM {
         int nfacets() const;
         int create_tets(const int n);
 
-//      int  vert(const int c, const int lv) const;
-//      int &vert(const int c, const int lv);
         int facet_size(const int c, const int lf) const;
         int facet_vert(const int c, const int lf, const int lv) const;
         int  facet(const int c, const int lf) const;
@@ -71,8 +69,6 @@ namespace UM {
         int nfacets() const;
         int create_hexa(const int n);
 
-//      int  vert(const int c, const int lv) const;
-//      int &vert(const int c, const int lv);
         int facet_size(const int c, const int lf) const;
         int facet_vert(const int c, const int lf, const int lv) const;
         int  facet(const int c, const int lf) const;
@@ -86,6 +82,8 @@ namespace UM {
         std::vector<int> adjacent;
     };
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     inline int Volume::nverts() const {
         return points.size();
     }
@@ -98,7 +96,97 @@ namespace UM {
         return cells[corner(c, lv)];
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    inline int Tetrahedra::cell_type() const {
+        return 0;
+    }
+
+    inline int Tetrahedra::nverts_per_cell() const {
+        return 4;
+    }
+
+    inline int Tetrahedra::nfacets_per_cell() const {
+        return 4;
+    }
+
+    inline int Tetrahedra::ncorners() const {
+        return ncells()*4;
+    }
+
+    inline int Tetrahedra::ncells() const {
+        return cells.size()/4;
+    }
+
+    inline int Tetrahedra::nfacets() const {
+        return ncells()*4;
+    }
+
+    inline int Tetrahedra::facet_size(const int c, const int lf) const {
+        return 3;
+    }
+
+    inline int Tetrahedra::facet_vert(const int c, const int lf, const int lv) const {
+        assert(c>=0 && c<ncells() && lf>=0 && lf<4 && lv>=0 && lv<3);
+        static constexpr int facet_vertex[4][3] = {{1,3,2}, {0,2,3}, {3,1,0}, {0,1,2}};
+        return vert(c, facet_vertex[lf][lv]);
+    }
+
+    inline int Tetrahedra::facet(const int c, const int lf) const {
+        assert(c>=0 && c<ncells() && lf>=0 && lf<4);
+        return c*4 + lf;
+    }
+
+    inline int Tetrahedra::corner(const int c, const int lc) const {
+        assert(c>=0 && c<ncells() && lc>=0 && lc<4);
+        return c*4 + lc;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline int Hexahedra::cell_type() const {
+        return 1;
+    }
+
+    inline int Hexahedra::nverts_per_cell() const {
+        return 8;
+    }
+
+    inline int Hexahedra::nfacets_per_cell() const {
+        return 6;
+    }
+
+    inline int Hexahedra::ncorners() const {
+        return ncells()*8;
+    }
+
+    inline int Hexahedra::ncells() const {
+        return cells.size()/8;
+    }
+
+    inline int Hexahedra::nfacets() const {
+        return ncells()*6;
+    }
+
+    inline int Hexahedra::facet_size(const int c, const int lf) const {
+        return 4;
+    }
+
+    inline int Hexahedra::facet_vert(const int c, const int lf, const int lv) const {
+        assert(c>=0 && c<ncells() && lf>=0 && lf<6 && lv>=0 && lv<4);
+        static constexpr int facet_vertex[6][4] = {{0,2,6,4}, {3,1,5,7}, {1,0,4,5}, {2,3,7,6}, {1,3,2,0}, {4,6,7,5}};
+        return vert(c, facet_vertex[lf][lv]);
+    }
+
+    inline int Hexahedra::facet(const int c, const int lf) const {
+        assert(c>=0 && c<ncells() && lf>=0 && lf<6);
+        return c*6 + lf;
+    }
+
+    inline int Hexahedra::corner(const int c, const int lc) const {
+        assert(c>=0 && c<ncells() && lc>=0 && lc<8);
+        return c*8 + lc;
+    }
 }
 
 #endif //__VOLUME_H__

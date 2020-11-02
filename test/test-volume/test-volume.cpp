@@ -25,9 +25,7 @@ int main(int argc, char** argv) {
         int cellID = i+j*BUNW+k*BUNW*BUNH;
         if (!bunny(cellID)) continue;
         int off_c = m.create_hexa(1);
-
-        vec3 bbox[2] = { vec3{i-BUNW/2.,j-BUNH/2.,-k+BUND/2.},  vec3{i-BUNW/2.,j-BUNH/2.,-k+BUND/2.} + vec3(1.,1.,1.)};
-
+        vec3 bbox[2] = {vec3(i,j,-k), vec3(i,j,-k)+vec3(1,1,1)};
         for (int u : range(2)) for (int v : range(2)) for (int w : range(2)) {
             vec3 p = {bbox[u].x, bbox[v].y, bbox[w].z};
             int off_v = m.nverts();
@@ -37,6 +35,7 @@ int main(int argc, char** argv) {
     }
 
     // colocate vertices
+
     std::vector<int> old2new;
     colocate(*m.points.data, old2new, 1e-3);
     for (int c : range(m.ncells()))
@@ -44,8 +43,22 @@ int main(int argc, char** argv) {
             m.vert(c, lv) = old2new[m.vert(c, lv)];
 
     // TODO remove isolated vertices
+  VolumeConnectivity fec(m);
+    CellFacetAttribute<int> adj(m);
+    CellFacetAttribute<int> lid(m);
 
-    write_geogram("bunny.geogram", m);
+    for (int c : range(m.ncells())) {
+        for (int lf : range(6)) {
+            lid[m.facet(c, lf)] = lf;
+            std::cerr << m.facet(c, lf) << " " << lf << std::endl;
+        }
+    }
+
+    for (int f : range(m.nfacets())) {
+        adj[f] = (fec.adjacent[f]==-1);
+    }
+
+    write_geogram("bunny.geogram", m, {{}, {}, {{"adj", adj.ptr}, {"lid", lid.ptr}}, {}});
 
     return 0;
 }
