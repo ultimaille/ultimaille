@@ -18,8 +18,8 @@ namespace UM {
 
         Volume() = default;
 
-        ////	void delete_vertices(const std::vector<bool> &to_kill);
-        ////	virtual void delete_facets(const std::vector<bool> &to_kill);
+        void delete_cells(const std::vector<bool> &to_kill);
+        void delete_vertices(const std::vector<bool> &to_kill);
         void resize_attrs();
         void compress_attrs(const std::vector<bool> &cells_to_kill);
 
@@ -82,7 +82,9 @@ namespace UM {
         std::vector<int> adjacent;
     };
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Volume::nverts() const {
         return points.size();

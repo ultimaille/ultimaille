@@ -21,6 +21,7 @@ namespace UM {
 //      int size() const { return data.size(); }
         void resize(const int n) { data.resize(n); }
         void compress(const std::vector<int> &old2new) { // NB: old2new is not a permutation!
+//            std::cerr << old2new.size() << " " << data.size() << std::endl;
             assert(old2new.size()==data.size());
             int cnt = 0;
             for (int i=0; i<static_cast<int>(old2new.size()); i++) {
@@ -189,7 +190,7 @@ namespace UM {
 
     template <typename T> struct CellFacetAttribute : GenericAttribute<T> {
         CellFacetAttribute(Volume &m) : GenericAttribute<T>(m.nfacets()) {
-            m.attr_cells.push_back(this->ptr);
+            m.attr_facets.push_back(this->ptr);
         }
 
         CellFacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
@@ -199,7 +200,7 @@ namespace UM {
 
     template <typename T> struct CellCornerAttribute : GenericAttribute<T> {
         CellCornerAttribute(Volume &m) : GenericAttribute<T>(m.ncorners()) {
-            m.attr_cells.push_back(this->ptr);
+            m.attr_corners.push_back(this->ptr);
         }
 
         CellCornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {

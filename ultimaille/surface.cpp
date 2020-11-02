@@ -43,6 +43,7 @@ namespace UM {
     }
 
     void Surface::delete_vertices(const std::vector<bool> &to_kill) {
+        assert(to_kill.size()==(size_t)nverts());
         std::vector<bool> facets_to_kill(nfacets(), false);
         SurfaceConnectivity fec(*this);
 
