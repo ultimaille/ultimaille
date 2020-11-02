@@ -43,22 +43,14 @@ int main(int argc, char** argv) {
             m.vert(c, lv) = old2new[m.vert(c, lv)];
 
     // TODO remove isolated vertices
-  VolumeConnectivity fec(m);
-    CellFacetAttribute<int> adj(m);
-    CellFacetAttribute<int> lid(m);
 
-    for (int c : range(m.ncells())) {
-        for (int lf : range(6)) {
-            lid[m.facet(c, lf)] = lf;
-            std::cerr << m.facet(c, lf) << " " << lf << std::endl;
-        }
-    }
+    VolumeConnectivity fec(m);
+    CellFacetAttribute<bool> boundary(m);
 
-    for (int f : range(m.nfacets())) {
-        adj[f] = (fec.adjacent[f]==-1);
-    }
+    for (int f : range(m.nfacets()))
+        boundary[f] = (fec.adjacent[f]<0);
 
-    write_geogram("bunny.geogram", m, {{}, {}, {{"adj", adj.ptr}, {"lid", lid.ptr}}, {}});
+    write_geogram("bunny.geogram", m, {{}, {}, {{"boundary", boundary.ptr}}, {}});
 
     return 0;
 }

@@ -79,17 +79,16 @@ namespace UM {
                 v2c[m.vert(c, lv)] = m.corner(c, lv);
 
         // step 2: chain cell corners around vertices
-        for (int c=0; c<m.ncells(); c++) {
+        for (int c=0; c<m.ncells(); c++)
             for (int lv=0; lv<m.nverts_per_cell(); lv++) {
                 int crn = m.corner(c, lv);
                 int v = m.vert(c, lv);
                 c2c[crn] = v2c[v];
                 v2c[v] = crn;
             }
-        }
 
         // step 3: connect cells
-        for (int c1=0; c1<m.ncells(); c1++) {
+        for (int c1=0; c1<m.ncells(); c1++)
             for (int lf1=0; lf1<m.nfacets_per_cell(); lf1++) {
                 int f1 = m.facet(c1, lf1);
                 if (adjacent[f1]>=0) continue;
@@ -108,59 +107,6 @@ namespace UM {
                     crn2 = c2c[crn2];
                 } while (crn2!=crn1 && adjacent[f1]<0);
             }
-        }
-
-/*
-        if(nb() == 0) {
-            return;
-        }
-        cell_facets_.resize_store(nb() * 4);
-        for(index_t f=0; f<cell_facets_.nb(); ++f) {
-            cell_facets_.set_adjacent_cell(f,NO_CELL);
-        }
-
-        GEO::vector<index_t> next_tet_corner_around_vertex(
-            nb() * 4, NO_CORNER
-        );
-        GEO::vector<index_t> v2c(vertices_.nb(), NO_CORNER);
-
-        // Step 1: chain tet corners around vertices and compute v2c
-        for(index_t t = 0; t < nb(); ++t) {
-            for(index_t lv = 0; lv < 4; ++lv) {
-                index_t v = vertex(t, lv);
-                next_tet_corner_around_vertex[4 * t + lv] = v2c[v];
-                v2c[v] = 4 * t + lv;
-            }
-        }
-
-        // Step 2: connect tets
-        for(index_t t1 = 0; t1 < nb(); ++t1) {
-            for(index_t lf1 = 0; lf1 < 4; ++lf1) {
-                if(adjacent(t1, lf1) == NO_CELL) {
-                    index_t v1 = facet_vertex(t1, lf1, 0);
-                    index_t v2 = facet_vertex(t1, lf1, 1);
-                    index_t v3 = facet_vertex(t1, lf1, 2);
-                    for(
-                        index_t c2 = v2c[v1]; c2 != NO_CORNER;
-                        c2 = next_tet_corner_around_vertex[c2]
-                    ) {
-                        index_t t2 = c2/4;
-                        index_t lf2 = find_tet_facet(t2, v3, v2, v1);
-                        if(lf2 != NO_FACET) {
-                            set_adjacent(t1, lf1, t2);
-                            set_adjacent(t2, lf2, t1);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-*/
-
-
-//      c2f.resize(nbc, -1);
-//      c2c.resize(nbc, -1);
-//      v2c.resize(m.nverts(), -1);
     }
 }
 
