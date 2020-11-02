@@ -3,8 +3,10 @@
 
 #include <vector>
 #include "geometry.h"
+
 namespace UM {
-	void colocate(const std::vector<vec3> &points, std::vector<int> &old2new, double tolerance);
+    void colocate(const std::vector<vec3> &points, std::vector<int> &old2new, double tolerance);
 }
+
 #endif // __COLOCATE_H__
 

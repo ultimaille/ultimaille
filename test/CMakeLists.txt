@@ -5,6 +5,7 @@ OPTION (BIN_EMBED "Embeding  binaries" Off)
 OPTION (BIN_TEST "Basic tests binary" On)
 
 OPTION (BIN_TEST_IO "Basic IO tests" On)
+OPTION (BIN_TEST_VOLUME "Basic volume tests" On)
 
 
 
@@ -28,3 +29,7 @@ endif()
 if(BIN_TEST_IO)
 	add_subdirectory(test-io)
 endif()
+if(BIN_TEST_VOLUME)
+	add_subdirectory(test-volume)
+endif()
+

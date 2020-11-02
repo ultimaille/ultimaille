@@ -24,6 +24,8 @@ namespace UM {
         void compress_attrs(const std::vector<bool> &cells_to_kill);
 
         int nverts() const;
+        int  vert(const int c, const int lv) const;
+        int &vert(const int c, const int lv);
 
         virtual int ncells()   const = 0;
         virtual int nfacets()  const = 0;
@@ -33,8 +35,10 @@ namespace UM {
         virtual int nfacets_per_cell() const = 0;
         virtual int cell_type() const = 0;
 
-        virtual int  vert(const int c, const int lv) const = 0;
-        virtual int &vert(const int c, const int lv)       = 0;
+        virtual int facet_size(const int c, const int lf) const = 0;
+        virtual int facet_vert(const int c, const int lf, const int lv) const = 0;
+        virtual int  facet(const int c, const int lf) const = 0;
+        virtual int corner(const int c, const int lc) const = 0;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,8 +53,12 @@ namespace UM {
         int nfacets() const;
         int create_tets(const int n);
 
-        int  vert(const int c, const int lv) const;
-        int &vert(const int c, const int lv);
+//      int  vert(const int c, const int lv) const;
+//      int &vert(const int c, const int lv);
+        int facet_size(const int c, const int lf) const;
+        int facet_vert(const int c, const int lf, const int lv) const;
+        int  facet(const int c, const int lf) const;
+        int corner(const int c, const int lc) const;
     };
 
     struct Hexahedra : Volume { // hex mesh implementation
@@ -62,9 +70,35 @@ namespace UM {
         int ncells()  const;
         int nfacets() const;
         int create_hexa(const int n);
-        int  vert(const int c, const int lv) const;
-        int &vert(const int c, const int lv);
+
+//      int  vert(const int c, const int lv) const;
+//      int &vert(const int c, const int lv);
+        int facet_size(const int c, const int lf) const;
+        int facet_vert(const int c, const int lf, const int lv) const;
+        int  facet(const int c, const int lf) const;
+        int corner(const int c, const int lc) const;
     };
+
+    struct VolumeConnectivity { // half-edge-like connectivity interface
+        VolumeConnectivity(const Volume &p_m);
+
+        const Volume &m;
+        std::vector<int> adjacent;
+    };
+
+    inline int Volume::nverts() const {
+        return points.size();
+    }
+
+    inline int Volume::vert(const int c, const int lv) const {
+        return cells[corner(c, lv)];
+    }
+
+    inline int &Volume::vert(const int c, const int lv) {
+        return cells[corner(c, lv)];
+    }
+
+
 }
 
 #endif //__VOLUME_H__
