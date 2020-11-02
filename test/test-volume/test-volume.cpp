@@ -5,16 +5,15 @@
 
 using namespace UM;
 
-// definition of the bunny model, check the rendering contest entry: https://github.com/ssloy/tinyraytracer/wiki/Part-3:-shadertoy
-
+// definition of the bunny model, check the JFIG2020 rendering contest entry: https://github.com/ssloy/tinyraytracer/wiki/Part-3:-shadertoy
 const int BUNW = 6;
 const int BUNH = 6;
 const int BUND = 4;
-
 uint32_t bunny_bitfield[] = { 0xc30d0418u, 0x37dff3e0u, 0x7df71e0cu, 0x004183c3u, 0x00000400u };
-bool bunny(const int cubeID) {
+bool bunny(const int i, const int j, const int k) {
+    int cubeID = i+j*BUNW+k*BUNW*BUNH;
     if (cubeID<0 || cubeID>=BUNW*BUNH*BUND) return false;
-    return 0u != (bunny_bitfield[cubeID/32] & (1u << (cubeID&31)));
+    return bunny_bitfield[cubeID/32] & (1u << (cubeID&31));
 }
 
 int main(int argc, char** argv) {
@@ -22,8 +21,7 @@ int main(int argc, char** argv) {
 
     { // create independent voxels
         for (int i : range(BUNW)) for (int j : range(BUNH)) for (int k : range(BUND)) {
-            int cellID = i+j*BUNW+k*BUNW*BUNH;
-            if (!bunny(cellID)) continue;
+            if (!bunny(i,j,k)) continue;
             int off_c = m.create_hexa(1);
             vec3 bbox[2] = {vec3(i,j,-k), vec3(i,j,-k)+vec3(1,1,1)};
             for (int u : range(2)) for (int v : range(2)) for (int w : range(2)) {
@@ -36,7 +34,6 @@ int main(int argc, char** argv) {
     }
 
     { // colocate vertices
-
         std::vector<int> old2new;
         colocate(*m.points.data, old2new, 1e-3);
         for (int c : range(m.ncells()))
@@ -54,13 +51,12 @@ int main(int argc, char** argv) {
 
     CellFacetAttribute<bool> boundary(m);
     { // export boundary attribute for cell facets
-        VolumeConnectivity fec(m);
+        VolumeConnectivity cec(m);
         for (int f : range(m.nfacets()))
-            boundary[f] = (fec.adjacent[f]<0);
+            boundary[f] = (cec.adjacent[f]<0);
     }
 
     write_geogram("bunny.geogram", m, {{}, {}, {{"boundary", boundary.ptr}}, {}});
-
     return 0;
 }
 

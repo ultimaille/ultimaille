@@ -10,7 +10,6 @@
 
 namespace UM {
     struct GenericAttributeContainer {
-//      virtual int size() const = 0;
         virtual void resize(const int n) = 0;
         virtual void compress(const std::vector<int> &old2new) = 0;
         virtual ~GenericAttributeContainer() = default;
@@ -18,10 +17,8 @@ namespace UM {
 
     template <typename T> struct AttributeContainer : GenericAttributeContainer {
         AttributeContainer(const int n) : data(n) {}
-//      int size() const { return data.size(); }
         void resize(const int n) { data.resize(n); }
         void compress(const std::vector<int> &old2new) { // NB: old2new is not a permutation!
-//            std::cerr << old2new.size() << " " << data.size() << std::endl;
             assert(old2new.size()==data.size());
             int cnt = 0;
             for (int i=0; i<static_cast<int>(old2new.size()); i++) {

@@ -8,6 +8,8 @@
 namespace UM {
     struct GenericAttributeContainer;
 
+    // TODO inline functions
+
     struct Surface { // polygonal mesh interface
         PointSet points{};
         std::vector<int> facets{};
