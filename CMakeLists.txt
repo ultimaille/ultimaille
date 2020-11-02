@@ -17,7 +17,6 @@ add_subdirectory(ext)
 
 
 file(GLOB SOURCES ultimaille/*.cpp ultimaille/*.h ultimaille/io/*.cpp ultimaille/io/*.h)
-message(${SOURCES})
 add_library(ultimaille ${SOURCES})
 set_property(TARGET ultimaille PROPERTY CXX_STANDARD 17)
 target_link_libraries(ultimaille zlib)
