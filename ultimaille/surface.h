@@ -78,10 +78,12 @@ namespace UM {
     struct SurfaceConnectivity { // half-edge-like connectivity interface
         SurfaceConnectivity(const Surface &p_m);
 
-        int from(const int corner_id) const;
-        int   to(const int corner_id) const;
-        int prev(const int corner_id) const;
-        int next(const int corner_id) const;
+        vec3 geom(const int corner_id) const;
+        int facet(const int corner_id) const;
+        int  from(const int corner_id) const;
+        int    to(const int corner_id) const;
+        int  prev(const int corner_id) const;
+        int  next(const int corner_id) const;
         int opposite(const int corner_id) const;
         bool is_border_vert(const int v) const;
         int next_around_vertex(const int corner_id) const;
@@ -187,6 +189,14 @@ namespace UM {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline vec3 SurfaceConnectivity::geom(const int corner_id) const {
+        return m.points[to(corner_id)] - m.points[from(corner_id)];
+    }
+
+    inline int SurfaceConnectivity::facet(const int corner_id) const {
+        return c2f[corner_id];
+    }
 
     inline int SurfaceConnectivity::from(const int corner_id) const {
         int fi = c2f[corner_id];

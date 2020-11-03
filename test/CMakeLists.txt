@@ -1,5 +1,5 @@
 OPTION (BIN_INTER "2d interpolation binary" Off)
-OPTION (BIN_PGP "2d PGP binary" Off)
+OPTION (BIN_PGP "2d PGP binary" On)
 OPTION (BIN_PERMU "Permutation test binary " Off)
 OPTION (BIN_EMBED "Embeding  binaries" Off)
 OPTION (BIN_TEST "Basic tests binary" On)
