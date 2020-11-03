@@ -16,8 +16,10 @@ namespace UM {
 
         KNN(const std::vector<vec<D>> &points): pts(points), n(points.size()), tree(points.size()) {
             std::iota(tree.begin(), tree.end(), 0);
+#if _OPENMP>=200805
 #pragma omp parallel
 #pragma omp single nowait
+#endif
             build(0, n);
         }
 
@@ -25,10 +27,15 @@ namespace UM {
             if (L >= R) return;
             int M = (L+R)/2; // get median in O(n), split dim coordinate
             std::nth_element(tree.begin()+L, tree.begin()+M, tree.begin()+R, [this, dim](int a, int b) { return pts[a][dim]<pts[b][dim]; });
+#if _OPENMP>=200805
 #pragma omp task
+#endif
             build(L,   M, (dim+1)%D);
+#if _OPENMP>=200805
 #pragma omp task
+#endif
             build(M+1, R, (dim+1)%D);
+
         }
 
         // k-nearest neighbor query, O(k log(k) log(n)) on average

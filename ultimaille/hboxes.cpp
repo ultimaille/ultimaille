@@ -19,8 +19,10 @@ namespace UM {
             tree_pos_to_org[b] = b;
         }
 
+#if _OPENMP>=200805
 #pragma omp parallel
 #pragma omp single nowait
+#endif
         sort(G, 0, nboxes);
 
         offset = std::pow(2., 1. + mylog2(nboxes)) - 1;
@@ -50,9 +52,13 @@ namespace UM {
         if (dest - org <= 2) return;
 
         int m = org + pow(2., mylog2(dest-org-1));
+#if _OPENMP>=200805
 #pragma omp task
+#endif
         sort(G, org, m);
+#if _OPENMP>=200805
 #pragma omp task
+#endif
         sort(G, m, dest);
     }
 
