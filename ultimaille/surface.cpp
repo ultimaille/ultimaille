@@ -34,14 +34,6 @@ namespace UM {
             spt->compress(corners_old2new);
     }
 
-    inline int Surface::nverts() const {
-        return points.size();
-    }
-
-    inline int Surface::ncorners() const {
-        return facets.size();
-    }
-
     void Surface::delete_vertices(const std::vector<bool> &to_kill) {
         assert(to_kill.size()==(size_t)nverts());
         std::vector<bool> facets_to_kill(nfacets(), false);
@@ -87,30 +79,6 @@ namespace UM {
         return nfacets()-n;
     }
 
-    inline int Triangles::nfacets() const {
-        assert(0==facets.size()%3);
-        return facets.size()/3;
-    }
-
-    inline int Triangles::facet_size(const int) const {
-        return 3;
-    }
-
-    inline int Triangles::facet_corner(const int fi, const int ci) const {
-        assert(ci>=0 && ci<3 && fi>=0 && fi<nfacets());
-        return fi*3 + ci;
-    }
-
-    inline int Triangles::vert(const int fi, const int lv) const {
-        assert(fi>=0 && fi<nfacets() && lv>=0 && lv<3);
-        return facets[fi*3 + lv];
-    }
-
-    inline int &Triangles::vert(const int fi, const int lv) {
-        assert(fi>=0 && fi<nfacets() && lv>=0 && lv<3);
-        return facets[fi*3 + lv];
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     int Quads::create_facets(const int n) {
@@ -119,29 +87,6 @@ namespace UM {
         return nfacets()-n;
     }
 
-    inline int Quads::nfacets() const {
-        assert(0==facets.size()%4);
-        return facets.size()/4;
-    }
-
-    inline int Quads::facet_size(const int) const {
-        return 4;
-    }
-
-    inline int Quads::facet_corner(const int fi, const int ci) const {
-        assert(ci>=0 && ci<4 && fi>=0 && fi<nfacets());
-        return fi*4 + ci;
-    }
-
-    inline int Quads::vert(const int fi, const int lv) const {
-        assert(fi>=0 && fi<nfacets() && lv>=0 && lv<4);
-        return facets[fi*4 + lv];
-    }
-
-    inline int &Quads::vert(const int fi, const int lv) {
-        assert(fi>=0 && fi<nfacets() && lv>=0 && lv<4);
-        return facets[fi*4 + lv];
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -199,34 +144,6 @@ namespace UM {
         }
     }
 
-    inline int Polygons::nfacets() const {
-        return static_cast<int>(offset.size())-1;
-    }
-
-    inline int Polygons::facet_size(const int fi) const {
-        assert(fi>=0 && fi<nfacets());
-        return offset[fi+1]-offset[fi];
-    }
-
-    inline int Polygons::facet_corner(const int fi, const int ci) const {
-        assert(fi>=0 && fi<nfacets());
-        return offset[fi]+ci;
-    }
-
-    inline int Polygons::vert(const int fi, const int lv) const {
-        assert(fi>=0 && fi<nfacets());
-        int n = facet_size(fi);
-        assert(lv>=0 && lv<n);
-        return facets[offset[fi]+lv];
-    }
-
-    inline int &Polygons::vert(const int fi, const int lv) {
-        assert(fi>=0 && fi<nfacets());
-        int n = facet_size(fi);
-        assert(lv>=0 && lv<n);
-        return facets[offset[fi]+lv];
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     SurfaceConnectivity::SurfaceConnectivity(const Surface &p_m) : m(p_m) {
@@ -249,33 +166,6 @@ namespace UM {
                 c2c[c] = v2c[v];
                 v2c[v] = c;
             }
-    }
-
-    inline int SurfaceConnectivity::from(const int corner_id) const {
-        int fi = c2f[corner_id];
-        int lv = corner_id - m.facet_corner(fi, 0);
-        return m.vert(fi, lv);
-    }
-
-    inline int SurfaceConnectivity::to(const int corner_id) const {
-        int fi = c2f[corner_id];
-        int lv = corner_id - m.facet_corner(fi, 0);
-        int n = m.facet_size(fi);
-        return m.vert(fi, (lv+1)%n);
-    }
-
-    inline int SurfaceConnectivity::next(const int corner_id) const {
-        int fi = c2f[corner_id];
-        int lv = corner_id - m.facet_corner(fi, 0);
-        int n = m.facet_size(fi);
-        return m.facet_corner(fi, (lv+1)%n);
-    }
-
-    inline int SurfaceConnectivity::prev(const int corner_id) const {
-        int fi = c2f[corner_id];
-        int lv = corner_id - m.facet_corner(fi, 0);
-        int n = m.facet_size(fi);
-        return m.facet_corner(fi, (lv-1+n)%n);
     }
 
     int SurfaceConnectivity::opposite(const int corner_id) const {
