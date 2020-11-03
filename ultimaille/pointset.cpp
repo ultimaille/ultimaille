@@ -2,15 +2,15 @@
 #include "attributes.h"
 
 namespace UM {
-    void PointSet::bbox(vec3 &min, vec3 &max) {
-        min = max = data->at(0);
-        for (vec3 const &p : *data) {
-            for (int j=0; j<3; j++) {
-                min[j] = std::min(min[j], p[j]);
-                max[j] = std::max(max[j], p[j]);
-            }
-        }
-    }
+//  void PointSet::bbox(vec3 &min, vec3 &max) {
+//      min = max = data->at(0);
+//      for (vec3 const &p : *data) {
+//          for (int j=0; j<3; j++) {
+//              min[j] = std::min(min[j], p[j]);
+//              max[j] = std::max(max[j], p[j]);
+//          }
+//      }
+//  }
 
     void PointSet::resize(const int n) {
         assert(1==data.use_count());
@@ -18,10 +18,17 @@ namespace UM {
         resize_attrs();
     }
 
-    void PointSet::push_back(const vec3 &p) {
+    int PointSet::create_points(const int n) {
+        assert(n>=0);
+        data->resize(size()+n);
+        return size()-n;
+    }
+
+    int PointSet::push_back(const vec3 &p) {
         assert(1==data.use_count());
         data->push_back(p);
         resize_attrs();
+        return size()-1;
     }
 
     void PointSet::delete_points(const std::vector<bool> &to_kill, std::vector<int> &old2new) {

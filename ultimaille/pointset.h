@@ -16,10 +16,11 @@ namespace UM {
         const vec3& operator[](const int i) const { return data->at(i); }
         int use_count() { return data.use_count(); }
 
-        void bbox(vec3 &min, vec3 &max); // TODO move this elsewhere (e.g. mesh_utils)
+//      void bbox(vec3 &min, vec3 &max); // TODO move this elsewhere (e.g. mesh_utils)
         void resize(const int n);
-        void push_back(const vec3 &p);
+        int push_back(const vec3 &p);
         void delete_points(const std::vector<bool> &to_kill, std::vector<int> &old2new);
+        int create_points(const int n);
 
         using       iterator = std::vector<vec3>::iterator;
         using const_iterator = std::vector<vec3>::const_iterator;

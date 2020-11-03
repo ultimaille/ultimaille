@@ -112,45 +112,16 @@ namespace UM {
         offset.resize(new_nb_facets+1);
     }
 
-    void Polygons::extract_triangles(Triangles &tri) {
-        tri = Triangles();
-        tri.points = points;
-        int ntri = 0;
-        for (int f=0; f<nfacets(); f++)
-            ntri += (3==facet_size(f));
-        tri.create_facets(ntri);
-        int cnt = 0;
-        for (int f=0; f<nfacets(); f++) {
-            if (3!=facet_size(f)) continue;
-            for (int v=0; v<3; v++)
-                tri.vert(cnt, v) = vert(f, v);
-            ++cnt;
-        }
-    }
-
-    void Polygons::extract_quads(Quads &quads) {
-        quads = Quads();
-        quads.points = points;
-        int nquads = 0;
-        for (int f=0; f<nfacets(); f++)
-            nquads += (4==facet_size(f));
-        quads.create_facets(nquads);
-        int cnt = 0;
-        for (int f=0; f<nfacets(); f++) {
-            if (4!=facet_size(f)) continue;
-            for (int v=0; v<4; v++)
-                quads.vert(cnt, v) = vert(f, v);
-            ++cnt;
-        }
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     SurfaceConnectivity::SurfaceConnectivity(const Surface &p_m) : m(p_m) {
-        int nbc = m.ncorners();
-        c2f.resize(nbc, -1);
-        c2c.resize(nbc, -1);
-        v2c.resize(m.nverts(), -1);
+        reset();
+    }
+
+    void SurfaceConnectivity::reset() {
+        c2f.resize(m.ncorners(), -1);
+        c2c.resize(m.ncorners(), -1);
+        v2c.resize(m.nverts(),   -1);
 
         for (int f=0; f<m.nfacets(); f++)
             for (int fc=0; fc<m.facet_size(f); fc++) {

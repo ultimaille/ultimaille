@@ -48,6 +48,15 @@ vec3 facet_centroid(const Surface &m, const int f) {
     return ave / double(m.facet_size(f));
 }
 
+vec3 facet_normal(const Surface &m, const int f) {
+    vec3 bary = facet_centroid(m, f);
+    vec3 res(0, 0, 0);
+    for (int fv : range(m.facet_size(f)))
+        res = res + cross(m.points[m.vert(f, fv)] - bary, m.points[m.vert(f, (fv+1)%m.facet_size(f))] - bary);
+    return res.normalize();
+}
+
+
 double vector_angle(const vec3 &v0, const vec3 &v1) {
     return atan2(cross(v0, v1).norm(), v0*v1);
 }
@@ -67,7 +76,57 @@ double c_ij(const Triangles &m, const SurfaceConnectivity &fec, int h) {
     return M_PI - edge_angle_in_ref(m, fec, fec.opposite(h)) + edge_angle_in_ref(m, fec, h);
 }
 
-void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, FacetAttribute<double> &theta, FacetAttribute<mat<2,2>> &Bi, CornerAttribute<int> &Rij) {
+void init_feature_edge(Triangles &m, SurfaceConnectivity &fec, CornerAttribute<bool> &feature_edge) {
+    for (int c : range(m.ncorners())) {
+        feature_edge[c] = false;
+        if (fec.opposite(c)<0) {
+            feature_edge[c] = true;
+            continue;
+        }
+        vec3 n1 = facet_normal(m, fec.facet(c));
+        vec3 n2 = facet_normal(m, fec.facet(fec.opposite(c)));
+        if (n1*n2 < cos(M_PI / 5.))
+            feature_edge[c] = true;
+    }
+}
+
+void split_overconstrained_facets(Triangles &m, CornerAttribute<bool> &feature_edge) {
+    FacetAttribute<bool> facet_is_valid(m);
+
+    for (int f : range(m.nfacets())) {
+        facet_is_valid[f] = true;
+
+        int nb_features = 0;
+        for (int i : range(3))
+            nb_features += feature_edge[m.facet_corner(f, i)];
+        if (nb_features < 2) continue;
+
+        int nv = m.points.push_back(facet_centroid(m, f));
+        int offset = m.create_facets(3);
+        for (int i : range(3)) {
+            facet_is_valid[offset + i] = true;
+            m.vert(offset + i, 0) = m.vert(f, i);
+            m.vert(offset + i, 1) = m.vert(f, (i + 1) % 3);
+            m.vert(offset + i, 2) = nv;
+            feature_edge[m.facet_corner(offset + i, 0)] = feature_edge[m.facet_corner(f, i)];
+            for (int c : range(2))
+                feature_edge[m.facet_corner(offset+i, 1+c)] = false;
+        }
+        facet_is_valid[f] = false;
+    }
+
+    std::vector<bool> to_kill(m.nfacets(), false);
+    for (int i : range(m.nfacets())) to_kill[i] = !facet_is_valid[i];
+    m.delete_facets(to_kill);
+}
+
+
+void compute_cross_field(Triangles &m, SurfaceConnectivity &fec, CornerAttribute<bool> &feature_edge, FacetAttribute<double> &theta, CornerAttribute<int> &layer_shift) {
+    init_feature_edge(m, fec, feature_edge);
+    split_overconstrained_facets(m, feature_edge);
+    fec.reset();
+
+
     { // compute the frame field at the boundary
         for (int c : range(m.ncorners())) {
             if (fec.opposite(c)>=0) continue;
@@ -130,6 +189,7 @@ void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, Fac
         }
     }
 
+/*
     for (int f : range(m.nfacets()))
         Bi[f] = {{ {cos(theta[f]), cos(M_PI/2+theta[f])}, {sin(theta[f]), sin(M_PI/2+theta[f])} }};
 
@@ -156,6 +216,7 @@ void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, Fac
         if (opp<0 || opp>c) continue;
         Rij[c] = (4-Rij[opp])%4;
     }
+*/
 }
 
 
@@ -167,28 +228,21 @@ int main(int argc, char** argv) {
     nlInitialize(argc, argv);
 
     Triangles m;
-    {
-        Polygons pm;
-        read_wavefront_obj(argv[1], pm);
-        pm.extract_triangles(m);
-        assert(m.nfacets() == pm.nfacets());
-        for (vec3 &p : m.points) p.z = 0; // make sure it is 2D
-        // TODO assert manifoldity
-    }
+    read_wavefront_obj(argv[1], m);
+    for (vec3 &p : m.points) p.z = 0; // make sure it is 2D
+    // TODO assert manifoldity
 
-    CornerAttribute<int> Rij(m);
+    CornerAttribute<bool> feature_edge(m);
+    CornerAttribute<int> layer_shift(m);
     FacetAttribute<double> theta(m);
-    FacetAttribute<mat<2,2>> Bi(m);
 
     std::cerr << "Computing fec...";
     SurfaceConnectivity fec(m);
     std::cerr << "ok\n";
 
     std::cerr << "Computing cross field...";
-    compute_cross_field(m, fec, theta, Bi, Rij);
+    compute_cross_field(m, fec, feature_edge, theta, layer_shift);
     std::cerr << "ok\n";
-
-
 
     { // drop var reduction debug
         PolyLine pl;
@@ -212,20 +266,14 @@ int main(int argc, char** argv) {
             pl.vert(f*2+0, 1) = off+1;
             pl.vert(f*2+1, 0) = off;
             pl.vert(f*2+1, 1) = off+2;
-
-//          for (int d : range(2)) {
-//              pl.points.push_back(p + (b-p)/10*(d+1));
-//              pl.vert(c*2+d, 0) = c*2+d;
-//              int r = resp[redvar[c*2+d]];
-//              pl.vert(c*2+d, 1) = r;
-//              pls[c*2+d] = redsgn[c*2+d];
-//          }
         }
-          write_geogram("reduction_test.geogram", pl, {{}, {}});
+        write_geogram("reduction_test.geogram", pl, {{}, {}});
+        write_geogram("pgp.geogram", m, {{}, {{"theta", theta.ptr}}, {{"feature_edge", feature_edge.ptr},{"layer_shift", layer_shift.ptr}}});
     }
 
     return 0;
 
+/*
 
     SignedPairwiseEquality param_vars(m.ncorners()*2);
     SignedPairwiseEquality curlc_vars(m.ncorners()*2);
@@ -341,32 +389,6 @@ int main(int argc, char** argv) {
     std::vector<int> redvar, redsgn;
     int nsets = param_vars.reduce(redvar, redsgn);
 
-#if 0
-    { // drop var reduction debug
-        std::vector<int> resp(nsets, -1);
-        for (int i : range(redvar.size()))
-            resp[redvar[i]] = param_vars.root(i);
-
-        PolyLine pl;
-        SegmentAttribute<int> pls(pl);
-        pl.create_segments(m.ncorners()*2);
-        for (int c : range(m.ncorners())) {
-            int i = fec.from(c);
-            vec3 p = m.points[i];
-            vec3 b = facet_centroid(m, fec.c2f[c]);
-            for (int d : range(2)) {
-                pl.points.push_back(p + (b-p)/10*(d+1));
-                pl.vert(c*2+d, 0) = c*2+d;
-                int r = resp[redvar[c*2+d]];
-                pl.vert(c*2+d, 1) = r;
-                pls[c*2+d] = redsgn[c*2+d];
-            }
-        }
-        write_geogram("reduction_test.geogram", pl, {{}, {{"sign", pls.ptr}}});
-    }
-#endif
-
-
     CornerAttribute<vec2> tex_coord(m);
     {
         CornerAttribute<vec2> frac_coord(m);
@@ -461,7 +483,7 @@ int main(int argc, char** argv) {
     }
 
     write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"tex_coord", tex_coord.ptr},{"Rij", Rij.ptr}} });
-
+*/
     return 0;
 }
 

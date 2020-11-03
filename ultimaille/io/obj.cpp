@@ -44,6 +44,19 @@ namespace UM {
         std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;
     }
 
+    void read_wavefront_obj(const std::string filename, Triangles &m) {
+        Polygons mpoly;
+        read_wavefront_obj(filename, mpoly);
+
+        std::vector<bool> to_kill(mpoly.nfacets(), false);
+        for (int f=0; f<mpoly.nfacets(); f++)
+            to_kill[f] = (3!=mpoly.facet_size(f));
+        mpoly.delete_facets(to_kill);
+
+        m.points = mpoly.points;
+        m.facets = mpoly.facets;
+    }
+
     void write_wavefront_obj(const std::string filename, const Surface &m) {
         std::fstream out;
         out.open(filename, std::ios_base::out);

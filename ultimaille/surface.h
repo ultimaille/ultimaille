@@ -62,9 +62,7 @@ namespace UM {
         Polygons();
 
         int create_facets(const int n, const int size);
-        virtual void delete_facets(const std::vector<bool> &to_kill);
-        void extract_triangles(Triangles &tri); // TODO find a better interface to convert polygons to tri/quads: we need to convert attributes as well (or not?)
-        void extract_quads(Quads &quads);
+        void delete_facets(const std::vector<bool> &to_kill);
 
         int nfacets()  const;
         int facet_size(const int fi) const;
@@ -88,6 +86,7 @@ namespace UM {
         bool is_border_vert(const int v) const;
         int next_around_vertex(const int corner_id) const;
 
+        void reset();
         const Surface &m;
         std::vector<int> v2c; // vertex to corner
         std::vector<int> c2f; // corner to facet
