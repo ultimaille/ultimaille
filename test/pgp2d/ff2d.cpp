@@ -9,7 +9,7 @@
 
 using namespace UM;
 
-#define DEBUG_DROP 0
+#define DEBUG_DROP 1
 
 // assume signed i, positive n. The result is in [0..n-1]
 int modulo(const int i, const int n) {
@@ -17,20 +17,8 @@ int modulo(const int i, const int n) {
     return (i%n + n)%n; // Based on the C99 specification: i == (i / n) * n + i % n
 }
 
-#if DEBUG_DROP
-double average_edge_length(const Surface &m) {
-    double sum = 0;
-    int nb = 0;
-    for (int f : range(m.nfacets())) {
-        for (int lv : range(m.facet_size(f))) {
-            vec3 a = m.points[m.vert(f, lv)];
-            vec3 b = m.points[m.vert(f, (lv+1)%m.facet_size(f))];
-            sum += (a-b).norm();
-            nb++;
-        }
-    }
-    return sum/nb;
-}
+double average_edge_length(const Surface &m);
+vec3 triangle_gradient(const Triangles &m, const int f, const double a, const double b, const double c);
 
 vec3 rotate_vector_around_axis(const vec3 axis, const double angle, const vec3 v) {
     vec3 u = vec3(axis).normalize();
@@ -41,7 +29,6 @@ vec3 rotate_vector_around_axis(const vec3 axis, const double angle, const vec3 v
                 (u.x*u.z*(1-c)-u.y*s)*v.x + (u.z*u.y*(1-c)+u.x*s)*v.y + (c+u.z*u.z*(1-c))*v.z     );
 }
 
-#endif
 
 vec3 facet_bary(const Surface &m, const int f) {
     vec3 ave(0, 0, 0);
@@ -166,7 +153,7 @@ void export_local_uv(const Triangles &m, const SurfaceConnectivity &fec, const F
     for (int f : facet_iter(m)) {
         vec3 x, y, z;
         local_basis(m, fec, m.corner(f, 0), x, y, z);
-        double a = alpha[f]+M_PI_2, b = beta[f] + M_PI_2;
+        double a = alpha[f], b = beta[f];
         vec3 grads[2] = {cos(a)*x + sin(a)*y, cos(b)*x + sin(b)*y};
         for (int i : range(3)) {
             vec3 P = m.points[m.vert(f, i)];
@@ -249,7 +236,7 @@ void compute_cross_field(Triangles &m, CornerAttribute<bool> &feature_edge, Corn
             vec3 e2 = fec.geom(m.corner(f, 2));
 
             vec3 a = rotate_vector_around_axis(cross(e1, e2), -alpha[f], e1);
-            vec3 b = rotate_vector_around_axis(cross(e1, e2), -alpha[f]+M_PI_2, e1);
+            vec3 b = rotate_vector_around_axis(cross(e1, e2), -beta[f], e1);
 
             int off = pl.nverts();
             pl.points.push_back(g);
@@ -262,7 +249,30 @@ void compute_cross_field(Triangles &m, CornerAttribute<bool> &feature_edge, Corn
             pl.vert(f*2+1, 0) = off;
             pl.vert(f*2+1, 1) = off+2;
         }
-        write_geogram("reduction_test.geogram", pl, {{}, {}});
+        write_geogram("field.geogram", pl, {{}, {}});
+    }
+    { // drop var reduction debug
+        PolyLine pl;
+        pl.create_segments(m.nfacets()*2);
+        double avlen = average_edge_length(m);
+        for (int f : facet_iter(m)) {
+            vec3 g = facet_bary(m, f);
+
+            vec3 gu = triangle_gradient(m, f, uv[m.corner(f, 0)].x,uv[m.corner(f, 1)].x,uv[m.corner(f, 2)].x);
+            vec3 gv = triangle_gradient(m, f, uv[m.corner(f, 0)].y,uv[m.corner(f, 1)].y,uv[m.corner(f, 2)].y);
+
+            int off = pl.nverts();
+            pl.points.push_back(g);
+            pl.points.push_back(g+gu.normalize()*avlen*.2);
+            pl.points.push_back(g+gv.normalize()*avlen*.2);
+
+
+            pl.vert(f*2+0, 0) = off;
+            pl.vert(f*2+0, 1) = off+1;
+            pl.vert(f*2+1, 0) = off;
+            pl.vert(f*2+1, 1) = off+2;
+        }
+        write_geogram("field2.geogram", pl, {{}, {}});
     }
 #endif
 }

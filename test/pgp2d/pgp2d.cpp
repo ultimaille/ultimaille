@@ -10,6 +10,10 @@
 using namespace UM;
 
 void compute_cross_field(Triangles &m, CornerAttribute<bool> &feature_edge, CornerAttribute<vec2> &uv, CornerAttribute<int> &layer_shift, int nb_FF_iters=1);
+void local_basis(const Triangles &m, const SurfaceConnectivity &fec, const int h, vec3& x, vec3& y, vec3& z);
+vec3 rotate_vector_around_axis(const vec3 axis, const double angle, const vec3 v);
+vec3 facet_normal(const Surface &m, const int f);
+
 
 double average_edge_length(const Surface &m) {
     double sum = 0;
@@ -25,6 +29,15 @@ double average_edge_length(const Surface &m) {
     return sum/nb;
 }
 
+vec3 triangle_gradient(const Triangles &m, const int f, const double a, const double b, const double c) {
+    vec3 ea = m.points[m.vert(f,2)] - m.points[m.vert(f,1)];
+    vec3 eb = m.points[m.vert(f,0)] - m.points[m.vert(f,2)];
+    vec3 ec = m.points[m.vert(f,1)] - m.points[m.vert(f,0)];
+    vec3 n = cross(ec, -eb);
+    vec3 g90 = -(a*ea + b*eb + c*ec)/n.norm();
+    return cross(g90, n.normalize());
+}
+
 int main(int argc, char** argv) {
     if (2>argc) {
         std::cerr << "Usage: " << argv[0] << " model.obj" << std::endl;
@@ -35,7 +48,7 @@ int main(int argc, char** argv) {
     // TODO assert manifoldity
     Triangles m;
     read_wavefront_obj(argv[1], m);
-    for (vec3 &p : m.points) p.z = 0; // make sure it is 2D
+//  for (vec3 &p : m.points) p.z = 0; // make sure it is 2D
 
     CornerAttribute<vec2> uv(m);
     CornerAttribute<bool> feature_edge(m);
@@ -47,25 +60,25 @@ int main(int argc, char** argv) {
     SurfaceConnectivity fec(m);
 
     SignedPairwiseEquality param_vars(m.ncorners()*2);
-//  SignedPairwiseEquality curlc_vars(m.ncorners()*2);
+    SignedPairwiseEquality curlc_vars(m.ncorners()*2);
 
-//    const bool perform_curl_correction = true;
+      const bool perform_curl_correction = true;
 
     for (int h : corner_iter(m)) {
-        int rij = layer_shift[h];
-        assert(rij>=0 && rij<4);
+        int opp = fec.opposite(h);
         if (feature_edge[h]) { // zero feautre edge condition
             assert(uv[h].x==uv[fec.next(h)].x || uv[h].y==uv[fec.next(h)].y); // uv is supposed to be snapped
             bool v = (uv[h].y==uv[fec.next(h)].y);
-//          if (perform_curl_correction)
-//              curlc_vars.merge(v+2*c, v+2*c, false);
+            if (perform_curl_correction)
+                curlc_vars.merge(v+2*h, v+2*h, false);
             param_vars.merge(v+2*h, v+2*h, false);
             param_vars.merge(v+2*fec.next(h), v+2*fec.next(h), false);
-            continue;
+            if (opp<0) continue;
         }
-        int opp = fec.opposite(h);
         assert(opp>=0);
         int ngh = fec.next(opp);
+        int rij = layer_shift[h];
+        assert(rij>=0 && rij<4);
         // rij=0 -> ui=+uj, vi=+vj
         // rij=1 -> ui=+vj, vi=-uj
         // rij=2 -> ui=-uj, vi=-vj
@@ -73,34 +86,43 @@ int main(int argc, char** argv) {
         const bool sign[8] = { true, true, true, false, false, false, false, true };
         param_vars.merge(h*2+0, ngh*2+  rij%2, sign[rij*2  ]);
         param_vars.merge(h*2+1, ngh*2+1-rij%2, sign[rij*2+1]);
-//      if (perform_curl_correction) {
-//          curlc_vars.merge(h*2+0, opp*2+  rij%2, !sign[rij*2  ]);
-//          curlc_vars.merge(h*2+1, opp*2+1-rij%2, !sign[rij*2+1]);
-//      }
+        if (perform_curl_correction) {
+            curlc_vars.merge(h*2+0, opp*2+  rij%2, !sign[rij*2  ]);
+            curlc_vars.merge(h*2+1, opp*2+1-rij%2, !sign[rij*2+1]);
+        }
     }
 
     double av_length = average_edge_length(m);
     const double scale = 0.3/av_length;
-/*
 
     CornerAttribute<vec2> gkl(m);
     { // N.B. this is an edge attribute, so only the resp. half-edges are filled in the 1st pass, and the non-resp are assigned in the 2nd pass
-        for (int c : range(m.ncorners())) {
-            int opp = fec.opposite(c);
-            int i = fec.from(c), j = fec.to(c);
-            mat<2,2> &B = Bi[fec.c2f[c]];
-            vec3 edge = fec.geom(c);
-            vec2 gkl_ = B.transpose()*vec2(edge.x, edge.y)*scale;
+        for (int h : corner_iter(m)) {
+            int f = fec.facet(h);
+            vec3 gu = triangle_gradient(m, f, uv[m.corner(f, 0)].x,uv[m.corner(f, 1)].x,uv[m.corner(f, 2)].x).normalize();
+            vec3 gv = triangle_gradient(m, f, uv[m.corner(f, 0)].y,uv[m.corner(f, 1)].y,uv[m.corner(f, 2)].y).normalize();
+            vec3 n = facet_normal(m, f);
+            mat<3,3> B = { { gu, gv, n } };
+
+            int opp = fec.opposite(h);
+            int i = fec.from(h), j = fec.to(h);
+            vec3 gkl_ = B*fec.geom(h)*scale;
+            vec2 tmp = {gkl_.x, gkl_.y};
             if (opp<0 || i<j)
-                gkl[c] += gkl_/(2-int(opp<0));
-            else
-                gkl[opp] += -(R90_k(Rij[c])*gkl_)/2; // note Rij[c] and not Rij[opp]!
+                gkl[h] += tmp/(2-int(opp<0));
+            else {
+                for (int r : range(layer_shift[h]))
+                    tmp = vec2{-tmp.y, tmp.x};
+                gkl[opp] += -tmp/2; // note Rij[c] and not Rij[opp]!
+            }
         }
-        for (int c : range(m.ncorners())) { // 2nd pass: fill non-resp. half-edges
-            int opp = fec.opposite(c);
-            int i = fec.from(c), j = fec.to(c);
+        for (int h : corner_iter(m)) { // 2nd pass: fill non-resp. half-edges
+            int opp = fec.opposite(h);
+            int i = fec.from(h), j = fec.to(h);
             if (opp<0 || i<j) continue;
-            gkl[c] = -(R90_k(Rij[opp])*gkl[opp]);
+            gkl[h] = -gkl[opp];
+            for (int r : range(layer_shift[opp]))
+                gkl[h] = vec2{-gkl[h].y, gkl[h].x};
         }
     }
 
@@ -128,9 +150,9 @@ int main(int argc, char** argv) {
         }
 
         for (int f : range(m.nfacets())) { // actual correction
-            int c0 = m.facet_corner(f, 0);
-            int c1 = m.facet_corner(f, 1);
-            int c2 = m.facet_corner(f, 2);
+            int c0 = m.corner(f, 0);
+            int c1 = m.corner(f, 1);
+            int c2 = m.corner(f, 2);
             for (int d : range(2)) {
                 nlRowScaling(100);
                 nlBegin(NL_ROW);
@@ -177,8 +199,21 @@ int main(int argc, char** argv) {
                 nlLockVariable(ind*2+1);
             }
 
-            nlBegin(NL_MATRIX);
 
+            nlBegin(NL_MATRIX);
+/*            for (int v : range(nsets)) {
+                nlRowScaling(.01);
+                nlBegin(NL_ROW);
+                nlCoefficient(v*2+0, 1);
+                nlRightHandSide(.134234);
+                nlEnd(NL_ROW);
+                nlBegin(NL_ROW);
+                nlCoefficient(v*2+1, 1);
+                nlRightHandSide(.134234);
+                nlEnd(NL_ROW);
+            }
+
+/*
             if (iter) for (int c : range(m.ncorners())) { // enforce non-zero field norm
                 for (int d : range(2)) {
                     int var = redvar[c*2+d];
@@ -197,7 +232,7 @@ int main(int argc, char** argv) {
                     nlEnd(NL_ROW);
                 }
             }
-
+*/
             for (int c : range(m.ncorners())) { // actual PGP energy
                 int i = fec.from(c), j = fec.to(c);
                 if (fec.opposite(c)>=0 && i>j) continue;
@@ -238,8 +273,8 @@ int main(int argc, char** argv) {
             }
 
             for (int f : range(m.nfacets())) { // recover the integer part
-                for (int lv : range(2)) { // N.B. 2 and not 3: tex_coord[m.facet_corner(f,0)] is fixed
-                    int ci = m.facet_corner(f, lv);
+                for (int lv : range(2)) { // N.B. 2 and not 3: tex_coord[m.corner(f,0)] is fixed
+                    int ci = m.corner(f, lv);
                     int cj = fec.next(ci);
                     for (int d : range(2)) {
                         while (tex_coord[cj][d] - tex_coord[ci][d] - gkl[ci][d] >  .5) tex_coord[cj][d] -= 1;
@@ -252,8 +287,8 @@ int main(int argc, char** argv) {
         }
     }
 
-    write_geogram("pgp.geogram", m, { {}, {{"theta", theta.ptr}}, {{"tex_coord", tex_coord.ptr},{"Rij", Rij.ptr}} });
-*/
+    write_geogram("pgp.geogram", m, { {}, {}, {{"tex_coord", tex_coord.ptr},{"layer_shift", layer_shift.ptr}} });
+
     return 0;
 }
 
