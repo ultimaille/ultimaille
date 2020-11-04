@@ -61,24 +61,24 @@ namespace UM {
             return wrapper{std::forward<T>(t), std::forward<U>(u)};
         }
 
-    inline auto corner_iter(Surface &m) {
+    inline auto corner_iter(const Surface &m) {
         return range(m.ncorners());
     }
 
-    inline auto facet_iter(Surface &m) {
+    inline auto facet_iter(const Surface &m) {
         return range(m.nfacets());
     }
 
-    struct facet_vert_iter {
-        Surface &m_;
+    struct facet_vert_iter { // TODO provide a non-const version?
+        const Surface &m_;
         const int facet_;
-        facet_vert_iter(Surface &m, const int facet) : m_(m), facet_(facet) {}
+        facet_vert_iter(const Surface &m, const int facet) : m_(m), facet_(facet) {}
 
         struct iterator {
             void operator++() { ++value_; }
-            int &operator*() const { return m_.vert(facet_, value_); }
+            int operator*() const { return m_.vert(facet_, value_); }
             bool operator!=(const iterator& rhs) const { return value_ != rhs.value_; }
-            Surface &m_;
+            const Surface &m_;
             const int facet_;
             int value_;
         };
