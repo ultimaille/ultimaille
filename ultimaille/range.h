@@ -5,6 +5,8 @@
 #include <utility>
 #include <iterator>
 
+#include "surface.h"
+
 namespace UM {
     constexpr auto range(int n) {
         struct iterator {
@@ -58,6 +60,33 @@ namespace UM {
 
             return wrapper{std::forward<T>(t), std::forward<U>(u)};
         }
+
+    inline auto corner_iter(Surface &m) {
+        return range(m.ncorners());
+    }
+
+    inline auto facet_iter(Surface &m) {
+        return range(m.nfacets());
+    }
+
+    struct facet_vert_iter {
+        Surface &m_;
+        const int facet_;
+        facet_vert_iter(Surface &m, const int facet) : m_(m), facet_(facet) {}
+
+        struct iterator {
+            void operator++() { ++value_; }
+            int &operator*() const { return m_.vert(facet_, value_); }
+            bool operator!=(const iterator& rhs) const { return value_ != rhs.value_; }
+            Surface &m_;
+            const int facet_;
+            int value_;
+        };
+
+        iterator begin() const { return iterator{m_, facet_, 0}; }
+        iterator end()   const { return iterator{m_, facet_, m_.facet_size(facet_)}; }
+    };
+
 }
 #endif // __RANGE_H__
 

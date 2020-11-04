@@ -62,11 +62,11 @@ double vector_angle(const vec3 &v0, const vec3 &v1) {
 }
 
 double edge_angle_in_ref(const Triangles &m, const SurfaceConnectivity &fec, const int h) {
-    int h_ref = m.facet_corner(fec.facet(h), 0);
+    int h_ref = m.corner(fec.facet(h), 0);
     if (h == h_ref) return 0;
     double angle = vector_angle(fec.geom(h), fec.geom(h_ref));
-    if (h == m.facet_corner(fec.facet(h), 1)) return angle;
-    if (h == m.facet_corner(fec.facet(h), 2)) return 2. * M_PI - angle;
+    if (h == m.corner(fec.facet(h), 1)) return angle;
+    if (h == m.corner(fec.facet(h), 2)) return 2. * M_PI - angle;
     assert(false);
 }
 
@@ -98,7 +98,7 @@ void split_overconstrained_facets(Triangles &m, CornerAttribute<bool> &feature_e
 
         int nb_features = 0;
         for (int i : range(3))
-            nb_features += feature_edge[m.facet_corner(f, i)];
+            nb_features += feature_edge[m.corner(f, i)];
         if (nb_features < 2) continue;
 
         int nv = m.points.push_back(facet_centroid(m, f));
@@ -108,9 +108,9 @@ void split_overconstrained_facets(Triangles &m, CornerAttribute<bool> &feature_e
             m.vert(offset + i, 0) = m.vert(f, i);
             m.vert(offset + i, 1) = m.vert(f, (i + 1) % 3);
             m.vert(offset + i, 2) = nv;
-            feature_edge[m.facet_corner(offset + i, 0)] = feature_edge[m.facet_corner(f, i)];
+            feature_edge[m.corner(offset + i, 0)] = feature_edge[m.corner(f, i)];
             for (int c : range(2))
-                feature_edge[m.facet_corner(offset+i, 1+c)] = false;
+                feature_edge[m.corner(offset+i, 1+c)] = false;
         }
         facet_is_valid[f] = false;
     }
@@ -250,8 +250,8 @@ int main(int argc, char** argv) {
         double avlen = average_edge_length(m);
         for (int f : range(m.nfacets())) {
             vec3 g = facet_centroid(m, f);
-            vec3 e1 = fec.geom(m.facet_corner(f, 0));
-            vec3 e2 = fec.geom(m.facet_corner(f, 2));
+            vec3 e1 = fec.geom(m.corner(f, 0));
+            vec3 e2 = fec.geom(m.corner(f, 2));
 
             vec3 a = rotate_vector_around_axis(cross(e1, e2), -theta[f], e1);
             vec3 b = rotate_vector_around_axis(cross(e1, e2), -theta[f]+M_PI/2, e1);

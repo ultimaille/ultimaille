@@ -23,7 +23,7 @@ namespace UM {
         for (int f=0; f<nfacets(); f++) {
             if (facets_to_kill[f]) continue;
             for (int lv=0; lv<facet_size(f); lv++)
-                corners_old2new[facet_corner(f, lv)] = new_nb_corners++;
+                corners_old2new[corner(f, lv)] = new_nb_corners++;
             facets_old2new[f] = new_nb_facets++;
         }
         std::cerr << "compressing facet attributes\n";
@@ -125,14 +125,14 @@ namespace UM {
 
         for (int f=0; f<m.nfacets(); f++)
             for (int fc=0; fc<m.facet_size(f); fc++) {
-                int c = m.facet_corner(f, fc);
+                int c = m.corner(f, fc);
                 int v = m.vert(f, fc);
                 c2f[c] = f;
                 v2c[v] = c;
             }
         for (int f=0; f<m.nfacets(); f++) // if it ain't broke, don't fix it
             for (int fc=0; fc<m.facet_size(f); fc++) {
-                int c = m.facet_corner(f, fc);
+                int c = m.corner(f, fc);
                 int v = m.vert(f, fc);
                 c2c[c] = v2c[v];
                 v2c[v] = c;

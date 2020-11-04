@@ -26,7 +26,7 @@ namespace UM {
 
         virtual int nfacets() const = 0;
         virtual int facet_size(const int fi) const = 0;
-        virtual int facet_corner(const int fi, const int ci) const = 0;
+        virtual int corner(const int fi, const int ci) const = 0;
         virtual int  vert(const int fi, const int lv) const = 0;
         virtual int &vert(const int fi, const int lv)       = 0;
     };
@@ -38,7 +38,7 @@ namespace UM {
 
         int nfacets()  const;
         int facet_size(const int) const;
-        int facet_corner(const int fi, const int ci) const;
+        int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
         int &vert(const int fi, const int lv);
     };
@@ -50,7 +50,7 @@ namespace UM {
 
         int nfacets()  const;
         int facet_size(const int) const;
-        int facet_corner(const int fi, const int ci) const;
+        int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
         int &vert(const int fi, const int lv);
     };
@@ -66,7 +66,7 @@ namespace UM {
 
         int nfacets()  const;
         int facet_size(const int fi) const;
-        int facet_corner(const int fi, const int ci) const;
+        int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
         int &vert(const int fi, const int lv);
     };
@@ -116,7 +116,7 @@ namespace UM {
         return 3;
     }
 
-    inline int Triangles::facet_corner(const int fi, const int ci) const {
+    inline int Triangles::corner(const int fi, const int ci) const {
         assert(ci>=0 && ci<3 && fi>=0 && fi<nfacets());
         return fi*3 + ci;
     }
@@ -142,7 +142,7 @@ namespace UM {
         return 4;
     }
 
-    inline int Quads::facet_corner(const int fi, const int ci) const {
+    inline int Quads::corner(const int fi, const int ci) const {
         assert(ci>=0 && ci<4 && fi>=0 && fi<nfacets());
         return fi*4 + ci;
     }
@@ -168,7 +168,7 @@ namespace UM {
         return offset[fi+1]-offset[fi];
     }
 
-    inline int Polygons::facet_corner(const int fi, const int ci) const {
+    inline int Polygons::corner(const int fi, const int ci) const {
         assert(fi>=0 && fi<nfacets());
         return offset[fi]+ci;
     }
@@ -199,29 +199,29 @@ namespace UM {
 
     inline int SurfaceConnectivity::from(const int corner_id) const {
         int fi = c2f[corner_id];
-        int lv = corner_id - m.facet_corner(fi, 0);
+        int lv = corner_id - m.corner(fi, 0);
         return m.vert(fi, lv);
     }
 
     inline int SurfaceConnectivity::to(const int corner_id) const {
         int fi = c2f[corner_id];
-        int lv = corner_id - m.facet_corner(fi, 0);
+        int lv = corner_id - m.corner(fi, 0);
         int n = m.facet_size(fi);
         return m.vert(fi, (lv+1)%n);
     }
 
     inline int SurfaceConnectivity::next(const int corner_id) const {
         int fi = c2f[corner_id];
-        int lv = corner_id - m.facet_corner(fi, 0);
+        int lv = corner_id - m.corner(fi, 0);
         int n = m.facet_size(fi);
-        return m.facet_corner(fi, (lv+1)%n);
+        return m.corner(fi, (lv+1)%n);
     }
 
     inline int SurfaceConnectivity::prev(const int corner_id) const {
         int fi = c2f[corner_id];
-        int lv = corner_id - m.facet_corner(fi, 0);
+        int lv = corner_id - m.corner(fi, 0);
         int n = m.facet_size(fi);
-        return m.facet_corner(fi, (lv-1+n)%n);
+        return m.corner(fi, (lv-1+n)%n);
     }
 }
 

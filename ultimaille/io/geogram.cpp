@@ -139,7 +139,7 @@ namespace UM {
 
             writer.addAttributeSize("GEO::Mesh::facets", m.nfacets());
             std::vector<index_t> facet_ptr;
-            for (int f=0; f<m.nfacets(); f++) facet_ptr.push_back(m.facet_corner(f,0));
+            for (int f=0; f<m.nfacets(); f++) facet_ptr.push_back(m.corner(f,0));
             writer.addAttribute("GEO::Mesh::facets", "GEO::Mesh::facets::facet_ptr", "index_t", facet_ptr.data(), m.nfacets(), 1);
 
             writer.addAttributeSize("GEO::Mesh::facet_corners", m.ncorners());
@@ -650,8 +650,11 @@ namespace UM {
         read_geogram(filename, attrib);
         parse_pointset_attributes(polygons.points, attrib[0]);
 
-        parse_int_array("GEO::Mesh::facets::facet_ptr", polygons.offset, attrib[2]);
         parse_int_array("GEO::Mesh::facet_corners::corner_vertex", polygons.facets, attrib[3]);
+
+        polygons.offset.resize(polygons.facets.size()/3);// if facet_ptr is not present in .geogram, create it (tri mesh)
+        for (int i=0; i<(int)polygons.offset.size(); i++) polygons.offset[i] = i*3;
+        parse_int_array("GEO::Mesh::facets::facet_ptr", polygons.offset, attrib[2]);
         polygons.offset.push_back(polygons.facets.size());
 
         for (auto &a : attrib[0]) polygons.points.attr.emplace_back(a.second);
