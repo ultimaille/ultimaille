@@ -1,6 +1,8 @@
 # WARNING: UNDER CONSTRUCTION!
 
 # UltiMaille: the ultimate mesh processing library
+This library does *not* contain any ready-to-execute remeshing algorithms. It simply provides a friendly way to manipulate a surface/volume mesh, it is meant to be used by your geometry processing software.
+
 There are lots of mesh processing libraries in the wild, excellent specimens are:
 * [geogram](http://alice.loria.fr/software/geogram/doc/html/index.html)
 * [libigl](https://github.com/libigl/libigl)
@@ -15,8 +17,17 @@ In practice it means that I cannot use libigl for the simple reason that I do no
 Eigen::MatrixXd V;
 Eigen::MatrixXi F;
 ```
-Is it a polygonal surface or a tetrahedral mesh? If surface, is it triangulated or is it a generic polygonal mesh? I simply can not tell...
+Is it a polygonal surface or a tetrahedral mesh? If surface, is it triangulated or is it a generic polygonal mesh? I simply can not tell... Thus, ultimaille provides several classes that allow to represent meshes:
+```
+    PolyLine
+    Triangles
+    Quads
+    Polygons
+    Tetrahedra
+    Hexahedra
+```
 
+You can not mix tetrahedra and hexahedra in a single mesh, I believe that it is confusing to do otherwise. If you need a mixed mesh, create a separate mesh for each cell type: these classes allow to share a common set of vertices.
 
 # Common principles
 * This library is meant to have a *reasonable* performance. It means that I strive to make it as rapid as possible as long as it does not deteriorate the readability of the source code.
