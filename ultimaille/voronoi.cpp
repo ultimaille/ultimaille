@@ -104,7 +104,7 @@ namespace UM {
                     double farthest = (pts[nn.back()] - pts[seed]).norm2();
                     double maxlen = -std::numeric_limits<double>::max();
                     for (const vec2 &v : verts)
-                        maxlen = std::max(maxlen, (v-pts[seed]).norm2());
+                        maxlen = std::max<double>(maxlen, (v-pts[seed]).norm2());
                     if (maxlen*4>=farthest)
                         cc_.status = ConvexCell::security_radius_not_reached;
                 }

@@ -201,19 +201,6 @@ int main(int argc, char** argv) {
 
 
             nlBegin(NL_MATRIX);
-/*            for (int v : range(nsets)) {
-                nlRowScaling(.01);
-                nlBegin(NL_ROW);
-                nlCoefficient(v*2+0, 1);
-                nlRightHandSide(.134234);
-                nlEnd(NL_ROW);
-                nlBegin(NL_ROW);
-                nlCoefficient(v*2+1, 1);
-                nlRightHandSide(.134234);
-                nlEnd(NL_ROW);
-            }
-
-/*
             if (iter) for (int c : range(m.ncorners())) { // enforce non-zero field norm
                 for (int d : range(2)) {
                     int var = redvar[c*2+d];
@@ -232,7 +219,7 @@ int main(int argc, char** argv) {
                     nlEnd(NL_ROW);
                 }
             }
-*/
+
             for (int c : range(m.ncorners())) { // actual PGP energy
                 int i = fec.from(c), j = fec.to(c);
                 if (fec.opposite(c)>=0 && i>j) continue;

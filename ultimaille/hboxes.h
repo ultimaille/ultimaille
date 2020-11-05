@@ -20,8 +20,8 @@ namespace UM {
 
         void add(const vec3 &p) {
             for (int d=0; d<3; d++) {
-                min[d] = std::min(min[d], p[d]);
-                max[d] = std::max(max[d], p[d]);
+                min[d] = std::min<double>(min[d], p[d]);
+                max[d] = std::max<double>(max[d], p[d]);
             }
         }
 

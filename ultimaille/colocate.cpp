@@ -10,7 +10,7 @@ namespace UM {
 
 #pragma omp parallel for
         for (int seed=0; seed<nb; seed++) {
-            int k = std::min(6, nb);
+            int k = std::min<int>(6, nb);
             while (1) {
                 std::vector<int> neighbors = knn.query(points[seed], k);
 
@@ -22,12 +22,12 @@ namespace UM {
                         allfound = true;
                         break;
                     }
-                    smallest = std::min(smallest, neighbors[i]);
+                    smallest = std::min<int>(smallest, neighbors[i]);
                 }
                 old2new[seed] = smallest;
                 if (allfound || k==nb) break;
 
-                k = std::min(k+k/2, nb);
+                k = std::min<int>(k+k/2, nb);
             }
         }
 
