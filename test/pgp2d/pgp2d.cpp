@@ -10,8 +10,6 @@
 using namespace UM;
 
 void compute_cross_field(Triangles &m, CornerAttribute<bool> &feature_edge, CornerAttribute<vec2> &uv, CornerAttribute<int> &layer_shift, int nb_FF_iters=1);
-void local_basis(const Triangles &m, const SurfaceConnectivity &fec, const int h, vec3& x, vec3& y, vec3& z);
-vec3 rotate_vector_around_axis(const vec3 axis, const double angle, const vec3 v);
 vec3 facet_normal(const Surface &m, const int f);
 
 
@@ -47,6 +45,7 @@ int main(int argc, char** argv) {
 
     // TODO assert manifoldity
     Triangles m;
+#if 0
     read_wavefront_obj(argv[1], m);
 //  for (vec3 &p : m.points) p.z = 0; // make sure it is 2D
 
@@ -57,12 +56,20 @@ int main(int argc, char** argv) {
 
     write_geogram("ff.geogram", m, {{}, {}, {{"uv", uv.ptr}, {"feature_edge", feature_edge.ptr}, {"layer_shift", layer_shift.ptr}}});
 
+#else
+    SurfaceAttributes attr = read_geogram(argv[1], m);
+
+    CornerAttribute<vec2> uv("uv", attr, m);
+    CornerAttribute<bool> feature_edge("feature_edge", attr, m);
+    CornerAttribute<int> layer_shift("layer_shift", attr, m);
+#endif
+
     SurfaceConnectivity fec(m);
 
     SignedPairwiseEquality param_vars(m.ncorners()*2);
     SignedPairwiseEquality curlc_vars(m.ncorners()*2);
 
-      const bool perform_curl_correction = true;
+    const bool perform_curl_correction = true;
 
     for (int h : corner_iter(m)) {
         int opp = fec.opposite(h);
@@ -93,7 +100,7 @@ int main(int argc, char** argv) {
     }
 
     double av_length = average_edge_length(m);
-    const double scale = 0.3/av_length;
+    const double scale = 0.9/av_length;
 
     CornerAttribute<vec2> gkl(m);
     { // N.B. this is an edge attribute, so only the resp. half-edges are filled in the 1st pass, and the non-resp are assigned in the 2nd pass
@@ -149,7 +156,7 @@ int main(int argc, char** argv) {
             nlEnd(NL_ROW);
         }
 
-        for (int f : range(m.nfacets())) { // actual correction
+        for (int f : facet_iter(m)) { // actual correction
             int c0 = m.corner(f, 0);
             int c1 = m.corner(f, 1);
             int c2 = m.corner(f, 2);
@@ -169,7 +176,7 @@ int main(int argc, char** argv) {
         nlSolve();
 
         CornerAttribute<vec2> ckl(m);
-        for (int c : range(m.ncorners())) {
+        for (int c : corner_iter(m)) {
             for (int d : range(2))
                 ckl[c][d] = ccsgn[c*2+d]*nlGetVariable(ccvar[c*2+d]);
             ckl[c] = std::min(1., .27*gkl[c].norm()/(1e-4+ckl[c].norm()))*ckl[c]; // clamp the curl correction
@@ -201,7 +208,7 @@ int main(int argc, char** argv) {
 
 
             nlBegin(NL_MATRIX);
-            if (iter) for (int c : range(m.ncorners())) { // enforce non-zero field norm
+            if (iter) for (int c : corner_iter(m)) { // enforce non-zero field norm
                 for (int d : range(2)) {
                     int var = redvar[c*2+d];
                     int sgn = redsgn[c*2+d];
@@ -220,7 +227,7 @@ int main(int argc, char** argv) {
                 }
             }
 
-            for (int c : range(m.ncorners())) { // actual PGP energy
+            for (int c : corner_iter(m)) { // actual PGP energy
                 int i = fec.from(c), j = fec.to(c);
                 if (fec.opposite(c)>=0 && i>j) continue;
 
@@ -250,7 +257,7 @@ int main(int argc, char** argv) {
             nlEnd(NL_SYSTEM);
             nlSolve();
 
-            for (int c : range(m.ncorners())) { // project the solution to fractional coords
+            for (int c : corner_iter(m)) { // project the solution to fractional coords
                 for (int d : range(2)) {
                     int var = redvar[c*2+d];
                     int sgn = redsgn[c*2+d];
@@ -259,7 +266,7 @@ int main(int argc, char** argv) {
                 }
             }
 
-            for (int f : range(m.nfacets())) { // recover the integer part
+            for (int f : facet_iter(m)) { // recover the integer part
                 for (int lv : range(2)) { // N.B. 2 and not 3: tex_coord[m.corner(f,0)] is fixed
                     int ci = m.corner(f, lv);
                     int cj = fec.next(ci);

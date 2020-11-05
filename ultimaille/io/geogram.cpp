@@ -484,7 +484,7 @@ namespace UM {
                         P = A.ptr;
                     } else if (element_type=="double" && 1==dimension) {
                         GenericAttribute<double> A(nb_items);
-                        in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data(), size);
+                        in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<double> >(A.ptr)->data.data(), size);
                         P = A.ptr;
                     } else if ((element_type=="vec2" && 1==dimension) || (element_type=="double" && 2==dimension)) {
                         GenericAttribute<vec2> A(nb_items);
