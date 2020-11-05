@@ -36,6 +36,18 @@ vec3 triangle_gradient(const Triangles &m, const int f, const double a, const do
     return cross(g90, n.normalize());
 }
 
+double triangle_area(const vec2 A, const vec2 B, const vec2 C) {
+    const vec2 pts[3] = {A, B, C};
+    double area = 0;
+    for (int v : range(3)) {
+        vec2 a = pts[v];
+        vec2 b = pts[(v+1)%3];
+        area += (b.y-a.y)*(b.x+a.x)/2;
+    }
+    return area;
+}
+
+
 int main(int argc, char** argv) {
     if (2>argc) {
         std::cerr << "Usage: " << argv[0] << " model.obj" << std::endl;
@@ -100,7 +112,7 @@ int main(int argc, char** argv) {
     }
 
     double av_length = average_edge_length(m);
-    const double scale = 0.9/av_length;
+    const double scale = .3/av_length;
 
     CornerAttribute<vec2> gkl(m);
     { // N.B. this is an edge attribute, so only the resp. half-edges are filled in the 1st pass, and the non-resp are assigned in the 2nd pass
@@ -120,7 +132,7 @@ int main(int argc, char** argv) {
             else {
                 for (int r : range(layer_shift[h]))
                     tmp = vec2{-tmp.y, tmp.x};
-                gkl[opp] += -tmp/2; // note Rij[c] and not Rij[opp]!
+                gkl[opp] += -tmp/2;
             }
         }
         for (int h : corner_iter(m)) { // 2nd pass: fill non-resp. half-edges
@@ -188,6 +200,7 @@ int main(int argc, char** argv) {
     std::vector<int> redvar, redsgn;
     int nsets = param_vars.reduce(redvar, redsgn);
 
+    FacetAttribute<bool> invalid(m);
     CornerAttribute<vec2> tex_coord(m);
     {
         CornerAttribute<vec2> frac_coord(m);
@@ -262,26 +275,38 @@ int main(int argc, char** argv) {
                     int var = redvar[c*2+d];
                     int sgn = redsgn[c*2+d];
                     frac_coord[c][d] = atan2(sgn*nlGetVariable(var*2+1), nlGetVariable(var*2+0))/(2.*M_PI);
-                    tex_coord[c][d] = frac_coord[c][d];
                 }
             }
 
             for (int f : facet_iter(m)) { // recover the integer part
-                for (int lv : range(2)) { // N.B. 2 and not 3: tex_coord[m.corner(f,0)] is fixed
+                invalid[f] = false;
+                vec2 t[3] = {{0,0},{0,0},{0,0}}; // integer translation
+                for (int lv : range(3)) {
                     int ci = m.corner(f, lv);
                     int cj = fec.next(ci);
                     for (int d : range(2)) {
-                        while (tex_coord[cj][d] - tex_coord[ci][d] - gkl[ci][d] >  .5) tex_coord[cj][d] -= 1;
-                        while (tex_coord[cj][d] - tex_coord[ci][d] - gkl[ci][d] < -.5) tex_coord[cj][d] += 1;
+                        while (frac_coord[cj][d] - frac_coord[ci][d] - gkl[ci][d] + t[lv][d] >  .5) t[lv][d] -= 1;
+                        while (frac_coord[cj][d] - frac_coord[ci][d] - gkl[ci][d] + t[lv][d] < -.5) t[lv][d] += 1;
                     }
                 }
+                if ((t[0]+t[1]+t[2]).norm2()>1e-2) { // PGP-singular triangle
+                    invalid[f] = true;
+                    for (int lv : range(3))
+                        tex_coord[m.corner(f, lv)] = {0,0};
+                } else {
+                    int c = m.corner(f, 0);
+                    tex_coord[c] = frac_coord[c];
+                    tex_coord[fec.next(c)] = frac_coord[fec.next(c)] + t[0];
+                    tex_coord[fec.prev(c)] = frac_coord[fec.prev(c)] + t[0] + t[1];
+                }
+                invalid[f] = invalid[f] || (triangle_area(tex_coord[m.corner(f, 0)], tex_coord[m.corner(f, 1)], tex_coord[m.corner(f, 2)])<0); // TODO find a good positive constaint instead of 0
             }
 
             nlDeleteContext(nlGetCurrent());
         }
     }
 
-    write_geogram("pgp.geogram", m, { {}, {}, {{"tex_coord", tex_coord.ptr},{"layer_shift", layer_shift.ptr}} });
+    write_geogram("pgp.geogram", m, { {}, {{"invalid", invalid.ptr}}, {{"tex_coord", tex_coord.ptr},{"layer_shift", layer_shift.ptr}} });
 
     return 0;
 }
