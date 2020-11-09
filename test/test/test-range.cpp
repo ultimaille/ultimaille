@@ -6,7 +6,7 @@
 
 using namespace UM;
 
-int main(int argc, char** argv) {
+int main() {
     std::cerr << "testing for (int i : range(7)): " << std::endl;
     for (int i : range(7))
         std::cerr << i  << " ";

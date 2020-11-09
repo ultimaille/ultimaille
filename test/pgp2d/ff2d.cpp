@@ -141,7 +141,7 @@ void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, con
     }
 }
 
-void local_basis(const Triangles &m, const SurfaceConnectivity &fec, const int h, vec3& x, vec3& y, vec3& z) {
+void local_basis(const SurfaceConnectivity &fec, const int h, vec3& x, vec3& y, vec3& z) {
     vec3 n = cross(fec.geom(fec.prev(h)), fec.geom(h));
     assert(n.norm2() > 1e-20);
     z = n.normalize();
@@ -152,7 +152,7 @@ void local_basis(const Triangles &m, const SurfaceConnectivity &fec, const int h
 void export_local_uv(const Triangles &m, const SurfaceConnectivity &fec, const FacetAttribute<double> &alpha, const FacetAttribute<double> &beta, CornerAttribute<vec2> &uv) {
     for (int f : facet_iter(m)) {
         vec3 x, y, z;
-        local_basis(m, fec, m.corner(f, 0), x, y, z);
+        local_basis(fec, m.corner(f, 0), x, y, z);
         double a = alpha[f], b = beta[f];
         vec3 grads[2] = {cos(a)*x + sin(a)*y, cos(b)*x + sin(b)*y};
         for (int i : range(3)) {

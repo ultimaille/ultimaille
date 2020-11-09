@@ -130,6 +130,7 @@ namespace UM {
     }
 
     inline int Tetrahedra::facet_size(const int c, const int lf) const {
+        (void)c; (void)lf; // suppress unused parameter warnings
         return 3;
     }
 
@@ -164,6 +165,7 @@ namespace UM {
     }
 
     inline int Hexahedra::facet_size(const int c, const int lf) const {
+        (void)c; (void)lf; // suppress unused parameter warnings
         return 4;
     }
 

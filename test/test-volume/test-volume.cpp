@@ -16,7 +16,7 @@ bool bunny(const int i, const int j, const int k) {
     return bunny_bitfield[cubeID/32] & (1u << (cubeID&31));
 }
 
-int main(int argc, char** argv) {
+int main() {
     Hexahedra m;
 
     { // create independent voxels

@@ -99,7 +99,7 @@ void compute_cross_field(const Triangles &m, const SurfaceConnectivity &fec, Fac
             nlSolve();
 
             for (int f : range(m.nfacets()))
-                theta[f] = atan2(nlGetVariable(2*f+1), nlGetVariable(2*f))/4 + M_PI/2 * (m.points[m.vert(f, 0)].x>5); + (rand()%4)*M_PI/2.;
+                theta[f] = atan2(nlGetVariable(2*f+1), nlGetVariable(2*f))/4;// + M_PI/2 * (m.points[m.vert(f, 0)].x>5); + (rand()%4)*M_PI/2.;
 
             nlDeleteContext(nlGetCurrent());
         }

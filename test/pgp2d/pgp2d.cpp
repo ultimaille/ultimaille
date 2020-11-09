@@ -7,6 +7,8 @@
 #include <ultimaille/all.h>
 #include <OpenNL_psm/OpenNL_psm.h>
 
+#define UNUSED(x) (void)(x)
+
 using namespace UM;
 
 void compute_cross_field(Triangles &m, CornerAttribute<bool> &feature_edge, CornerAttribute<vec2> &uv, CornerAttribute<int> &layer_shift, int nb_FF_iters=1);
@@ -130,8 +132,10 @@ int main(int argc, char** argv) {
             if (opp<0 || i<j)
                 gkl[h] += tmp/(2-int(opp<0));
             else {
-                for (int r : range(layer_shift[h]))
+                for (int r : range(layer_shift[h])) {
+                    UNUSED(r);
                     tmp = vec2{-tmp.y, tmp.x};
+                }
                 gkl[opp] += -tmp/2;
             }
         }
@@ -140,8 +144,10 @@ int main(int argc, char** argv) {
             int i = fec.from(h), j = fec.to(h);
             if (opp<0 || i<j) continue;
             gkl[h] = -gkl[opp];
-            for (int r : range(layer_shift[opp]))
+            for (int r : range(layer_shift[opp])) {
+                UNUSED(r);
                 gkl[h] = vec2{-gkl[h].y, gkl[h].x};
+            }
         }
     }
 
