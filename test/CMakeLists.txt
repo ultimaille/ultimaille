@@ -33,3 +33,4 @@ if(BIN_TEST_VOLUME)
 	add_subdirectory(test-volume)
 endif()
 
+add_subdirectory(untangle2d)

@@ -565,7 +565,7 @@ namespace UM {
             nfacets  += geogram_nb_facets_per_cell_type[cell_type[c]] + geogram_nb_padding_per_cell_type[cell_type[c]];
             ncorners +=  geogram_nb_verts_per_cell_type[cell_type[c]];
         }
-        assert(ncorners = old_corner_vertex.size());
+        assert(ncorners == (int)old_corner_vertex.size());
         std::vector<int> corners_old2new(ncorners, -1);
         std::vector<int> facets_old2new(nfacets, -1);
 
