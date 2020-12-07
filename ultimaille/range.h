@@ -6,6 +6,7 @@
 #include <iterator>
 
 #include "surface.h"
+#include "volume.h"
 
 namespace UM {
     constexpr auto range(int n) {
@@ -65,6 +66,10 @@ namespace UM {
         return range(m.nverts());
     }
 
+    inline auto vert_iter(const Volume &m) {
+        return range(m.nverts());
+    }
+
     inline auto corner_iter(const Surface &m) {
         return range(m.ncorners());
     }
@@ -90,6 +95,10 @@ namespace UM {
         iterator begin() const { return iterator{m_, facet_, 0}; }
         iterator end()   const { return iterator{m_, facet_, m_.facet_size(facet_)}; }
     };
+
+    inline auto cell_iter(const Volume &m) {
+        return range(m.ncells());
+    }
 
 }
 #endif // __RANGE_H__

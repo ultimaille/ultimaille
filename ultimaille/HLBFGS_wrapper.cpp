@@ -47,6 +47,7 @@ namespace UM {
         parameter[6] = epsg_;
         if (hessian_ != nullptr)
             hlbfgs_info[7] = 1;
+
         HLBFGS( (int)sol.size(),
                 (int)5,
                 sol.data(),
