@@ -15,4 +15,6 @@
 #include <ultimaille/HLBFGS_wrapper.h>
 #include <ultimaille/io/obj.h>
 #include <ultimaille/io/geogram.h>
+#include <ultimaille/io/medit.h>
+
 
