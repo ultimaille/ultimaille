@@ -8,8 +8,13 @@
 namespace UM {
     // supposes .obj file to have "f " entries without slashes
     // TODO: improve the parser
-    // TODO: export vn and vt attributes
-    void read_wavefront_obj(const std::string filename, Polygons &m) {
+    // TODO: export vn (corner and point) and vt (corner) attributes
+    SurfaceAttributes read_wavefront_obj(const std::string filename, Polygons &m) {
+        SurfaceAttributes sa;
+//        std::vector<vec3> VN;
+        std::vector<vec2> VT;
+        std::vector<std::vector<int>> VTID;
+
         m = Polygons();
         std::ifstream in;
         in.open (filename, std::ifstream::in);
@@ -21,27 +26,70 @@ namespace UM {
         while (!in.eof()) {
             std::getline(in, line);
             std::istringstream iss(line.c_str());
-            char trash;
-            if (!line.compare(0, 2, "v ")) {
-                iss >> trash;
+            std::string type_token;
+            iss >> type_token;
+
+            if (type_token=="v") {
                 vec3 v;
                 for (int i=0;i<3;i++) iss >> v[i];
                 m.points.data->push_back(v);
-            } else if (!line.compare(0, 2, "f ")) {
-                std::vector<int> f;
-                int idx;
-                iss >> trash;
-                while (iss >> idx) {
-                    f.push_back(--idx);  // in wavefront obj all indices start at 1, not zero
+            } else if (type_token=="vn") {
+//              vec3 v;
+//              for (int i=0;i<3;i++) iss >> v[i];
+//              VN.push_back(v);
+            } else if (type_token=="vt") {
+                vec2 v;
+                for (int i=0;i<2;i++) iss >> v[i];
+                VT.push_back(v);
+            } else if (type_token=="f") {
+                std::vector<int> vid;
+                // std::vector<int> vnid;
+                std::vector<int> vtid;
+                int tmp;
+                while (!iss.eof()) { // in wavefront obj all indices start at 1, not zero
+                    iss >> tmp;
+                    vid.push_back(tmp--);
+                    if (iss.peek() == '/') {
+                        iss.get();
+                        if (iss.peek() == '/') {
+                            iss.get();
+                            iss >> tmp;
+                            // vnid.push_back(tmp-1);
+                        } else {
+                            iss >> tmp;
+                            vtid.push_back(tmp-1);
+                            if (iss.peek() == '/') {
+                                iss.get();
+                                iss >> tmp;
+                                // vnid.push_back(tmp-1);
+                            }
+                        }
+                    }
                 }
-                int off_f = m.create_facets(1, f.size());
-                for (int i=0; i<static_cast<int>(f.size()); i++) {
-                    m.vert(off_f, i) = f[i];
-                }
+                VTID.push_back(vtid);
+
+                int off_f = m.create_facets(1, vid.size());
+                for (int i=0; i<static_cast<int>(vid.size()); i++)
+                    m.vert(off_f, i) = vid[i];
             }
         }
+
+        bool vt_pt_attr = (VTID.size()==m.nfacets() && VT.size()==m.nverts()); // check whether tex_coord is a PointAttribute
+        if (vt_pt_attr) for (int f=0; f<m.nfacets(); f++) {
+            vt_pt_attr = vt_pt_attr && (VTID[f].size()==m.facet_size(f));
+            if (vt_pt_attr) for (int v=0; v<m.facet_size(f); v++) {
+                vt_pt_attr = vt_pt_attr && (m.vert(f, v)==VTID[f][v]);
+            }
+        }
+
+        if (vt_pt_attr) {
+            GenericAttribute<vec2> tex_coord(m.nverts);
+            //TODO sa.push_back m.pint_attr.push_back
+        }
+
         in.close();
         std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;
+        return sa;
     }
 
     void read_wavefront_obj(const std::string filename, Triangles &m) {
