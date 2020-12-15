@@ -46,9 +46,11 @@ namespace UM {
                 // std::vector<int> vnid;
                 std::vector<int> vtid;
                 int tmp;
-                while (!iss.eof()) { // in wavefront obj all indices start at 1, not zero
+                while (1) { // in wavefront obj all indices start at 1, not zero
+                    while (!iss.eof() && !std::isdigit(iss.peek())) iss.get(); // skip (esp. trailing) white space
+                    if (iss.eof()) break;
                     iss >> tmp;
-                    vid.push_back(tmp--);
+                    vid.push_back(tmp-1);
                     if (iss.peek() == '/') {
                         iss.get();
                         if (iss.peek() == '/') {
@@ -84,10 +86,9 @@ namespace UM {
 
         if (vt_pt_attr) {
             PointAttribute<vec2> tex_coord(m.points);
-            std::get<0>(sa).emplace_back("tex_coord", tex_coord.ptr);
-            for (int v=0; v<m.nverts(); v++) {
+            for (int v=0; v<m.nverts(); v++)
                 tex_coord[v] = VT[v];
-            }
+            std::get<0>(sa).emplace_back("tex_coord", tex_coord.ptr);
         }
 
         in.close();

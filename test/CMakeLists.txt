@@ -1,15 +1,11 @@
 OPTION (BIN_INTER "2d interpolation binary" Off)
-OPTION (BIN_PGP "2d PGP binary" On)
+OPTION (BIN_PGP "2d PGP binary" Off)
 OPTION (BIN_PERMU "Permutation test binary " Off)
 OPTION (BIN_EMBED "Embeding  binaries" Off)
-OPTION (BIN_TEST "Basic tests binary" On)
+OPTION (BIN_TEST "Basic tests binary" Off)
 
 OPTION (BIN_TEST_IO "Basic IO tests" On)
 OPTION (BIN_TEST_VOLUME "Basic volume tests" On)
-
-
-
-
 
 if(BIN_INTER)
 	add_subdirectory(2d-interpolation)

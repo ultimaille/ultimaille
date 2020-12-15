@@ -9,6 +9,12 @@ int main(int argc, char** argv) {
         std::cerr << "Usage: " << argv[0] << " mesh.geogram" << std::endl;
         return 1;
     }
+    /*
+    Triangles mplg;
+    SurfaceAttributes  plgattr = read_wavefront_obj(argv[1], mplg);
+    PointAttribute<vec2> tex_coord("tex_coord", plgattr, mplg);
+      std::cerr << tex_coord[2] << std::endl;
+    */
 
     PolyLine mseg;
     Triangles mtri;
