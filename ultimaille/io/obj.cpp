@@ -20,7 +20,7 @@ namespace UM {
         in.open (filename, std::ifstream::in);
         if (in.fail()) {
             std::cerr << "Failed to open " << filename << std::endl;
-            return;
+            return {};
         }
         std::string line;
         while (!in.eof()) {
@@ -74,17 +74,20 @@ namespace UM {
             }
         }
 
-        bool vt_pt_attr = (VTID.size()==m.nfacets() && VT.size()==m.nverts()); // check whether tex_coord is a PointAttribute
+        bool vt_pt_attr = ((int)VTID.size()==m.nfacets() && (int)VT.size()==m.nverts()); // check whether tex_coord is a PointAttribute
         if (vt_pt_attr) for (int f=0; f<m.nfacets(); f++) {
-            vt_pt_attr = vt_pt_attr && (VTID[f].size()==m.facet_size(f));
+            vt_pt_attr = vt_pt_attr && ((int)VTID[f].size()==m.facet_size(f));
             if (vt_pt_attr) for (int v=0; v<m.facet_size(f); v++) {
                 vt_pt_attr = vt_pt_attr && (m.vert(f, v)==VTID[f][v]);
             }
         }
 
         if (vt_pt_attr) {
-            GenericAttribute<vec2> tex_coord(m.nverts);
-            //TODO sa.push_back m.pint_attr.push_back
+            PointAttribute<vec2> tex_coord(m.points);
+            std::get<0>(sa).emplace_back("tex_coord", tex_coord.ptr);
+            for (int v=0; v<m.nverts(); v++) {
+                tex_coord[v] = VT[v];
+            }
         }
 
         in.close();
@@ -92,9 +95,9 @@ namespace UM {
         return sa;
     }
 
-    void read_wavefront_obj(const std::string filename, Triangles &m) {
+    SurfaceAttributes read_wavefront_obj(const std::string filename, Triangles &m) {
         Polygons mpoly;
-        read_wavefront_obj(filename, mpoly);
+        SurfaceAttributes sa = read_wavefront_obj(filename, mpoly);
 
         std::vector<bool> to_kill(mpoly.nfacets(), false);
         for (int f=0; f<mpoly.nfacets(); f++)
@@ -103,6 +106,7 @@ namespace UM {
 
         m.points = mpoly.points;
         m.facets = mpoly.facets;
+        return sa;
     }
 
     void write_wavefront_obj(const std::string filename, const Surface &m) {

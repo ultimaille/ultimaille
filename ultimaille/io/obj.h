@@ -10,8 +10,8 @@
 
 namespace UM {
     // TODO: export vn and vt attributes
-    void read_wavefront_obj(const std::string filename, Triangles &m);
-    void read_wavefront_obj(const std::string filename, Polygons  &m);
+    SurfaceAttributes read_wavefront_obj(const std::string filename, Triangles &m);
+    SurfaceAttributes read_wavefront_obj(const std::string filename, Polygons  &m);
     void write_wavefront_obj(const std::string filename, const Surface &m);
 }
 
