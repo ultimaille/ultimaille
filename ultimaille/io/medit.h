@@ -13,7 +13,7 @@
 
 namespace UM {
     void write_medit(const std::string filename, const PolyLine &pl);
-    void writ_medit(const std::string filename, const Surface &m);
+    void write_medit(const std::string filename, const Surface &m);
     // for boolean, see at the end of the file
     void write_medit(const std::string filename, const Volume  &m, bool hexes_GMSH_numerotation = true);
 

@@ -172,7 +172,7 @@ namespace UM {
         out_f.open(filename, std::ifstream::out);
         if (out_f.fail()) {
             std::cerr << "Failed to open " << filename << std::endl;
-            return;
+            exit(1);
         }
         std::stringstream out;
         out << std::fixed << std::setprecision(4);
@@ -258,7 +258,7 @@ namespace UM {
         FOR(e, pl.nsegments()) FOR(ev, 2) edges[2 * e + ev] = pl.vert(e, ev);
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, false);
     }
-    void writ_medit(const std::string filename, const Surface& m) {
+    void write_medit(const std::string filename, const Surface& m) {
         std::vector<vec3> verts(m.nverts());
         std::vector<int> edges;
         std::vector<int> tris;
