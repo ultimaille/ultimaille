@@ -225,7 +225,7 @@ namespace UM {
         std::vector<int> hexes;
         FOR(v, pl.nverts()) verts[v] = pl.points[v];
         FOR(e, pl.nsegments()) FOR(ev, 2) edges[2 * e + ev] = pl.vert(e, ev);
-        write_vtk_format(filename, verts, edges, tris, quads, tets, hexes, false);
+        write_vtk_format(filename, verts, edges, tris, quads, tets, hexes);
     }
     void write_vtk(const std::string filename, const Surface& m) {
         std::vector<vec3> verts(m.nverts());
@@ -246,9 +246,9 @@ namespace UM {
                 std::cerr << "Polygon are not supported in our MEDIT writer";
             }
         }
-        write_vtk_format(filename, verts, edges, tris, quads, tets, hexes, false);
+        write_vtk_format(filename, verts, edges, tris, quads, tets, hexes);
     }
-    void write_vtk(const std::string filename, const Volume& m, bool hexes_GMSH_numerotation) {
+    void write_vtk(const std::string filename, const Volume& m) {
         std::vector<vec3> verts(m.nverts());;
         std::vector<int> edges;
         std::vector<int> tris;
@@ -268,7 +268,7 @@ namespace UM {
             std::cerr << "Volume type : " << m.cell_type() << "; not supported in our MEDIT writer";
         }
 
-        write_vtk_format(filename, verts, edges, tris, quads, tets, hexes, hexes_GMSH_numerotation);
+        write_vtk_format(filename, verts, edges, tris, quads, tets, hexes);
     }
 
 
