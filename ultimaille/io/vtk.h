@@ -17,13 +17,12 @@ namespace UM {
     // bool -> see medit.h
     void write_vtk(const std::string filename, const Volume  &m);
 
-
-    void read_vtk(const std::string filename, PolyLine   &m);
-    void read_vtk(const std::string filename, Triangles  &m);
-    void read_vtk(const std::string filename, Quads      &m);
-    void read_vtk(const std::string filename, Polygons   &m);
-    void read_vtk(const std::string filename, Tetrahedra &m);
-    void read_vtk(const std::string filename, Hexahedra  &m);
+    PolyLineAttributes read_vtk(const std::string filename, PolyLine   &m);
+    SurfaceAttributes  read_vtk(const std::string filename, Triangles  &m);
+    SurfaceAttributes  read_vtk(const std::string filename, Quads      &m);
+    SurfaceAttributes  read_vtk(const std::string filename, Polygons   &m);
+    VolumeAttributes   read_vtk(const std::string filename, Tetrahedra &m);
+    VolumeAttributes   read_vtk(const std::string filename, Hexahedra  &m);
 }
 
 

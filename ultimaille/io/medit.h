@@ -17,14 +17,12 @@ namespace UM {
     // for boolean, see at the end of the file
     void write_medit(const std::string filename, const Volume  &m, bool hexes_GMSH_numerotation = true);
 
-
-    void read_medit(const std::string filename, PolyLine   &m);
-    void read_medit(const std::string filename, Triangles  &m);
-    void read_medit(const std::string filename, Quads      &m);
-    void read_medit(const std::string filename, Polygons   &m);
-    void read_medit(const std::string filename, Tetrahedra &m);
-    // the reading is done as the file is, just managing the medit case. You may want to check the det of your elements afterward. 
-    void read_medit(const std::string filename, Hexahedra  &m);
+    PolyLineAttributes read_medit(const std::string filename, PolyLine   &m);
+    SurfaceAttributes  read_medit(const std::string filename, Triangles  &m);
+    SurfaceAttributes  read_medit(const std::string filename, Quads      &m);
+    SurfaceAttributes  read_medit(const std::string filename, Polygons   &m);
+    VolumeAttributes   read_medit(const std::string filename, Tetrahedra &m);
+    VolumeAttributes   read_medit(const std::string filename, Hexahedra  &m); // N.B. the file is read as is. You may want to check the det of your elements afterward. 
 }
 
 // regarding hexes, geogram convention is different of the one of medit. The writer take that into account.

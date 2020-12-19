@@ -4,7 +4,8 @@
 #include <sstream>
 #include <array>
 #include "ultimaille/io/vtk.h"
-#define FOR(i, n) for(int i = 0; i < n; i++)
+
+#define FOR(i, n) for(int i = 0; i < static_cast<int>(n); i++)
 
 namespace UM {
     inline void file_must_no_be_at_end(std::ifstream& f, const std::string& reason = " should'nt") {
@@ -272,7 +273,7 @@ namespace UM {
     }
 
 
-    void read_vtk(const std::string filename, PolyLine& m) {
+    PolyLineAttributes read_vtk(const std::string filename, PolyLine& m) {
         std::vector<vec3> verts;
         std::vector<int> edges;
         std::vector<int> tris;
@@ -285,9 +286,10 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_segments(edges.size()/2);
         FOR(e, m.nsegments()) FOR(ev, 2) m.vert(e, ev) = edges[2 * e + ev];
-
+        return {};
     }
-    void read_vtk(const std::string filename, Triangles& m) {
+
+    SurfaceAttributes read_vtk(const std::string filename, Triangles& m) {
         std::vector<vec3> verts;
         std::vector<int> edges;
         std::vector<int> tris;
@@ -300,8 +302,10 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(tris.size() / 3);
         FOR(t, m.nfacets()) FOR(tv, 3) m.vert(t, tv) = tris[3 * t + tv];
+        return {};
     }
-    void read_vtk(const std::string filename, Quads& m) {
+
+    SurfaceAttributes read_vtk(const std::string filename, Quads& m) {
         std::vector<vec3> verts;
         std::vector<int> edges;
         std::vector<int> tris;
@@ -314,8 +318,10 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(quads.size() / 4);
         FOR(q, m.nfacets()) FOR(qv, 4) m.vert(q, qv) = quads[4 * q + qv];
+        return {};
     }
-    void read_vtk(const std::string filename, Polygons& m) {
+
+    SurfaceAttributes read_vtk(const std::string filename, Polygons& m) {
         std::vector<vec3> verts;
         std::vector<int> edges;
         std::vector<int> tris;
@@ -332,9 +338,10 @@ namespace UM {
 
         int off = m.create_facets(quads.size() / 4, 4);
         FOR(q, quads.size() / 4) FOR(qv, 4) m.vert(off + q, qv) = quads[4 * q + qv];
-
+        return {};
     }
-    void read_vtk(const std::string filename, Tetrahedra& m) {
+
+    VolumeAttributes read_vtk(const std::string filename, Tetrahedra& m) {
         std::vector<vec3> verts;
         std::vector<int> edges;
         std::vector<int> tris;
@@ -347,8 +354,10 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_cells(tets.size() / 4);
         FOR(t, m.ncells()) FOR(tv, 4) m.vert(t, tv) = tets[4 * t + tv];
+        return {};
     }
-    void read_vtk(const std::string filename, Hexahedra& m) {
+
+    VolumeAttributes read_vtk(const std::string filename, Hexahedra& m) {
         std::vector<vec3> verts;
         std::vector<int> edges;
         std::vector<int> tris;
@@ -362,8 +371,8 @@ namespace UM {
 
         m.create_cells(tets.size() / 8);
         FOR(h, m.ncells()) FOR(hv, 8) m.vert(h, hv) = hexes[8 * h + hv];
+        return{};
     }
-
 
 }
 

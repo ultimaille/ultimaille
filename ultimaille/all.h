@@ -16,5 +16,6 @@
 #include <ultimaille/io/obj.h>
 #include <ultimaille/io/geogram.h>
 #include <ultimaille/io/medit.h>
-
+#include <ultimaille/io/vtk.h>
+#include <ultimaille/io/by_extension.h>
 
