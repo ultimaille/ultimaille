@@ -175,15 +175,13 @@ namespace UM {
 
     inline int Polygons::vert(const int fi, const int lv) const {
         assert(fi>=0 && fi<nfacets());
-        int n = facet_size(fi);
-        assert(lv>=0 && lv<n);
+        assert(lv>=0 && lv<facet_size(fi));
         return facets[offset[fi]+lv];
     }
 
     inline int &Polygons::vert(const int fi, const int lv) {
         assert(fi>=0 && fi<nfacets());
-        int n = facet_size(fi);
-        assert(lv>=0 && lv<n);
+        assert(lv>=0 && lv<facet_size(fi));
         return facets[offset[fi]+lv];
     }
 

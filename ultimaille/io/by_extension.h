@@ -11,7 +11,7 @@
 #include "ultimaille/io/obj.h"
 
 namespace UM {
-    template <class M, class A> void write_by_extension(const std::string path, M& m, A a = {}) {
+    template <class M, class A> void write_by_extension(const std::string path, const M &m, const A a = {}) {
         std::string ext = std::filesystem::path(path).extension();
         if (ext == ".geogram")
             write_geogram(path, m, a);
@@ -26,14 +26,17 @@ namespace UM {
     }
 
     inline PolyLineAttributes empty_attr(const PolyLine &m) {
+        (void)m;
         return {};
     }
 
     inline SurfaceAttributes empty_attr(const Surface &m) {
+        (void)m;
         return {};
     }
 
     inline VolumeAttributes empty_attr(const Volume &m) {
+        (void)m;
         return {};
     }
 
