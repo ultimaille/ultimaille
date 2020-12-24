@@ -41,9 +41,9 @@ namespace UM {
         hlbfgs_info[3] = 1; //b_m1qn3_ ? 1 : 0; // determines whether we use m1qn3
         hlbfgs_info[4] = (int)max_iter_;  // max iterations
         hlbfgs_info[5] = (int)verbose_;  // verbose
-        hlbfgs_info[6] = 8;  // the update interval of Hessian
-        hlbfgs_info[10] = 0; // b_cg_ ? 1 : 0; // determines whether we use cg
-        parameter[5] = 0; // disabled
+//      hlbfgs_info[6] = 100;  // the update interval of Hessian
+//      hlbfgs_info[10] = 0; // b_cg_ ? 1 : 0; // determines whether we use cg
+        parameter[5] = epsg_;
         parameter[6] = epsg_;
         if (hessian_ != nullptr)
             hlbfgs_info[7] = 1;
