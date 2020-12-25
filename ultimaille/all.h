@@ -2,7 +2,9 @@
 #include <ultimaille/colocate.h>
 #include <ultimaille/constraints.h>
 #include <ultimaille/disjointset.h>
-#include <ultimaille/geometry.h>
+#include <ultimaille/vec.h>
+#include <ultimaille/mat.h>
+#include <ultimaille/quaternion.h>
 #include <ultimaille/hboxes.h>
 #include <ultimaille/knn.h>
 #include <ultimaille/permutation.h>

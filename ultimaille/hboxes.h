@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <limits>
-#include "geometry.h"
+#include "vec.h"
 
 namespace UM {
     struct BBox3 {

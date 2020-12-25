@@ -6,7 +6,7 @@
 #include <numeric>
 #include <queue>
 #include <vector>
-#include "geometry.h"
+#include "vec.h"
 
 namespace UM {
     template<int D> struct KNN { // do not try anything but D=2 or D=3

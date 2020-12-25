@@ -2,7 +2,7 @@
 #define __VOLUME_H__
 #include <vector>
 #include <memory>
-#include "geometry.h"
+#include "vec.h"
 #include "pointset.h"
 
 namespace UM {
