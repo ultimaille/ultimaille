@@ -15,6 +15,9 @@ target_link_libraries(test-lbfgs  ${CMAKE_DL_LIBS} ultimaille)
 add_executable(test-quaternion test-quaternion.cpp)
 target_link_libraries(test-quaternion  ${CMAKE_DL_LIBS} ultimaille)
 
+add_executable(test-eigen test-eigen.cpp)
+target_link_libraries(test-eigen  ${CMAKE_DL_LIBS} ultimaille)
+
 
 IF (NOT WIN32)
 	target_link_libraries(test-quaternion m)

@@ -20,4 +20,5 @@
 #include <ultimaille/io/medit.h>
 #include <ultimaille/io/vtk.h>
 #include <ultimaille/io/by_extension.h>
+#include <ultimaille/eigen.h>
 

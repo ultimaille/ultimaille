@@ -4,14 +4,17 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
+#include <cassert>
 
 #include "vec.h"
 #include "mat.h"
 
 namespace UM {
+    struct Quaternion;
+    Quaternion operator*(const Quaternion &q, const double &val);
+    Quaternion operator/(const Quaternion &q, const double &val);
 
     struct Quaternion {
-//        Quaternion() : v{0.,0.,0.}, w(1.) {}
 //      Quaternion(const vec3 axis = {0, 0, 0}, const double alpha = 0) : v(axis*sin(alpha*.5)), w(cos(alpha*.5)) {}
 
         double norm2() const {
@@ -22,8 +25,12 @@ namespace UM {
             return std::sqrt(norm2());
         }
 
+        Quaternion &normalize() { *this = (*this)/norm(); return *this; }
+
+        double &operator[](const int i)       { assert(i>=0 && i<4); return i<3 ? v[i] : w; }
+        double  operator[](const int i) const { assert(i>=0 && i<4); return i<3 ? v[i] : w; }
+
         // convert to a 3x3 rotation matrix
-        // TODO: check the orientation
         // https://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
         mat<3,3> rotation_matrix() const {
             double n = norm2();
@@ -44,7 +51,6 @@ namespace UM {
             return {{{1.-yy-zz, xy-wz, xz+wy}, {xy+wz, 1.-xx-zz, yz-wx}, {xz-wy, yz+wx, 1.-xx-yy}}};
         }
 
-
         // z-y'-x" intrinsic Tait–Bryan angles: yaw, pitch and roll
         // to rotate a 3d column vector v, compute Rz(yaw) x Ry(pitch) x Rx(roll) x v,
         // where Rx, Ry and Rz are the basic rotation matrices following the right-hand rule
@@ -56,9 +62,21 @@ namespace UM {
                 };
         }
 
-        vec3 v;
-        double w;
+        vec3 v = {0., 0., 0.};
+        double w = {1.};
     };
+
+    Quaternion operator*(const Quaternion &q, const double &val) {
+        Quaternion ret = q;
+        for (int i=4; i--; ret[i]*=val);
+        return ret;
+    }
+
+    Quaternion operator/(const Quaternion &q, const double &val) {
+        Quaternion ret = q;
+        for (int i=4; i--; ret[i]/=val);
+        return ret;
+    }
 
     Quaternion operator*(const Quaternion &a, const Quaternion &b) {
         Quaternion res;
