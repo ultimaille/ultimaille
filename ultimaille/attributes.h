@@ -6,7 +6,6 @@
 #include "surface.h"
 #include "volume.h"
 #include "pointset.h"
-#include "permutation.h"
 
 namespace UM {
     struct GenericAttributeContainer {

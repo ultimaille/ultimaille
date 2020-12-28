@@ -83,7 +83,7 @@ namespace UM {
         int  prev(const int corner_id) const;
         int  next(const int corner_id) const;
         int opposite(const int corner_id) const;
-        bool is_border_vert(const int v) const;
+        bool is_boundary_vert(const int v) const;
         int next_around_vertex(const int corner_id) const;
 
         void reset();

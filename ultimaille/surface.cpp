@@ -155,7 +155,7 @@ namespace UM {
         return result;
     }
 
-    bool SurfaceConnectivity::is_border_vert(const int v) const {
+    bool SurfaceConnectivity::is_boundary_vert(const int v) const {
         int cir = v2c[v];
         if (cir<0) return false;
         do {

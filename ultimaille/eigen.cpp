@@ -35,7 +35,7 @@ void eigendecompose_symmetric(const double a11, const double a12, const double a
     }
 
     // now compute (cos t, sin t)
-    double sint = std::sqrt(.5*(1. - cos2t));  // cos(2t)<=0, therefire sin(t) >= 1/sqrt(2)
+    double sint = std::sqrt(.5*(1. - cos2t));  // cos(2t)<=0, therefore sin(t) >= 1/sqrt(2)
     double cost = .5*sin2t/sint;                 // no division by zero here
 
     eval[0] = cost*cost*a11 + sin2t*a12 + sint*sint*a22;
@@ -45,7 +45,7 @@ void eigendecompose_symmetric(const double a11, const double a12, const double a
         evec = { {{cost, -sint}, {sint, cost}} }; // vectors are the columns
     } else {
         std::swap(eval[0], eval[1]);
-        evec = { {{sint, cost}, {-cost, sint}} }; // permute the vectors and negate one them to keep the basis right-handed
+        evec = { {{sint, cost}, {-cost, sint}} }; // permute the vectors and negate one of them to keep the basis right-handed
     }
 }
 
