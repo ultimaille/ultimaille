@@ -23,6 +23,7 @@ namespace UM {
     SurfaceAttributes  read_vtk(const std::string filename, Polygons   &m);
     VolumeAttributes   read_vtk(const std::string filename, Tetrahedra &m);
     VolumeAttributes   read_vtk(const std::string filename, Hexahedra  &m);
+    VolumeAttributes   read_vtk(const std::string filename, Wedges     &m);
 }
 
 

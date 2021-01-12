@@ -404,6 +404,11 @@ namespace UM {
         return {};
     }
 
+    VolumeAttributes read_medit(const std::string filename, Wedges& m) {
+        m = Wedges();
+        return {};
+    }
+
 
 }
 

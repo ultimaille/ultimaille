@@ -19,6 +19,7 @@ namespace UM {
     SurfaceAttributes  read_geogram(const std::string filename, Polygons   &m);
     VolumeAttributes   read_geogram(const std::string filename, Tetrahedra &m);
     VolumeAttributes   read_geogram(const std::string filename, Hexahedra  &m);
+    VolumeAttributes   read_geogram(const std::string filename, Wedges     &m);
 }
 
 #endif // __GEOGRAM_H__

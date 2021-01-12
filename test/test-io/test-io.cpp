@@ -22,6 +22,7 @@ int main(int argc, char** argv) {
     Polygons mplg;
     Tetrahedra mtet;
     Hexahedra mhex;
+    Wedges mwdg;
 
     PolyLineAttributes segattr = read_geogram(argv[1], mseg);
 
@@ -31,6 +32,7 @@ int main(int argc, char** argv) {
 
     VolumeAttributes   tetattr = read_geogram(argv[1], mtet);
     VolumeAttributes   hexattr = read_geogram(argv[1], mhex);
+    VolumeAttributes   wdgattr = read_by_extension(argv[1], mwdg);
 
     CellFacetAttribute<int> rnd("rnd", tetattr, mtet);
     for (int f=0; f<mtet.nfacets(); f++)
@@ -42,6 +44,7 @@ int main(int argc, char** argv) {
     write_geogram("qua.geogram", mqua, quaattr);
     write_geogram("tet.geogram", mtet, tetattr);
     write_geogram("hex.geogram", mhex, hexattr);
+    write_geogram("wdg.geogram", mwdg, hexattr);
 
     return 0;
 }

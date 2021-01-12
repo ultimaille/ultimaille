@@ -68,6 +68,17 @@ namespace UM {
         int corner(const int c, const int lc) const;
     };
 
+    struct Wedges : Volume { // prismatic mesh implementation
+        int cell_type() const;
+        int  nverts_per_cell() const;
+        int nfacets_per_cell() const;
+
+        int facet_size(const int c, const int lf) const;
+        int facet_vert(const int c, const int lf, const int lv) const;
+        int  facet(const int c, const int lf) const;
+        int corner(const int c, const int lc) const;
+    };
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct VolumeConnectivity { // half-edge-like connectivity interface
@@ -183,6 +194,43 @@ namespace UM {
     inline int Hexahedra::corner(const int c, const int lc) const {
         assert(c>=0 && c<ncells() && lc>=0 && lc<8);
         return c*8 + lc;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline int Wedges::cell_type() const {
+        return 2;
+    }
+
+    inline int Wedges::nverts_per_cell() const {
+        return 6;
+    }
+
+    inline int Wedges::nfacets_per_cell() const {
+        return 5;
+    }
+
+    inline int Wedges::facet_size(const int c, const int lf) const {
+        (void)c;
+        assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell());
+        if (lf<2) return 3;
+        return 4;
+    }
+
+    inline int Wedges::facet_vert(const int c, const int lf, const int lv) const {
+        assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell() && lv>=0 && lv<facet_size(c, lf));
+        static constexpr int facet_vertex[5][4] = {{0,1,2,-1}, {3,5,4,-1}, {0,3,4,1}, {0,2,5,3}, {1,4,5,2} };
+        return vert(c, facet_vertex[lf][lv]);
+    }
+
+    inline int Wedges::facet(const int c, const int lf) const {
+        assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell());
+        return c*6 + lf;
+    }
+
+    inline int Wedges::corner(const int c, const int lc) const {
+        assert(c>=0 && c<ncells() && lc>=0 && lc<6);
+        return c*6 + lc;
     }
 }
 

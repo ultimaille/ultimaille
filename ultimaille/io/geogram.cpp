@@ -643,6 +643,25 @@ namespace UM {
         return va;
     }
 
+    VolumeAttributes read_geogram(const std::string filename, Wedges &m) {
+        m = Wedges();
+        VolumeAttributes va;
+        std::vector<int> corner_vertex;
+        parse_volume_data(filename, m.points, va, corner_vertex, 2);
+        assert(corner_vertex.size()%6==0);
+
+        int nprisms = corner_vertex.size()*6;
+        m.create_cells(nprisms);
+        m.cells = corner_vertex;
+
+        for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
+        for (auto &a : std::get<1>(va)) m.attr_cells.emplace_back(a.second);
+        for (auto &a : std::get<2>(va)) m.attr_facets.emplace_back(a.second);
+        for (auto &a : std::get<3>(va)) m.attr_corners.emplace_back(a.second);
+
+        return va;
+    }
+
     SurfaceAttributes read_geogram(const std::string filename, Polygons &polygons) {
         polygons = Polygons();
 
