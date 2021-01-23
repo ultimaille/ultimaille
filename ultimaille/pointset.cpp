@@ -21,6 +21,7 @@ namespace UM {
     int PointSet::create_points(const int n) {
         assert(n>=0);
         data->resize(size()+n);
+        resize_attrs();
         return size()-n;
     }
 
