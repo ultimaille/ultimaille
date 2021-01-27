@@ -12,7 +12,7 @@
 
 namespace UM {
     template <class M, class A> void write_by_extension(const std::string path, const M &m, const A a = {}) {
-        std::string ext = std::filesystem::path(path).extension();
+        std::string ext = std::filesystem::path(path).extension().string();
         if (ext == ".geogram")
             write_geogram(path, m, a);
         if (ext == ".mesh")
@@ -41,7 +41,7 @@ namespace UM {
     }
 
     template <class M> auto read_by_extension(const std::string path, M& m) -> decltype(empty_attr(m)) {
-        std::string ext = std::filesystem::path(path).extension();
+        std::string ext = std::filesystem::path(path).extension().string();
         if (ext == ".geogram")
             return read_geogram(path, m);
         if (ext == ".mesh")
