@@ -66,19 +66,19 @@ namespace UM {
         double w = {1.};
     };
 
-    Quaternion operator*(const Quaternion &q, const double &val) {
+    inline Quaternion operator*(const Quaternion &q, const double &val) {
         Quaternion ret = q;
         for (int i=4; i--; ret[i]*=val);
         return ret;
     }
 
-    Quaternion operator/(const Quaternion &q, const double &val) {
+    inline Quaternion operator/(const Quaternion &q, const double &val) {
         Quaternion ret = q;
         for (int i=4; i--; ret[i]/=val);
         return ret;
     }
 
-    Quaternion operator*(const Quaternion &a, const Quaternion &b) {
+    inline Quaternion operator*(const Quaternion &a, const Quaternion &b) {
         Quaternion res;
         res.w = a.w*b.w - a.v*b.v;
         res.v = a.w*b.v + b.w*a.v + cross(a.v, b.v);
