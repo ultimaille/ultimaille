@@ -6,6 +6,11 @@
 #include "pointset.h"
 
 namespace UM {
+    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
+    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
+        return (cross(B-A, C-A)*(D-A))/6.;
+    }
+
     struct GenericAttributeContainer;
 
     struct Volume { // polyhedral mesh interface
@@ -37,6 +42,7 @@ namespace UM {
         virtual int cell_type() const = 0; // TODO convert it to enum
         virtual int  nverts_per_cell() const = 0;
         virtual int nfacets_per_cell() const = 0;
+//      virtual double cell_volume(const int c);
 
         virtual int facet_size(const int c, const int lf) const = 0;
         virtual int facet_vert(const int c, const int lf, const int lv) const = 0;
@@ -55,6 +61,7 @@ namespace UM {
         int facet_vert(const int c, const int lf, const int lv) const;
         int  facet(const int c, const int lf) const;
         int corner(const int c, const int lc) const;
+        double cell_volume(const int c) const;
     };
 
     struct Hexahedra : Volume { // hex mesh implementation
@@ -161,6 +168,14 @@ namespace UM {
         return c*4 + lc;
     }
 
+    inline double Tetrahedra::cell_volume(const int c) const {
+        return tet_volume(
+                points[vert(c, 0)],
+                points[vert(c, 1)],
+                points[vert(c, 2)],
+                points[vert(c, 3)]
+                );
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Hexahedra::cell_type() const {
