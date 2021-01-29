@@ -1,5 +1,10 @@
 #include "HLBFGS_wrapper.h"
 
+#if WIN32
+// disable int to size_t warning 
+#pragma warning(disable: 4267)
+#endif
+
 namespace UM {
 
     namespace Static_Func_Env {
