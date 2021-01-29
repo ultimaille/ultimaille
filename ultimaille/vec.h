@@ -6,6 +6,11 @@
 #include <cassert>
 #include <iostream>
 
+#if WIN32
+// disable int to size_t warning 
+#pragma warning(disable: 4267)
+#endif
+
 namespace UM {
     template<int n> struct vec {
         vec() = default;
