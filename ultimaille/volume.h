@@ -21,8 +21,6 @@ namespace UM {
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
 
-        Volume() = default;
-
         int  create_cells(const int n);
         void delete_cells(const std::vector<bool> &to_kill);
         void delete_vertices(const std::vector<bool> &to_kill);
@@ -42,13 +40,31 @@ namespace UM {
         virtual int cell_type() const = 0; // TODO convert it to enum
         virtual int  nverts_per_cell() const = 0;
         virtual int nfacets_per_cell() const = 0;
-//      virtual double cell_volume(const int c);
 
         virtual int facet_size(const int c, const int lf) const = 0;
         virtual int facet_vert(const int c, const int lf, const int lv) const = 0;
         virtual int  facet(const int c, const int lf) const = 0;
         virtual int corner(const int c, const int lc) const = 0;
+
+        Volume() : util(*this) {}
+//        Volume() = default;
+//      Volume& operator=(const Volume& rhs);
+//      void clear();
+
+        struct Util {
+            Util(const Volume &mesh) : m(const_cast<Volume &>(mesh)) {}
+            Util& operator=(const Util& rhs) {
+                m = const_cast<Volume &>(rhs.m);
+                return *this;
+            }
+            virtual double cell_volume(const int c) const;
+            virtual vec3 facet_normal(const int c, const int lf) const;
+            vec3 bary_verts(const int c) const;
+            vec3 bary_facet(const int c, const int lf) const;
+            Volume &m;
+        } util;
     };
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -61,7 +77,19 @@ namespace UM {
         int facet_vert(const int c, const int lf, const int lv) const;
         int  facet(const int c, const int lf) const;
         int corner(const int c, const int lc) const;
-        double cell_volume(const int c) const;
+
+        Tetrahedra() : Volume(), util(*this) {}
+        struct Util : Volume::Util {
+            Util(const Volume &mesh) : Volume::Util(mesh) {}
+            double cell_volume(const int c) const;
+            vec3 facet_normal(const int c, const int lf) const;
+        } util;
+
+        /*
+           Tetrahedra() : Volume(), util(*this) {}
+           Tetrahedra& operator=(const Tetrahedra& rhs);
+        //        void clear();
+         */
     };
 
     struct Hexahedra : Volume { // hex mesh implementation
@@ -168,14 +196,6 @@ namespace UM {
         return c*4 + lc;
     }
 
-    inline double Tetrahedra::cell_volume(const int c) const {
-        return tet_volume(
-                points[vert(c, 0)],
-                points[vert(c, 1)],
-                points[vert(c, 2)],
-                points[vert(c, 3)]
-                );
-    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Hexahedra::cell_type() const {

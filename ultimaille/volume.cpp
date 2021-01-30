@@ -4,7 +4,97 @@
 #include "volume.h"
 #include "attributes.h"
 
+#include <cstdlib>
+
 namespace UM {
+/*
+    void Volume::clear() {
+        std::cerr << "Volume::clear" << std::endl;
+        points = {};
+        cells  = {};
+        attr_cells   = {};
+        attr_facets  = {};
+        attr_corners = {};
+    }
+
+    Volume& Volume::operator=(const Volume& m) {
+        if (this!=&m) {
+            clear();
+            if (m.points.size() || m.cells.size()) {
+                std::cerr << "Copy operator for a non-empty mesh is prohibited\n";
+                exit(1); // TODO not_reachable macro
+            }
+        }
+        return *this;
+    }
+
+//  void Tetrahedra::clear() {
+//      std::cerr << "Tetrahedra::clear" << std::endl;
+//      Volume::clear();
+//  }
+
+    Tetrahedra& Tetrahedra::operator=(const Tetrahedra& rhs) {
+        Volume::operator=(rhs);
+        return *this;
+    }
+*/
+
+    /////////////////////////////////////////////////////////////////
+
+    double Volume::Util::cell_volume(const int c) const {
+        return 0; // TODO
+    }
+
+    vec3 Volume::Util::bary_verts(const int c) const {
+        vec3 ave = {0, 0, 0};
+        const int nbv = m.nverts_per_cell();
+        for (int lv=0; lv<nbv; lv++)
+            ave += m.points[m.vert(c, lv)];
+        return ave / static_cast<double>(nbv);
+    }
+
+    vec3 Volume::Util::bary_facet(const int c, const int lf) const {
+        vec3 ave = {0, 0, 0};
+        const int nbv = m.facet_size(c, lf);
+        for (int lv=0; lv<nbv; lv++)
+            ave += m.points[m.facet_vert(c, lf, lv)];
+        return ave / static_cast<double>(nbv);
+    }
+
+    // unit vector: weighted sum of normal of a triangle fan around the barycenter
+    vec3 Volume::Util::facet_normal(const int c, const int lf) const {
+        vec3 res = {0, 0, 0};
+        vec3 bary = m.util.bary_facet(c, lf);
+        const int nbv = m.facet_size(c, lf);
+        for (int lv=0; lv<nbv; lv++)
+            res += cross(
+                    m.points[m.facet_vert(c, lf,  lv       )]-bary,
+                    m.points[m.facet_vert(c, lf, (lv+1)%nbv)]-bary
+                    );
+        return res.normalize();
+    }
+
+
+    /////////////////////////////////////////////////////////////////
+
+    vec3 Tetrahedra::Util::facet_normal(const int c, const int lf) const {
+        return cross(
+                m.points[m.facet_vert(c, lf, 1)]-m.points[m.facet_vert(c, lf, 0)],
+                m.points[m.facet_vert(c, lf, 2)]-m.points[m.facet_vert(c, lf, 0)]
+                ).normalize();
+    }
+
+    double Tetrahedra::Util::cell_volume(const int c) const {
+        return tet_volume(
+                m.points[m.vert(c, 0)],
+                m.points[m.vert(c, 1)],
+                m.points[m.vert(c, 2)],
+                m.points[m.vert(c, 3)]
+                );
+    }
+
+    /////////////////////////////////////////////////////////////////
+
     void compute_corner_to_corner_map(const Volume &m, std::vector<int> &v2c, std::vector<int> &c2c);
 
     void Volume::resize_attrs() {
@@ -35,13 +125,13 @@ namespace UM {
             cells_old2new[c] = new_nb_cells++;
         }
 
-        std::cerr << "compressing cell attributes\n";
+//      std::cerr << "compressing cell attributes\n";
         for (auto &wp : attr_cells)   if (auto spt = wp.lock())
             spt->compress(cells_old2new);
-        std::cerr << "compressing facet attributes\n";
+//      std::cerr << "compressing facet attributes\n";
         for (auto &wp : attr_facets)  if (auto spt = wp.lock())
             spt->compress(facets_old2new);
-        std::cerr << "compressing corner attributes\n";
+//      std::cerr << "compressing corner attributes\n";
         for (auto &wp : attr_corners) if (auto spt = wp.lock())
             spt->compress(corners_old2new);
     }
