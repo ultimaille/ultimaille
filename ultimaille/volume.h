@@ -8,7 +8,7 @@
 namespace UM {
     // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
     inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
-        return (cross(B-A, C-A)*(D-A))/6.;
+        return ((B-A)*cross(C-A,D-A))/6.;
     }
 
     struct GenericAttributeContainer;
@@ -47,24 +47,19 @@ namespace UM {
         virtual int corner(const int c, const int lc) const = 0;
 
         Volume() : util(*this) {}
-//        Volume() = default;
-//      Volume& operator=(const Volume& rhs);
-//      void clear();
+        Volume(const Volume &m);
+        Volume& operator=(const Volume& m);
+        void clear();
 
         struct Util {
-            Util(const Volume &mesh) : m(const_cast<Volume &>(mesh)) {}
-            Util& operator=(const Util& rhs) {
-                m = const_cast<Volume &>(rhs.m);
-                return *this;
-            }
+            Util(const Volume &mesh) : m(mesh) {}
             virtual double cell_volume(const int c) const;
             virtual vec3 facet_normal(const int c, const int lf) const;
             vec3 bary_verts(const int c) const;
             vec3 bary_facet(const int c, const int lf) const;
-            Volume &m;
+            const Volume &m;
         } util;
     };
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -79,17 +74,14 @@ namespace UM {
         int corner(const int c, const int lc) const;
 
         Tetrahedra() : Volume(), util(*this) {}
+        Tetrahedra(const Tetrahedra &m);
+        Tetrahedra& operator=(const Tetrahedra& m);
+
         struct Util : Volume::Util {
             Util(const Volume &mesh) : Volume::Util(mesh) {}
             double cell_volume(const int c) const;
             vec3 facet_normal(const int c, const int lf) const;
         } util;
-
-        /*
-           Tetrahedra() : Volume(), util(*this) {}
-           Tetrahedra& operator=(const Tetrahedra& rhs);
-        //        void clear();
-         */
     };
 
     struct Hexahedra : Volume { // hex mesh implementation
@@ -116,7 +108,7 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    struct VolumeConnectivity { // half-edge-like connectivity interface
+    struct VolumeConnectivity { // half-edge-like connectivity interface TODO: actually the half-edge wrapper :)
         VolumeConnectivity(const Volume &p_m);
 
         const Volume &m;

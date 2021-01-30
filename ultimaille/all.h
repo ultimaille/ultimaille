@@ -1,3 +1,4 @@
+#include <ultimaille/assert.h>
 #include <ultimaille/attributes.h>
 #include <ultimaille/colocate.h>
 #include <ultimaille/constraints.h>

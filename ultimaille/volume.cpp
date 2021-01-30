@@ -1,15 +1,18 @@
 #include <iostream>
 #include <algorithm>
 #include <cassert>
+
 #include "volume.h"
 #include "attributes.h"
+#include "assert.h"
 
-#include <cstdlib>
 
 namespace UM {
-/*
+    /////////////////////////////////////////////////////////////////
+    // constructors
+
     void Volume::clear() {
-        std::cerr << "Volume::clear" << std::endl;
+//      std::cerr << "Volume::clear" << std::endl;
         points = {};
         cells  = {};
         attr_cells   = {};
@@ -17,32 +20,58 @@ namespace UM {
         attr_corners = {};
     }
 
+    Volume::Volume(const Volume& m) : util(*this) {
+//      std::cerr << "Volume::Volume" << std::endl;
+        um_assert(!m.points.size() && !m.cells.size());
+    }
+
     Volume& Volume::operator=(const Volume& m) {
-        if (this!=&m) {
-            clear();
-            if (m.points.size() || m.cells.size()) {
-                std::cerr << "Copy operator for a non-empty mesh is prohibited\n";
-                exit(1); // TODO not_reachable macro
-            }
-        }
+//      std::cerr << "Volume::operator=" << std::endl;
+        clear();
+        um_assert(!m.points.size() && !m.cells.size());
         return *this;
     }
 
-//  void Tetrahedra::clear() {
-//      std::cerr << "Tetrahedra::clear" << std::endl;
-//      Volume::clear();
-//  }
+    Tetrahedra::Tetrahedra(const Tetrahedra& m) : Volume(m), util(*this) {
+//      std::cerr << "Tetrahedra::Tetrahedra" << std::endl;
+    }
 
-    Tetrahedra& Tetrahedra::operator=(const Tetrahedra& rhs) {
-        Volume::operator=(rhs);
+    Tetrahedra& Tetrahedra::operator=(const Tetrahedra& m) {
+//      std::cerr << "Tetrahedra::operator=" << std::endl;
+        Volume::operator=(m);
         return *this;
     }
-*/
 
     /////////////////////////////////////////////////////////////////
+    // geometry util
 
     double Volume::Util::cell_volume(const int c) const {
-        return 0; // TODO
+        const int nbf = m.nfacets_per_cell();
+        const vec3 bary = m.util.bary_verts(c);
+        double vol = 0;
+        for (int lf=0; lf<nbf; lf++) {
+            const int nbv = m.facet_size(c, lf);
+            if (3==nbv) {
+                vol += tet_volume(
+                        bary,
+                        m.points[m.facet_vert(c, lf, 0)],
+                        m.points[m.facet_vert(c, lf, 1)],
+                        m.points[m.facet_vert(c, lf, 2)]
+                        );
+            } else if (4==nbv) {
+                for (int lv=0; lv<4; lv++) {
+                    vol += tet_volume(
+                            bary,
+                            m.points[m.facet_vert(c, lf,  lv     )],
+                            m.points[m.facet_vert(c, lf, (lv+1)%4)],
+                            m.points[m.facet_vert(c, lf, (lv+2)%4)]
+                            )*.5;
+                }
+            } else {
+                um_assert(false);
+            }
+        }
+        return vol;
     }
 
     vec3 Volume::Util::bary_verts(const int c) const {
@@ -74,14 +103,13 @@ namespace UM {
         return res.normalize();
     }
 
-
     /////////////////////////////////////////////////////////////////
 
     vec3 Tetrahedra::Util::facet_normal(const int c, const int lf) const {
-        return cross(
-                m.points[m.facet_vert(c, lf, 1)]-m.points[m.facet_vert(c, lf, 0)],
-                m.points[m.facet_vert(c, lf, 2)]-m.points[m.facet_vert(c, lf, 0)]
-                ).normalize();
+        const vec3 &A = m.points[m.facet_vert(c, lf, 0)];
+        const vec3 &B = m.points[m.facet_vert(c, lf, 1)];
+        const vec3 &C = m.points[m.facet_vert(c, lf, 2)];
+        return cross(B-A, C-A).normalize();
     }
 
     double Tetrahedra::Util::cell_volume(const int c) const {
