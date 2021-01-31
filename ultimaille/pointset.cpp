@@ -1,19 +1,19 @@
 #include "pointset.h"
 #include "attributes.h"
+#include "assert.h"
 
 namespace UM {
-//  void PointSet::bbox(vec3 &min, vec3 &max) {
-//      min = max = data->at(0);
-//      for (vec3 const &p : *data) {
-//          for (int j=0; j<3; j++) {
-//              min[j] = std::min(min[j], p[j]);
-//              max[j] = std::max(max[j], p[j]);
-//          }
-//      }
-//  }
+    void PointSet::Util::bbox(vec3 &min, vec3 &max) {
+        min = max = ps[0];
+        for (vec3 const &p : ps) {
+            for (int d=0; d<3; d++) {
+                min[d] = std::min(min[d], p[d]);
+                max[d] = std::max(max[d], p[d]);
+            }
+        }
+    }
 
     void PointSet::resize(const int n) {
-        assert(1==data.use_count());
         data->resize(n);
         resize_attrs();
     }
@@ -26,14 +26,12 @@ namespace UM {
     }
 
     int PointSet::push_back(const vec3 &p) {
-        assert(1==data.use_count());
         data->push_back(p);
         resize_attrs();
         return size()-1;
     }
 
     void PointSet::delete_points(const std::vector<bool> &to_kill, std::vector<int> &old2new) {
-        assert(1==data.use_count());
         assert(to_kill.size()==(size_t)size());
         old2new = std::vector<int>(size(),  -1);
 
@@ -48,11 +46,13 @@ namespace UM {
     }
 
     void PointSet::resize_attrs() {
+        um_assert(1==data.use_count());
         for (auto &wp : attr)  if (auto spt = wp.lock())
             spt->resize(size());
     }
 
     void PointSet::compress_attrs(const std::vector<int> &old2new) {
+        um_assert(1==data.use_count());
         for (auto &wp : attr)  if (auto spt = wp.lock())
             spt->compress(old2new);
     }

@@ -103,8 +103,25 @@ namespace UM {
 
     /////////////////////////////////////////////////////////////////////////////////
 
+    /* TODO: unsure about performance of the operator[]
+    template<> struct vec<4> {
+        vec() = default;
+        vec(double X, double Y, double Z, double W) : x(X), y(Y), z(Z), w(W) {}
+        double& operator[](const int i)       { assert(i>=0 && i<4); return i==0 ? x : (1==i ? y : (2==i ? z : w)); }
+        double  operator[](const int i) const { assert(i>=0 && i<4); return i==0 ? x : (1==i ? y : (2==i ? z : w)); }
+        double norm2() const { return (*this)*(*this) ; }
+        double norm()  const { return std::sqrt(norm2()); }
+        vec & normalize() { *this = (*this)/norm(); return *this; }
+
+        double x{}, y{}, z{}, w{};
+    };
+    */
+
+    /////////////////////////////////////////////////////////////////////////////////
+
     typedef vec<2> vec2;
     typedef vec<3> vec3;
+    typedef vec<4> vec4;
     vec3 cross(const vec3 &v1, const vec3 &v2);
 
 }

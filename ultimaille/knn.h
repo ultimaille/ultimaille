@@ -35,7 +35,6 @@ namespace UM {
 #pragma omp task
 #endif
             build(M+1, R, (dim+1)%D);
-
         }
 
         // k-nearest neighbor query, O(k log(k) log(n)) on average

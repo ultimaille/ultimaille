@@ -4,46 +4,12 @@
 
 #include "volume.h"
 #include "attributes.h"
-#include "assert.h"
-
 
 namespace UM {
-    /////////////////////////////////////////////////////////////////
-    // constructors
-
-    void Volume::clear() {
-//      std::cerr << "Volume::clear" << std::endl;
-        points = {};
-        cells  = {};
-        attr_cells   = {};
-        attr_facets  = {};
-        attr_corners = {};
+    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
+    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
+        return ((B-A)*cross(C-A,D-A))/6.;
     }
-
-    Volume::Volume(const Volume& m) : util(*this) {
-//      std::cerr << "Volume::Volume" << std::endl;
-        um_assert(!m.points.size() && !m.cells.size());
-    }
-
-    Volume& Volume::operator=(const Volume& m) {
-//      std::cerr << "Volume::operator=" << std::endl;
-        clear();
-        um_assert(!m.points.size() && !m.cells.size());
-        return *this;
-    }
-
-    Tetrahedra::Tetrahedra(const Tetrahedra& m) : Volume(m), util(*this) {
-//      std::cerr << "Tetrahedra::Tetrahedra" << std::endl;
-    }
-
-    Tetrahedra& Tetrahedra::operator=(const Tetrahedra& m) {
-//      std::cerr << "Tetrahedra::operator=" << std::endl;
-        Volume::operator=(m);
-        return *this;
-    }
-
-    /////////////////////////////////////////////////////////////////
-    // geometry util
 
     double Volume::Util::cell_volume(const int c) const {
         const int nbf = m.nfacets_per_cell();

@@ -2,18 +2,16 @@
 #define __VOLUME_H__
 #include <vector>
 #include <memory>
+#include "assert.h"
 #include "vec.h"
 #include "pointset.h"
 
 namespace UM {
-    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
-    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
-        return ((B-A)*cross(C-A,D-A))/6.;
-    }
-
     struct GenericAttributeContainer;
 
-    struct Volume { // polyhedral mesh interface
+    struct Volume {
+        enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };  // TODO: implement pyramids
+
         PointSet points{};
         std::vector<int> cells{};
 
@@ -37,7 +35,7 @@ namespace UM {
         int  vert(const int c, const int lv) const;
         int &vert(const int c, const int lv);
 
-        virtual int cell_type() const = 0; // TODO convert it to enum
+        virtual int cell_type() const = 0;
         virtual int  nverts_per_cell() const = 0;
         virtual int nfacets_per_cell() const = 0;
 
@@ -46,10 +44,23 @@ namespace UM {
         virtual int  facet(const int c, const int lf) const = 0;
         virtual int corner(const int c, const int lc) const = 0;
 
+        void clear() {
+            points = {};
+            cells  = {};
+            attr_cells   = {};
+            attr_facets  = {};
+            attr_corners = {};
+        }
+
         Volume() : util(*this) {}
-        Volume(const Volume &m);
-        Volume& operator=(const Volume& m);
-        void clear();
+        Volume(const Volume& m) : util(*this) {
+            um_assert(!m.points.size() && !m.cells.size());
+        }
+        Volume& operator=(const Volume& m) {
+            clear();
+            um_assert(!m.points.size() && !m.cells.size());
+            return *this;
+        }
 
         struct Util {
             Util(const Volume &mesh) : m(mesh) {}
@@ -74,11 +85,14 @@ namespace UM {
         int corner(const int c, const int lc) const;
 
         Tetrahedra() : Volume(), util(*this) {}
-        Tetrahedra(const Tetrahedra &m);
-        Tetrahedra& operator=(const Tetrahedra& m);
+        Tetrahedra(const Tetrahedra& m) : Volume(m), util(*this) {}
+        Tetrahedra& operator=(const Tetrahedra& m) {
+            Volume::operator=(m);
+            return *this;
+        }
 
         struct Util : Volume::Util {
-            Util(const Volume &mesh) : Volume::Util(mesh) {}
+            Util(const Tetrahedra &mesh) : Volume::Util(mesh) {}
             double cell_volume(const int c) const;
             vec3 facet_normal(const int c, const int lf) const;
         } util;
@@ -156,7 +170,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Tetrahedra::cell_type() const {
-        return 0;
+        return Volume::CELL_TYPE::TETRAHEDRON;
     }
 
     inline int Tetrahedra::nverts_per_cell() const {
@@ -191,7 +205,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Hexahedra::cell_type() const {
-        return 1;
+        return Volume::CELL_TYPE::HEXAHEDRON;
     }
 
     inline int Hexahedra::nverts_per_cell() const {
@@ -226,7 +240,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Wedges::cell_type() const {
-        return 2;
+        return Volume::CELL_TYPE::WEDGE;
     }
 
     inline int Wedges::nverts_per_cell() const {

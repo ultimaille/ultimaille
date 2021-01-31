@@ -4,6 +4,7 @@
 #include <memory>
 #include "vec.h"
 #include "pointset.h"
+#include "assert.h"
 
 namespace UM {
     struct GenericAttributeContainer;
@@ -13,8 +14,6 @@ namespace UM {
         std::vector<int> facets{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
-
-        Surface() = default;
 
         void delete_vertices(const std::vector<bool> &to_kill);
         virtual void delete_facets(const std::vector<bool> &to_kill);
@@ -29,6 +28,28 @@ namespace UM {
         virtual int corner(const int fi, const int ci) const = 0;
         virtual int  vert(const int fi, const int lv) const = 0;
         virtual int &vert(const int fi, const int lv)       = 0;
+
+        virtual void clear() {
+            points = {};
+            attr_facets  = {};
+            attr_corners = {};
+        }
+
+        Surface() : util(*this) {}
+        Surface(const Surface& m) : util(*this) {
+            um_assert(!m.points.size() && !m.facets.size());
+        }
+        Surface& operator=(const Surface& m) {
+            clear();
+            um_assert(!m.points.size() && !m.facets.size());
+            return *this;
+        }
+
+        struct Util {
+            Util(const Surface &mesh) : m(mesh) {}
+            vec3 bary_verts(const int f) const;
+            const Surface &m;
+        } util;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,6 +62,19 @@ namespace UM {
         int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
         int &vert(const int fi, const int lv);
+
+        Triangles() : Surface(), util(*this) {}
+        Triangles(const Triangles& m) : Surface(m), util(*this) {}
+        Triangles& operator=(const Triangles& m) {
+            Surface::operator=(m);
+            return *this;
+        }
+
+        struct Util : Surface::Util {
+            Util(const Triangles &mesh) : Surface::Util(mesh) {}
+            double area(const int f) const;
+            vec3 normal(const int f) const;
+        } util;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,16 +87,34 @@ namespace UM {
         int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
         int &vert(const int fi, const int lv);
+
+        Quads() : Surface(), util(*this) {}
+        Quads(const Quads& m) : Surface(m), util(*this) {}
+        Quads& operator=(const Quads& m) {
+            Surface::operator=(m);
+            return *this;
+        }
+
+        struct Util : Surface::Util {
+            Util(const Quads &mesh) : Surface::Util(mesh) {}
+            double area(const int f) const;
+            vec3 normal(const int f) const;
+        } util;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Polygons : Surface { // polygonal mesh implementation
-        std::vector<int> offset;
+        std::vector<int> offset = {};
         Polygons();
 
         int create_facets(const int n, const int size);
         void delete_facets(const std::vector<bool> &to_kill);
+
+        virtual void clear() {
+            Surface::clear();
+            offset = {};
+        }
 
         int nfacets()  const;
         int facet_size(const int fi) const;
