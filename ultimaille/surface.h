@@ -26,8 +26,8 @@ namespace UM {
         virtual int nfacets() const = 0;
         virtual int facet_size(const int fi) const = 0;
         virtual int corner(const int fi, const int ci) const = 0;
-        virtual int  vert(const int fi, const int lv) const = 0;
-        virtual int &vert(const int fi, const int lv)       = 0;
+        virtual int   vert(const int fi, const int lv) const = 0;
+        virtual int  &vert(const int fi, const int lv)       = 0;
 
         virtual void clear() {
             points = {};

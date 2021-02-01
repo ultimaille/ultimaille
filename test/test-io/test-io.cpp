@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
         rnd[f] = rand()%12465;
 
     write_geogram("seg.geogram", mseg, segattr);
-    write_geogram("plg.geogram", mplg, plgattr);
+    write_by_extension("plg.geogram", mplg, plgattr);
     write_geogram("tri.geogram", mtri, triattr);
     write_geogram("qua.geogram", mqua, quaattr);
     write_geogram("tet.geogram", mtet, tetattr);
