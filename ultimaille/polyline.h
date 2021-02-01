@@ -5,6 +5,7 @@
 #include <memory>
 #include "vec.h"
 #include "pointset.h"
+#include "assert.h"
 
 namespace UM {
     struct GenericAttributeContainer;
@@ -13,8 +14,6 @@ namespace UM {
         PointSet points{};
         std::vector<int> segments{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr{};
-
-        PolyLine() = default;
 
         int nverts() const;
         int nsegments() const;
@@ -25,6 +24,27 @@ namespace UM {
 
         int  vert(const int s, const int lv) const;
         int &vert(const int s, const int lv)      ;
+
+        virtual void clear() {
+            points   = {};
+            attr     = {};
+            segments = {};
+        }
+
+        PolyLine() : util(*this) {}
+        PolyLine(const PolyLine& m) : util(*this) {
+            um_assert(!m.points.size() && !m.segments.size());
+        }
+        PolyLine& operator=(const PolyLine& m) {
+            clear();
+            um_assert(!m.points.size() && !m.segments.size());
+            return *this;
+        }
+
+        struct Util {
+            Util(const PolyLine &mesh) : m(mesh) {}
+            const PolyLine &m;
+        } util;
     };
 }
 
