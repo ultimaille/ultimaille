@@ -6,12 +6,30 @@
 #include <ultimaille/all.h>
 
 using namespace UM;
+static const double ftol = 1e-13;
 
-TEST_CASE( "Tetrahedra::Util::cell_volume" ) {
+TEST_CASE("Numbering convention test", "[Tetrahedra]") {
     Tetrahedra m;
-    *m.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {0,0,1}};
-    m.cells = {0,1,2,3};
-    REQUIRE( std::abs(m.util.cell_volume(0)-1./6.)<1e-13 );
+    *m.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {0,0,1}, {1,1,1}};
+    m.cells = {0,1,2,3,4,3,2,1};
+
+    // positive volume for the right-hand orientation
+    REQUIRE( std::abs(m.util.cell_volume(0)-1./6.)<ftol );
+    REQUIRE( std::abs(m.util.cell_volume(1)-1./3.)<ftol );
+
+    // normals pointing outside + facet i is opposite to vertex i
+    const vec3 ref_nrm[] = {vec3{1,1,1}.normalize(), {-1,0,0}, {0,-1,0}, {0,0,-1}};
+    for (int f : range(4)) {
+        vec3 n = m.util.facet_normal(0, f);
+        REQUIRE( (n-ref_nrm[f]).norm()<ftol );
+    }
+
+    // smallest vertex starts each cell facet
+    for (int f : range(4)) {
+        for (int v:range(2)) {
+            REQUIRE( m.facet_vert(0, f, 0)<m.facet_vert(0, f, v+1) );
+        }
+    }
 }
 
 /*

@@ -72,7 +72,21 @@ namespace UM {
         } util;
     };
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     *  LOCAL NUMBERING CONVENTION
+     *
+     *     Z             3            The vectors (01), (02), (03) form a right-hand basis.
+     *     ^            /.\           The facets are numbered w.r.t the opposite vertex.
+     *     |           / . \          For the reference tetrahedron v0=(0,0,0), v1=(1,0,0), v2=(0,1,0), v3=(0,0,1),
+     *     |          /  .  \         the facets are numbered as follows:
+     *     .         /   .   \        f0:x+y+z=1 f1:x=0 f2:y=0, f3:z=0
+     *    / \       /    .    \
+     *  /     \    /   . 0 .   \        The vertices inside each facet are numbered in a way that the normal vector
+     * X       Y  /  .       .  \       points outside (CCW ordering when viewed from outside).
+     *           / .           . \      The smallest local index is the first facet vertex.
+     *          /_________________\
+     *         1                   2
+     */
 
     struct Tetrahedra : Volume { // simplicial mesh implementation
         int cell_type() const;
@@ -97,6 +111,32 @@ namespace UM {
             vec3 facet_normal(const int c, const int lf) const;
         } util;
     };
+
+    /**
+     * LOCAL NUMBERING CONVENTION
+     * The numbering of the vertices is derived from the binary         The facets are numbered in the following order:
+     * code corresponding to the coordinates of the unit cube:          f0:x=0  f1:x=1
+     * v0:(0,0,0), v1:(1,0,0), v2:(0,1,0), v3:(1,1,0)                   f2:y=0  f3:y=1
+     * v4:(0,0,1), v5:(1,0,1), v6:(0,1,1), v7:(1,1,1)                   f4:z=0  f5:z=1
+     *
+     *           6-----------7                                                    +-----------+
+     *          /|          /|                                                   /|          /|
+     *         / |         / |                                                  / |   5     / |
+     *        /  |        /  |                                                 /  |     3  /  |
+     *       4-----------5   |                                                +-----------+   |
+     *       |   |       |   |                                                | 0 |       | 1 |
+     *       |   2-------|---3                                                |   +-------|---+
+     *       |  /        |  /                                                 |  /  2     |  /
+     * Z     | /         | /                                            Z     | /     4   | /
+     * ^  Y  |/          |/                                             ^  Y  |/          |/
+     * | /   0-----------1                                              | /   +-----------+
+     * |/                                                               |/
+     * +----> X                                                         +----> X
+     *
+     * The vertices inside each facet are numbered in a way that the normal vector points outside
+     * (CCW ordering when viewed from outside).
+     * The smallest local index is the first facet vertex.
+     */
 
     struct Hexahedra : Volume { // hex mesh implementation
         int cell_type() const;
@@ -188,7 +228,7 @@ namespace UM {
 
     inline int Tetrahedra::facet_vert(const int c, const int lf, const int lv) const {
         assert(c>=0 && c<ncells() && lf>=0 && lf<4 && lv>=0 && lv<3);
-        static constexpr int facet_vertex[4][3] = {{1,3,2}, {0,2,3}, {3,1,0}, {0,1,2}};
+        static constexpr int facet_vertex[4][3] = {{1,2,3}, {0,3,2}, {0,1,3}, {0,2,1}};
         return vert(c, facet_vertex[lf][lv]);
     }
 
