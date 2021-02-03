@@ -110,6 +110,20 @@ namespace UM {
         return sa;
     }
 
+    SurfaceAttributes read_wavefront_obj(const std::string filename, Quads &m) {
+        Polygons mpoly;
+        SurfaceAttributes sa = read_wavefront_obj(filename, mpoly);
+
+        std::vector<bool> to_kill(mpoly.nfacets(), false);
+        for (int f=0; f<mpoly.nfacets(); f++)
+            to_kill[f] = (4!=mpoly.facet_size(f));
+        mpoly.delete_facets(to_kill);
+
+        m.points = mpoly.points;
+        m.facets = mpoly.facets;
+        return sa;
+    }
+
     void write_wavefront_obj(const std::string filename, const Surface &m) {
         std::fstream out;
         out.open(filename, std::ios_base::out);
