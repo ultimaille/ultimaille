@@ -23,7 +23,8 @@ namespace UM {
     SurfaceAttributes  read_medit(const std::string filename, Polygons   &m);
     VolumeAttributes   read_medit(const std::string filename, Tetrahedra &m);
     VolumeAttributes   read_medit(const std::string filename, Hexahedra  &m); // N.B. the file is read as is. You may want to check the det of your elements afterward. 
-    VolumeAttributes   read_medit(const std::string filename, Wedges  &m); // TODO
+    VolumeAttributes   read_medit(const std::string filename, Wedges     &m);
+    VolumeAttributes   read_medit(const std::string filename, Pyramids   &m);
 }
 
 // regarding hexes, geogram convention is different of the one of medit. The writer take that into account.

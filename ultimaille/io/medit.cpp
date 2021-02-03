@@ -193,7 +193,7 @@ namespace UM {
                 FOR(i, 2) out << edges_[2 * e + i] + 1 << " ";
                 out << "1" << std::endl;
             }
-            out << "end" << std::endl;
+            out << std::endl << "End" << std::endl;
         }
         if (tris_.size() > 0) {
             out << "Triangles" << std::endl;
@@ -202,7 +202,7 @@ namespace UM {
                 FOR(i, 3) out << tris_[3 * t + i] + 1 << " ";
                 out << "1" << std::endl;
             }
-            out << "end" << std::endl;
+            out << std::endl << "End" << std::endl;
         }
         if (quads_.size() > 0) {
             out << "Quadrilaterals" << std::endl;
@@ -211,7 +211,7 @@ namespace UM {
                 FOR(i, 4) out << quads_[4 * q + i] + 1 << " ";
                 out << "1" << std::endl;
             }
-            out << "end" << std::endl;
+            out << std::endl << "End" << std::endl;
         }
         if (tets_.size() > 0) {
             out << "Tetrahedra" << std::endl;
@@ -220,7 +220,7 @@ namespace UM {
                 FOR(i, 4) out << tets_[4*t +i] + 1 << " ";
                 out << "1" << std::endl;
             }
-            out << "end" << std::endl;
+            out << std::endl << "End" << std::endl;
         }
 
         if (hexes_.size() > 0) {
@@ -237,7 +237,7 @@ namespace UM {
 
                 out << "1" << std::endl;
             }
-            out << "end" << std::endl;
+            out << std::endl << "End" << std::endl;
         }
 
 
@@ -406,6 +406,11 @@ namespace UM {
 
     VolumeAttributes read_medit(const std::string filename, Wedges& m) {
         m = Wedges();
+        return {};
+    }
+
+    VolumeAttributes read_medit(const std::string filename, Pyramids& m) {
+        m = Pyramids();
         return {};
     }
 

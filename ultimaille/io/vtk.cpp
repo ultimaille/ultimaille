@@ -27,7 +27,7 @@ namespace UM {
         return (std::string(copy_without_space.begin(), copy_without_space.begin() + (long int)start_of_string.size()) == start_of_string);
     }
 
-    void read_vtk_format(const std::string& filename, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_, std::vector<int>& wedges_) {
+    void read_vtk_format(const std::string& filename, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_, std::vector<int>& wedges_, std::vector<int>& pyramids_) {
         std::ifstream in;
         in.open(filename, std::ifstream::in);
         if (in.fail()) {
@@ -132,6 +132,9 @@ namespace UM {
                 break;
             case 13:
                 FOR(j, 6) wedges_.push_back(cell_content[start_of_cell[i] + j]);
+                break;
+            case 14:
+                FOR(j, 5) pyramids_.push_back(cell_content[start_of_cell[i] + j]);
                 break;
             default:
                 break;
@@ -285,7 +288,8 @@ namespace UM {
         std::vector<int> tets;
         std::vector<int> hexes;
         std::vector<int> wedges;
-        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges);
+        std::vector<int> pyramids;
+        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = PolyLine();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -302,7 +306,8 @@ namespace UM {
         std::vector<int> tets;
         std::vector<int> hexes;
         std::vector<int> wedges;
-        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges);
+        std::vector<int> pyramids;
+        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Triangles();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -319,7 +324,8 @@ namespace UM {
         std::vector<int> tets;
         std::vector<int> hexes;
         std::vector<int> wedges;
-        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges);
+        std::vector<int> pyramids;
+        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Quads();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -336,7 +342,8 @@ namespace UM {
         std::vector<int> tets;
         std::vector<int> hexes;
         std::vector<int> wedges;
-        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges);
+        std::vector<int> pyramids;
+        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Polygons();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -357,7 +364,8 @@ namespace UM {
         std::vector<int> tets;
         std::vector<int> hexes;
         std::vector<int> wedges;
-        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges);
+        std::vector<int> pyramids;
+        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Tetrahedra();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -374,7 +382,8 @@ namespace UM {
         std::vector<int> tets;
         std::vector<int> hexes;
         std::vector<int> wedges;
-        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges);
+        std::vector<int> pyramids;
+        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Hexahedra();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -392,13 +401,33 @@ namespace UM {
         std::vector<int> tets;
         std::vector<int> hexes;
         std::vector<int> wedges;
-        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges);
+        std::vector<int> pyramids;
+        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Wedges();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
         m.create_cells(wedges.size() / 6);
         FOR(h, m.ncells()) FOR(hv, 6) m.vert(h, hv) = wedges[6 * h + hv];
+        return{};
+    }
+
+    VolumeAttributes read_vtk(const std::string filename, Pyramids& m) {
+        std::vector<vec3> verts;
+        std::vector<int> edges;
+        std::vector<int> tris;
+        std::vector<int> quads;
+        std::vector<int> tets;
+        std::vector<int> hexes;
+        std::vector<int> wedges;
+        std::vector<int> pyramids;
+        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
+        m = Pyramids();
+        m.points.create_points(verts.size());
+        FOR(v, verts.size()) m.points[v] = verts[v];
+
+        m.create_cells(pyramids.size() / 5);
+        FOR(h, m.ncells()) FOR(hv, 5) m.vert(h, hv) = pyramids[5 * h + hv];
         return{};
     }
 

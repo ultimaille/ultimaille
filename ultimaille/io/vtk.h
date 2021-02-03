@@ -24,6 +24,7 @@ namespace UM {
     VolumeAttributes   read_vtk(const std::string filename, Tetrahedra &m);
     VolumeAttributes   read_vtk(const std::string filename, Hexahedra  &m);
     VolumeAttributes   read_vtk(const std::string filename, Wedges     &m);
+    VolumeAttributes   read_vtk(const std::string filename, Pyramids   &m);
 }
 
 

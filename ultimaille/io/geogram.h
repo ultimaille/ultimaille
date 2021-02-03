@@ -20,6 +20,7 @@ namespace UM {
     VolumeAttributes   read_geogram(const std::string filename, Tetrahedra &m);
     VolumeAttributes   read_geogram(const std::string filename, Hexahedra  &m);
     VolumeAttributes   read_geogram(const std::string filename, Wedges     &m);
+    VolumeAttributes   read_geogram(const std::string filename, Pyramids   &m);
 }
 
 #endif // __GEOGRAM_H__

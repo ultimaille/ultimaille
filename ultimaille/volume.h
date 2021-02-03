@@ -88,7 +88,7 @@ namespace UM {
      *         1                   2
      */
 
-    struct Tetrahedra : Volume { // simplicial mesh implementation
+    struct Tetrahedra : Volume {
         int cell_type() const;
         int  nverts_per_cell() const;
         int nfacets_per_cell() const;
@@ -138,7 +138,7 @@ namespace UM {
      * The smallest local index is the first facet vertex.
      */
 
-    struct Hexahedra : Volume { // hex mesh implementation
+    struct Hexahedra : Volume {
         int cell_type() const;
         int  nverts_per_cell() const;
         int nfacets_per_cell() const;
@@ -149,7 +149,18 @@ namespace UM {
         int corner(const int c, const int lc) const;
     };
 
-    struct Wedges : Volume { // prismatic mesh implementation
+    struct Wedges : Volume {
+        int cell_type() const;
+        int  nverts_per_cell() const;
+        int nfacets_per_cell() const;
+
+        int facet_size(const int c, const int lf) const;
+        int facet_vert(const int c, const int lf, const int lv) const;
+        int  facet(const int c, const int lf) const;
+        int corner(const int c, const int lc) const;
+    };
+
+    struct Pyramids : Volume {
         int cell_type() const;
         int  nverts_per_cell() const;
         int nfacets_per_cell() const;
@@ -306,12 +317,49 @@ namespace UM {
 
     inline int Wedges::facet(const int c, const int lf) const {
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell());
-        return c*6 + lf;
+        return c*5 + lf;
     }
 
     inline int Wedges::corner(const int c, const int lc) const {
         assert(c>=0 && c<ncells() && lc>=0 && lc<6);
         return c*6 + lc;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline int Pyramids::cell_type() const {
+        return Volume::CELL_TYPE::WEDGE;
+    }
+
+    inline int Pyramids::nverts_per_cell() const {
+        return 5;
+    }
+
+    inline int Pyramids::nfacets_per_cell() const {
+        return 5;
+    }
+
+    inline int Pyramids::facet_size(const int c, const int lf) const {
+        (void)c;
+        assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell());
+        if (!lf) return 4;
+        return 3;
+    }
+
+    inline int Pyramids::facet_vert(const int c, const int lf, const int lv) const {
+        assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell() && lv>=0 && lv<facet_size(c, lf));
+        static constexpr int facet_vertex[5][4] = { {0,1,2,3}, {0,4,1,-1}, {0,3,4,-1}, {2,4,3,-1}, {2,1,4,-1} };
+        return vert(c, facet_vertex[lf][lv]);
+    }
+
+    inline int Pyramids::facet(const int c, const int lf) const {
+        assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell());
+        return c*5 + lf;
+    }
+
+    inline int Pyramids::corner(const int c, const int lc) const {
+        assert(c>=0 && c<ncells() && lc>=0 && lc<6);
+        return c*5 + lc;
     }
 }
 

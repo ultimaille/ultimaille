@@ -441,7 +441,7 @@ namespace UM {
                     std::string attribute_set_name = in.read_string();
                     index_t nb_items = in.read_int();
                     in.check_chunk_size();
-                    std::cerr << "ATTS " << attribute_set_name << " " << nb_items << std::endl;
+//                  std::cerr << "ATTS " << attribute_set_name << " " << nb_items << std::endl;
                     for (int i=0; i<7; i++)
                         if (attribute_set_name == attrib_set_names[i])
                             set_size[i] = nb_items;
@@ -462,7 +462,7 @@ namespace UM {
 
                     if (attribute_name=="GEO::Mesh::cell_facets::adjacent_cell" || attribute_name=="GEO::Mesh::facet_corners::corner_adjacent_facet") continue;
 
-                    std::cerr << "ATTR " << attribute_set_name << " " << attribute_name << " " << element_type << " " << element_size << " " << dimension << "\n";
+//                  std::cerr << "ATTR " << attribute_set_name << " " << attribute_name << " " << element_type << " " << element_size << " " << dimension << "\n";
 
                     std::shared_ptr<GenericAttributeContainer> P;
                     if (element_type=="char") {
@@ -536,7 +536,7 @@ namespace UM {
         }
     }
 
-    void parse_volume_data(const std::string filename, PointSet &pts, VolumeAttributes &va, std::vector<int> &corner_vertex, int type2keep) {
+    void parse_volume_data(const std::string filename, PointSet &pts, VolumeAttributes &va, std::vector<int> &corner_vertex, Volume::CELL_TYPE type2keep) {
         std::vector<NamedContainer> attrib[7];
         read_geogram(filename, attrib);
         parse_pointset_attributes(pts, attrib[0]);
@@ -609,11 +609,9 @@ namespace UM {
         m = Tetrahedra();
         VolumeAttributes va;
         std::vector<int> corner_vertex;
-        parse_volume_data(filename, m.points, va, corner_vertex, 0);
+        parse_volume_data(filename, m.points, va, corner_vertex, Volume::TETRAHEDRON);
         assert(corner_vertex.size()%4==0);
 
-        int ntetra = corner_vertex.size()*4;
-        m.create_cells(ntetra);
         m.cells = corner_vertex;
 
         for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
@@ -628,11 +626,9 @@ namespace UM {
         m = Hexahedra();
         VolumeAttributes va;
         std::vector<int> corner_vertex;
-        parse_volume_data(filename, m.points, va, corner_vertex, 1);
+        parse_volume_data(filename, m.points, va, corner_vertex, Volume::HEXAHEDRON);
         assert(corner_vertex.size()%8==0);
 
-        int nhexa = corner_vertex.size()*8;
-        m.create_cells(nhexa);
         m.cells = corner_vertex;
 
         for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
@@ -647,11 +643,26 @@ namespace UM {
         m = Wedges();
         VolumeAttributes va;
         std::vector<int> corner_vertex;
-        parse_volume_data(filename, m.points, va, corner_vertex, 2);
+        parse_volume_data(filename, m.points, va, corner_vertex, Volume::WEDGE);
         assert(corner_vertex.size()%6==0);
 
-        int nprisms = corner_vertex.size()*6;
-        m.create_cells(nprisms);
+        m.cells = corner_vertex;
+
+        for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
+        for (auto &a : std::get<1>(va)) m.attr_cells.emplace_back(a.second);
+        for (auto &a : std::get<2>(va)) m.attr_facets.emplace_back(a.second);
+        for (auto &a : std::get<3>(va)) m.attr_corners.emplace_back(a.second);
+
+        return va;
+    }
+
+    VolumeAttributes read_geogram(const std::string filename, Pyramids &m) {
+        m = Pyramids();
+        VolumeAttributes va;
+        std::vector<int> corner_vertex;
+        parse_volume_data(filename, m.points, va, corner_vertex, Volume::PYRAMID);
+        assert(corner_vertex.size()%5==0);
+
         m.cells = corner_vertex;
 
         for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
