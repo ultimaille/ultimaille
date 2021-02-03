@@ -10,6 +10,180 @@
 using namespace UM;
 static const double ftol = 1e-13;
 
+TEST_CASE("PolyLine + VolumeAttributes IO test", "[geogram]") {
+    static const std::string filename = "ultimaille-test-polyline.geogram";
+    PolyLine m;
+    *m.points.data = {{0,.9,0}, {0,.8,0}, {1.,.3,0.}};
+    m.segments = {0,1,1,2};
+    PointAttribute<bool> vbool(m.points);
+    SegmentAttribute<int> sint(m);
+    for (int v : range(m.nverts()))
+        vbool[v] = rand()&1;
+    for (int cc : range(m.nsegments()))
+        sint[cc] = rand();
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"sint", sint.ptr}}});
+
+    PolyLine m2;
+    PolyLineAttributes attrs = read_by_extension(filename, m2);
+
+    REQUIRE( m.nverts()==m2.nverts() );
+    REQUIRE( m.nsegments()==m2.nsegments() );
+
+    PointAttribute<bool> vbool2("vbool", attrs, m2);
+    for (int v=0; v<m.nverts(); v++) {
+        REQUIRE( (m.points[v]-m2.points[v]).norm()<ftol );
+        REQUIRE( vbool[v]==vbool2[v] );
+    }
+
+    SegmentAttribute<int> sint2("sint", attrs, m2);
+    for (int c=0; c<m.nsegments(); c++) {
+        for (int lv=0; lv<2; lv++) {
+            REQUIRE( m.vert(c, lv)==m2.vert(c, lv) );
+        }
+        REQUIRE( std::fabs(sint[c]-sint2[c])<ftol );
+    }
+}
+
+TEST_CASE("Triangles + SurfaceAttributes IO test", "[geogram]") {
+    static const std::string filename = "ultimaille-test-triangles.geogram";
+    Triangles m;
+    *m.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {1,1,0}};
+    m.facets = {0,1,2,2,1,3};
+
+    PointAttribute<bool> vbool(m.points);
+    FacetAttribute<vec3> fvec3(m);
+    CornerAttribute<int> cint(m);
+
+    for (int v : range(m.nverts()))
+        vbool[v] = rand()&1;
+
+    for (int f : range(m.nfacets()))
+        fvec3[f] = m.util.bary_verts(f);
+
+    for (int c : range(m.ncorners()))
+        cint[c] = rand();
+
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"fvec3", fvec3.ptr}}, {{"cint", cint.ptr}}});
+
+    Triangles m2;
+    SurfaceAttributes attrs = read_by_extension(filename, m2);
+
+    REQUIRE( m.nverts()==m2.nverts() );
+    REQUIRE( m.nfacets()==m2.nfacets() );
+
+    PointAttribute<bool> vbool2("vbool", attrs, m2);
+    for (int v=0; v<m.nverts(); v++) {
+        REQUIRE( (m.points[v]-m2.points[v]).norm()<ftol );
+        REQUIRE( vbool[v]==vbool2[v] );
+    }
+
+    FacetAttribute<vec3> fvec32("fvec3", attrs, m2);
+    for (int f=0; f<m.nfacets(); f++) {
+        for (int lv=0; lv<m.facet_size(f); lv++) {
+            REQUIRE( m.vert(f, lv)==m2.vert(f, lv) );
+        }
+        REQUIRE( (fvec3[f]-fvec32[f]).norm()<ftol );
+    }
+    CornerAttribute<int> cint2("cint", attrs, m2);
+    for (int c=0; c<m.ncorners(); c++) {
+        REQUIRE( cint[c]==cint2[c] );
+    }
+}
+
+TEST_CASE("Quads + SurfaceAttributes IO test", "[geogram]") {
+    static const std::string filename = "ultimaille-test-quads.geogram";
+    Quads m;
+    *m.points.data = {{0,0,0}, {1,0,0}, {1,1,0}, {0,1,0}, {1,1,1}, {0,1,1}};
+    m.facets = {0,1,2,3,3,2,4,5};
+
+    PointAttribute<bool> vbool(m.points);
+    FacetAttribute<vec3> fvec3(m);
+    CornerAttribute<int> cint(m);
+
+    for (int v : range(m.nverts()))
+        vbool[v] = rand()&1;
+
+    for (int f : range(m.nfacets()))
+        fvec3[f] = m.util.bary_verts(f);
+
+    for (int c : range(m.ncorners()))
+        cint[c] = rand();
+
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"fvec3", fvec3.ptr}}, {{"cint", cint.ptr}}});
+
+    Quads m2;
+    SurfaceAttributes attrs = read_by_extension(filename, m2);
+
+    REQUIRE( m.nverts()==m2.nverts() );
+    REQUIRE( m.nfacets()==m2.nfacets() );
+
+    PointAttribute<bool> vbool2("vbool", attrs, m2);
+    for (int v=0; v<m.nverts(); v++) {
+        REQUIRE( (m.points[v]-m2.points[v]).norm()<ftol );
+        REQUIRE( vbool[v]==vbool2[v] );
+    }
+
+    FacetAttribute<vec3> fvec32("fvec3", attrs, m2);
+    for (int f=0; f<m.nfacets(); f++) {
+        for (int lv=0; lv<m.facet_size(f); lv++) {
+            REQUIRE( m.vert(f, lv)==m2.vert(f, lv) );
+        }
+        REQUIRE( (fvec3[f]-fvec32[f]).norm()<ftol );
+    }
+    CornerAttribute<int> cint2("cint", attrs, m2);
+    for (int c=0; c<m.ncorners(); c++) {
+        REQUIRE( cint[c]==cint2[c] );
+    }
+}
+
+TEST_CASE("Polygons + SurfaceAttributes IO test", "[geogram]") {
+    static const std::string filename = "ultimaille-test-polygons.geogram";
+    Polygons m;
+    *m.points.data = {{ 1 , 0 ,0}, { 0.309017, 0.951057,0}, {-0.809017, 0.587785,0}, {-0.809017,-0.587785,0}, { 0.309017,-0.951057,0}};
+    m.facets = {0,1,2,3,4,0,2};
+    m.offset = {0,3,7};
+
+    PointAttribute<bool> vbool(m.points);
+    FacetAttribute<vec3> fvec3(m);
+    CornerAttribute<int> cint(m);
+
+    for (int v : range(m.nverts()))
+        vbool[v] = rand()&1;
+
+    for (int f : range(m.nfacets()))
+        fvec3[f] = m.util.bary_verts(f);
+
+    for (int c : range(m.ncorners()))
+        cint[c] = rand();
+
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"fvec3", fvec3.ptr}}, {{"cint", cint.ptr}}});
+
+    Polygons m2;
+    SurfaceAttributes attrs = read_by_extension(filename, m2);
+
+    REQUIRE( m.nverts()==m2.nverts() );
+    REQUIRE( m.nfacets()==m2.nfacets() );
+
+    PointAttribute<bool> vbool2("vbool", attrs, m2);
+    for (int v=0; v<m.nverts(); v++) {
+        REQUIRE( (m.points[v]-m2.points[v]).norm()<ftol );
+        REQUIRE( vbool[v]==vbool2[v] );
+    }
+
+    FacetAttribute<vec3> fvec32("fvec3", attrs, m2);
+    for (int f=0; f<m.nfacets(); f++) {
+        REQUIRE(m.facet_size(f)==m2.facet_size(f));
+        for (int lv=0; lv<m.facet_size(f); lv++) {
+            REQUIRE( m.vert(f, lv)==m2.vert(f, lv) );
+        }
+        REQUIRE( (fvec3[f]-fvec32[f]).norm()<ftol );
+    }
+    CornerAttribute<int> cint2("cint", attrs, m2);
+    for (int c=0; c<m.ncorners(); c++) {
+        REQUIRE( cint[c]==cint2[c] );
+    }
+}
+
 TEST_CASE("Tetrahedra + VolumeAttributes IO test", "[geogram]") {
     static const std::string filename = "ultimaille-test-tetrahedra.geogram";
     Tetrahedra m;
@@ -28,15 +202,15 @@ TEST_CASE("Tetrahedra + VolumeAttributes IO test", "[geogram]") {
         cdouble[c] = m.util.cell_volume(c);
 
     for (int cf : range(m.nfacets()))
-        cfvec3[cf] = m.util.bary_facet(cf/4, cf%4);
+        cfvec3[cf] = m.util.bary_facet(cf/m.nverts_per_cell(), cf%m.nverts_per_cell());
 
     for (int cc : range(m.ncorners()))
         ccint[cc] = rand();
 
-    write_geogram(filename, m, {{{"vbool", vbool.ptr}}, {{"cdouble", cdouble.ptr}}, {{"cfvec3", cfvec3.ptr}}, {{"ccint", ccint.ptr}}});
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"cdouble", cdouble.ptr}}, {{"cfvec3", cfvec3.ptr}}, {{"ccint", ccint.ptr}}});
 
     Tetrahedra m2;
-    VolumeAttributes attrs = read_geogram(filename, m2);
+    VolumeAttributes attrs = read_by_extension(filename, m2);
 
     REQUIRE( m.nverts()==m2.nverts() );
     REQUIRE( m.ncells()==m2.ncells() );
@@ -66,276 +240,171 @@ TEST_CASE("Tetrahedra + VolumeAttributes IO test", "[geogram]") {
     }
 }
 
-/*
-static const std::string edges_str =
-R"(MeshVersionFormatted 2
+TEST_CASE("Hexahedra + VolumeAttributes IO test", "[geogram]") {
+    static const std::string filename = "ultimaille-test-hexahedra.geogram";
+    Hexahedra m;
+    *m.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {1,1,0}, {0,0,1}, {1,0,1}, {0,1,1}, {1,1,1}, {0,0,2}, {1,0,2}, {0,1,2}, {1,1,2}};
+    m.cells = {0,1,2,3,4,5,6,7,4,5,6,7,8,9,10,11};
 
-Dimension
-3
+    PointAttribute<bool> vbool(m.points);
+    CellAttribute<double> cdouble(m);
+    CellFacetAttribute<vec3> cfvec3(m);
+    CellCornerAttribute<int> ccint(m);
 
-Vertices
-3
-0. 0.9 0. 0
-0. 0.8 0. 0
-1. 0.3 0. 0
+    for (int v : range(m.nverts()))
+        vbool[v] = rand()&1;
 
-Edges
-2
-1 2 0
-2 3 0
+    for (int c : range(m.ncells()))
+        cdouble[c] = m.util.cell_volume(c);
 
-End)";
+    for (int cf : range(m.nfacets()))
+        cfvec3[cf] = m.util.bary_facet(cf/m.nverts_per_cell(), cf%m.nverts_per_cell());
 
-static const std::string tri_str =
-R"(MeshVersionFormatted 2
+    for (int cc : range(m.ncorners()))
+        ccint[cc] = rand();
 
-Dimension
-3
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"cdouble", cdouble.ptr}}, {{"cfvec3", cfvec3.ptr}}, {{"ccint", ccint.ptr}}});
 
-Vertices
-3
-0. 0. 0. 1
-1. 0. 0. 1
-0. 1. 0. 1
+    Hexahedra m2;
+    VolumeAttributes attrs = read_by_extension(filename, m2);
 
-Triangles
-1
-1 2 3 1
+    REQUIRE( m.nverts()==m2.nverts() );
+    REQUIRE( m.ncells()==m2.ncells() );
 
-End)";
+    PointAttribute<bool> vbool2("vbool", attrs, m2);
+    for (int v=0; v<m.nverts(); v++) {
+        REQUIRE( (m.points[v]-m2.points[v]).norm()<ftol );
+        REQUIRE( vbool[v]==vbool2[v] );
+    }
 
-static const std::string quad_str =
-R"(MeshVersionFormatted 2
+    CellAttribute<double> cdouble2("cdouble", attrs, m2);
+    for (int c=0; c<m.ncells(); c++) {
+        for (int lv=0; lv<m.nverts_per_cell(); lv++) {
+            REQUIRE( m.vert(c, lv)==m2.vert(c, lv) );
+        }
+        REQUIRE( std::fabs(cdouble[c]-cdouble2[c])<ftol );
+    }
 
-Dimension
-3
+    CellFacetAttribute<vec3> cfvec32("cfvec3", attrs, m2);
+    for (int cf=0; cf<m.nfacets(); cf++) {
+        REQUIRE( (cfvec3[cf]-cfvec32[cf]).norm()<ftol );
+    }
 
-Vertices
-4
-0. 0. 0. 1
-1. 0. 0. 1
-1. 1. 0. 1
-0. 1. 0. 1
-
-Quadrilaterals
-1
-1 2 3 4  1
-
-End
-)";
-
-static const std::string tet_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-4
-0. 0. 0. 1
-1. 0. 0. 1
-0. 1. 0. 1
-0. 1. 1. 1
-
-Tetrahedra
-1
-1 2 3 4 1
-
-End)";
-
-static const std::string hex_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-8
-0. 0. 0. 1
-1. 0. 0. 1
-1. 1. 0. 1
-0. 1. 0. 1
-0. 0. 1. 1
-1. 0. 1. 1
-1. 1. 1. 1
-0. 1. 1. 1
-
-Hexahedra
-1
-1 2 3 4 5 6 7 8 1
-
-End)";
-
-static const std::string wedge_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-6
-0. 0. 0. 1
-1. 0. 0. 1
-0. 1. 0. 1
-0. 0. 1. 1
-1. 0. 1. 1
-0. 1. 1. 1
-
-Prisms
-1
-1 2 3 4 5 6 1
-
-End)";
-
-static const std::string pyramid_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-5
-0.  0.  0.  1
-1.  0.  0.  1
-1.  1.  0.  1
-0.  1.  0.  1
-0.5 0.5 0.5 1
-
-Pyramids
-1
-1 2 3 4 5 1
-
-End)";
-
-TEST_CASE("Medit polyline IO test", "[Polyline]") {
-    static const std::string filename[2] = { "ultimaille-test-polyline-in.mesh", "ultimaille-test-polyline-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << edges_str;
-    ofs.close();
-
-    PolyLine m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
-
-        REQUIRE( m[i].nverts()==3 );
-        REQUIRE( m[i].nsegments()==2 );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
+    CellCornerAttribute<int> ccint2("ccint", attrs, m2);
+    for (int cc=0; cc<m.ncorners(); cc++) {
+        REQUIRE( ccint[cc]==ccint2[cc] );
     }
 }
 
-TEST_CASE("Medit triangles IO test", "[Triangles]") {
-    static const std::string filename[2] = { "ultimaille-test-triangles-in.mesh", "ultimaille-test-triangles-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << tri_str;
-    ofs.close();
+TEST_CASE("Wedges + VolumeAttributes IO test", "[geogram]") {
+    static const std::string filename = "ultimaille-test-wedges.geogram";
+    Wedges m;
+    *m.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {0,0,1}, {1,0,1}, {0,1,1}, {0,0,2}, {1,0,2}, {0,1,2}};
+    m.cells = {0,1,2,3,4,5,3,4,5,6,7,8};
 
-    Triangles m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
+    PointAttribute<bool> vbool(m.points);
+    CellAttribute<double> cdouble(m);
+    CellFacetAttribute<vec3> cfvec3(m);
+    CellCornerAttribute<int> ccint(m);
 
-        REQUIRE( m[i].nverts()==3 );
-        REQUIRE( m[i].nfacets()==1 );
-        REQUIRE( std::abs(m[i].util.area(0)-.5)<ftol );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
+    for (int v : range(m.nverts()))
+        vbool[v] = rand()&1;
+
+    for (int c : range(m.ncells()))
+        cdouble[c] = m.util.cell_volume(c);
+
+    for (int cf : range(m.nfacets()))
+        cfvec3[cf] = m.util.bary_facet(cf/m.nverts_per_cell(), cf%m.nverts_per_cell());
+
+    for (int cc : range(m.ncorners()))
+        ccint[cc] = rand();
+
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"cdouble", cdouble.ptr}}, {{"cfvec3", cfvec3.ptr}}, {{"ccint", ccint.ptr}}});
+
+    Wedges m2;
+    VolumeAttributes attrs = read_by_extension(filename, m2);
+
+    REQUIRE( m.nverts()==m2.nverts() );
+    REQUIRE( m.ncells()==m2.ncells() );
+
+    PointAttribute<bool> vbool2("vbool", attrs, m2);
+    for (int v=0; v<m.nverts(); v++) {
+        REQUIRE( (m.points[v]-m2.points[v]).norm()<ftol );
+        REQUIRE( vbool[v]==vbool2[v] );
+    }
+
+    CellAttribute<double> cdouble2("cdouble", attrs, m2);
+    for (int c=0; c<m.ncells(); c++) {
+        for (int lv=0; lv<m.nverts_per_cell(); lv++) {
+            REQUIRE( m.vert(c, lv)==m2.vert(c, lv) );
+        }
+        REQUIRE( std::fabs(cdouble[c]-cdouble2[c])<ftol );
+    }
+
+    CellFacetAttribute<vec3> cfvec32("cfvec3", attrs, m2);
+    for (int cf=0; cf<m.nfacets(); cf++) {
+        REQUIRE( (cfvec3[cf]-cfvec32[cf]).norm()<ftol );
+    }
+
+    CellCornerAttribute<int> ccint2("ccint", attrs, m2);
+    for (int cc=0; cc<m.ncorners(); cc++) {
+        REQUIRE( ccint[cc]==ccint2[cc] );
     }
 }
 
-TEST_CASE("Medit quads IO test", "[Quads]") {
-    static const std::string filename[2] = { "ultimaille-test-quads-in.mesh", "ultimaille-test-quads-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << quad_str;
-    ofs.close();
+TEST_CASE("Pyramids + VolumeAttributes IO test", "[geogram]") {
+    static const std::string filename = "ultimaille-test-pyramids.geogram";
+    Pyramids m;
+    *m.points.data = {{0,0,0}, {1,0,0}, {1,1,0}, {0,1,0}, {.5,.5,.5}, {.5,.5,-.5}};
+    m.cells = {0,1,2,3,4,3,2,1,0,5};
 
-    Quads m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
+    PointAttribute<bool> vbool(m.points);
+    CellAttribute<double> cdouble(m);
+    CellFacetAttribute<vec3> cfvec3(m);
+    CellCornerAttribute<int> ccint(m);
 
-        REQUIRE( m[i].nverts()==4 );
-        REQUIRE( m[i].nfacets()==1 );
-        REQUIRE( std::abs(m[i].util.area(0)-1.)<ftol );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
+    for (int v : range(m.nverts()))
+        vbool[v] = rand()&1;
+
+    for (int c : range(m.ncells()))
+        cdouble[c] = m.util.cell_volume(c);
+
+    for (int cf : range(m.nfacets()))
+        cfvec3[cf] = m.util.bary_facet(cf/m.nverts_per_cell(), cf%m.nverts_per_cell());
+
+    for (int cc : range(m.ncorners()))
+        ccint[cc] = rand();
+
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"cdouble", cdouble.ptr}}, {{"cfvec3", cfvec3.ptr}}, {{"ccint", ccint.ptr}}});
+
+    Pyramids m2;
+    VolumeAttributes attrs = read_by_extension(filename, m2);
+
+    REQUIRE( m.nverts()==m2.nverts() );
+    REQUIRE( m.ncells()==m2.ncells() );
+
+    PointAttribute<bool> vbool2("vbool", attrs, m2);
+    for (int v=0; v<m.nverts(); v++) {
+        REQUIRE( (m.points[v]-m2.points[v]).norm()<ftol );
+        REQUIRE( vbool[v]==vbool2[v] );
+    }
+
+    CellAttribute<double> cdouble2("cdouble", attrs, m2);
+    for (int c=0; c<m.ncells(); c++) {
+        for (int lv=0; lv<m.nverts_per_cell(); lv++) {
+            REQUIRE( m.vert(c, lv)==m2.vert(c, lv) );
+        }
+        REQUIRE( std::fabs(cdouble[c]-cdouble2[c])<ftol );
+    }
+
+    CellFacetAttribute<vec3> cfvec32("cfvec3", attrs, m2);
+    for (int cf=0; cf<m.nfacets(); cf++) {
+        REQUIRE( (cfvec3[cf]-cfvec32[cf]).norm()<ftol );
+    }
+
+    CellCornerAttribute<int> ccint2("ccint", attrs, m2);
+    for (int cc=0; cc<m.ncorners(); cc++) {
+        REQUIRE( ccint[cc]==ccint2[cc] );
     }
 }
 
-TEST_CASE("Medit poly IO test", "[Polygons]") {
-    REQUIRE( false );
-}
-
-TEST_CASE("Medit tetra IO test", "[Tetrahedra]") {
-    static const std::string filename[2] = { "ultimaille-test-tetrahedra-in.mesh", "ultimaille-test-tetrahedra-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << tet_str;
-    ofs.close();
-
-    Tetrahedra m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
-
-        REQUIRE( m[i].nverts()==4 );
-        REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
-    }
-}
-
-TEST_CASE("Medit hexa IO test", "[Hexahedra]") {
-    static const std::string filename[2] = { "ultimaille-test-hexahedra-in.mesh", "ultimaille-test-hexahedra-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << hex_str;
-    ofs.close();
-
-    Hexahedra m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
-
-        REQUIRE( m[i].nverts()==8 );
-        REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-1.)<ftol );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
-    }
-}
-
-
-TEST_CASE("Medit wedges IO test", "[Wedges]") {
-    static const std::string filename[2] = { "ultimaille-test-wedges-in.mesh", "ultimaille-test-wedges-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << wedge_str;
-    ofs.close();
-
-    Wedges m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
-
-        REQUIRE( m[i].nverts()==6 );
-        REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-.5)<ftol );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
-    }
-}
-
-TEST_CASE("Medit pyramids IO test", "[Pyramids]") {
-    static const std::string filename[2] = { "ultimaille-test-pyramids-in.mesh", "ultimaille-test-pyramids-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << pyramid_str;
-    ofs.close();
-
-    Pyramids m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
-
-        REQUIRE( m[i].nverts()==5 );
-        REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
-    }
-}
-
-
-*/

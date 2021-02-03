@@ -10,7 +10,7 @@ namespace UM {
     struct GenericAttributeContainer;
 
     struct Volume {
-        enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };  // TODO: implement pyramids
+        enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };
 
         PointSet points{};
         std::vector<int> cells{};
@@ -366,7 +366,7 @@ namespace UM {
 
     inline int Wedges::facet_vert(const int c, const int lf, const int lv) const {
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell() && lv>=0 && lv<facet_size(c, lf));
-        static constexpr int facet_vertex[5][4] = {{0,2,1,-1}, {3,4,5,-1}, {0,1,4,3}, {0,3,5,2}, {1,2,5,4} };
+        static constexpr int facet_vertex[5][4] = {{0,2,1,-1}, {3,4,5,-1}, {0,1,4,3}, {0,3,5,2}, {1,2,5,4}};
         return vert(c, facet_vertex[lf][lv]);
     }
 
@@ -403,7 +403,7 @@ namespace UM {
 
     inline int Pyramids::facet_vert(const int c, const int lf, const int lv) const {
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell() && lv>=0 && lv<facet_size(c, lf));
-        static constexpr int facet_vertex[5][4] = { {0,3,2,1}, {0,1,4,-1}, {0,4,3,-1}, {2,3,4,-1}, {1,2,4,-1} };
+        static constexpr int facet_vertex[5][4] = {{0,3,2,1}, {0,1,4,-1}, {0,4,3,-1}, {2,3,4,-1}, {1,2,4,-1}};
         return vert(c, facet_vertex[lf][lv]);
     }
 
