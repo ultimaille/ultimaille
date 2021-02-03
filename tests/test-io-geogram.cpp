@@ -10,7 +10,7 @@
 using namespace UM;
 static const double ftol = 1e-13;
 
-TEST_CASE("GEOGRAM tetrahedra + VolumeAttributes IO test", "[Tetrahedra]") {
+TEST_CASE("Tetrahedra + VolumeAttributes IO test", "[geogram]") {
     static const std::string filename = "ultimaille-test-tetrahedra.geogram";
     Tetrahedra m;
     *m.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {0,0,1}, {1,1,1}};
@@ -21,16 +21,16 @@ TEST_CASE("GEOGRAM tetrahedra + VolumeAttributes IO test", "[Tetrahedra]") {
     CellFacetAttribute<vec3> cfvec3(m);
     CellCornerAttribute<int> ccint(m);
 
-    for (int v : range(5))
+    for (int v : range(m.nverts()))
         vbool[v] = rand()&1;
 
-    for (int c : range(2))
+    for (int c : range(m.ncells()))
         cdouble[c] = m.util.cell_volume(c);
 
-    for (int cf : range(8))
+    for (int cf : range(m.nfacets()))
         cfvec3[cf] = m.util.bary_facet(cf/4, cf%4);
 
-    for (int cc : range(8))
+    for (int cc : range(m.ncorners()))
         ccint[cc] = rand();
 
     write_geogram(filename, m, {{{"vbool", vbool.ptr}}, {{"cdouble", cdouble.ptr}}, {{"cfvec3", cfvec3.ptr}}, {{"ccint", ccint.ptr}}});

@@ -106,14 +106,20 @@ namespace UM {
 
     struct Polygons : Surface { // polygonal mesh implementation
         std::vector<int> offset = {};
-        Polygons();
+        Polygons() : Surface(), offset(1, 0), util(*this)  {}
+        Polygons(const Polygons& m) : Surface(m), offset(1,0), util(*this) {}
+        Polygons& operator=(const Polygons& m) {
+            clear();
+            um_assert(!m.points.size() && !m.facets.size() && 1==m.offset.size());
+            return *this;
+        }
 
         int create_facets(const int n, const int size);
         void delete_facets(const std::vector<bool> &to_kill);
 
         virtual void clear() {
             Surface::clear();
-            offset = {};
+            offset = {0};
         }
 
         int nfacets()  const;
@@ -121,6 +127,10 @@ namespace UM {
         int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
         int &vert(const int fi, const int lv);
+
+        struct Util : Surface::Util {
+            Util(const Polygons &mesh) : Surface::Util(mesh) {}
+        } util;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

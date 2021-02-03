@@ -7,7 +7,6 @@
 #include "ultimaille/assert.h"
 #define FOR(i, n) for(int i = 0; i < static_cast<int>(n); i++)
 
-
 constexpr std::array<int, 8> hex_medit2geogram = { 0,1,3,2,4,5,7,6 };
 
 namespace UM {
@@ -30,7 +29,7 @@ namespace UM {
         return (std::string(copy_without_space.begin(), copy_without_space.begin() + (long int)start_of_string.size()) == start_of_string);
     }
 
-    void read_medit_format(const std::string& filename, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_) {
+    void read_medit_format(const std::string& filename, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_, std::vector<int>& wedges_, std::vector<int>& pyramids_) {
         std::ifstream in;
         in.open(filename, std::ifstream::in);
         if (in.fail()) {
@@ -164,10 +163,52 @@ namespace UM {
                     }
                 }
             }
+            if (string_start(firstline, "Prisms")) {
+                std::string line;
+                int nb_of_prisms = 0;
+                {
+                    file_must_no_be_at_end(in, "parsing Prisms");
+                    std::getline(in, line);
+                    std::istringstream iss(line.c_str());
+                    iss >> nb_of_prisms;
+                }
+                wedges_.resize(6 * nb_of_prisms);
+                FOR(h, nb_of_prisms) {
+                    file_must_no_be_at_end(in, "parsing Prisms");
+                    std::getline(in, line);
+                    std::istringstream iss(line.c_str());
+                    FOR(i, 6) {
+                        int a = 0;
+                        iss >> a;
+                        wedges_[6 * h + i] = a - 1;
+                    }
+                }
+            }
+            if (string_start(firstline, "Pyramids")) {
+                std::string line;
+                int nb_of_pyramids = 0;
+                {
+                    file_must_no_be_at_end(in, "parsing Pyramids");
+                    std::getline(in, line);
+                    std::istringstream iss(line.c_str());
+                    iss >> nb_of_pyramids;
+                }
+                pyramids_.resize(5 * nb_of_pyramids);
+                FOR(h, nb_of_pyramids) {
+                    file_must_no_be_at_end(in, "parsing Pyramids");
+                    std::getline(in, line);
+                    std::istringstream iss(line.c_str());
+                    FOR(i, 6) {
+                        int a = 0;
+                        iss >> a;
+                        pyramids_[5 * h + i] = a - 1;
+                    }
+                }
+            }
         }
     }
 
-    void write_medit_format(const std::string& filename, const std::vector<vec3>& verts_, const std::vector<int>& edges_, const std::vector<int>& tris_, const std::vector<int>& quads_, const std::vector<int>& tets_, const  std::vector<int>& hexes_) {
+    void write_medit_format(const std::string& filename, const std::vector<vec3>& verts_, const std::vector<int>& edges_, const std::vector<int>& tris_, const std::vector<int>& quads_, const std::vector<int>& tets_, const  std::vector<int>& hexes_, const std::vector<int>& wedges_, const  std::vector<int>& pyramids_) {
         std::ofstream out_f;
         out_f.open(filename, std::ifstream::out);
         if (out_f.fail()) {
@@ -233,6 +274,25 @@ namespace UM {
             out << std::endl << "End" << std::endl;
         }
 
+        if (wedges_.size() > 0) {
+            out << "Prisms" << std::endl;
+            out << wedges_.size() / 6 << std::endl;
+            FOR(h, wedges_.size() / 6) {
+                FOR(i, 6) out << wedges_[6 * h + i] + 1 << " ";
+                out << "1" << std::endl;
+            }
+            out << std::endl << "End" << std::endl;
+        }
+
+        if (pyramids_.size() > 0) {
+            out << "Pyramids" << std::endl;
+            out << pyramids_.size() / 5 << std::endl;
+            FOR(h, pyramids_.size() / 5) {
+                FOR(i, 5) out << pyramids_[5 * h + i] + 1 << " ";
+                out << "1" << std::endl;
+            }
+            out << std::endl << "End" << std::endl;
+        }
 
         out_f << out.rdbuf();
         out_f.close();
@@ -241,22 +301,15 @@ namespace UM {
     void write_medit(const std::string filename, const PolyLine& pl) {
         std::vector<vec3> verts(pl.nverts());
         std::vector<int> edges(2 * pl.nsegments());
-        std::vector<int> tris;
-        std::vector<int> quads;
-        std::vector<int> tets;
-        std::vector<int> hexes;
+        std::vector<int> tris, quads, tets, hexes, wedges, pyramids;
         FOR(v, pl.nverts()) verts[v] = pl.points[v];
         FOR(e, pl.nsegments()) FOR(ev, 2) edges[2 * e + ev] = pl.vert(e, ev);
-        write_medit_format(filename, verts, edges, tris, quads, tets, hexes);
+        write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
     }
 
     void write_medit(const std::string filename, const Surface& m) {
         std::vector<vec3> verts(m.nverts());
-        std::vector<int> edges;
-        std::vector<int> tris;
-        std::vector<int> quads;
-        std::vector<int> tets;
-        std::vector<int> hexes;
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         FOR(v, m.nverts()) verts[v] = m.points[v];
         FOR(f, m.nfacets()) {
             if (m.facet_size(f) == 3) {
@@ -269,40 +322,37 @@ namespace UM {
                 std::cerr << "Polygon are not supported in our MEDIT writer";
             }
         }
-        write_medit_format(filename, verts, edges, tris, quads, tets, hexes);
+        write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
     }
 
     void write_medit(const std::string filename, const Volume& m) {
         std::vector<vec3> verts(m.nverts());;
-        std::vector<int> edges;
-        std::vector<int> tris;
-        std::vector<int> quads;
-        std::vector<int> tets;
-        std::vector<int> hexes;
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         FOR(v, m.nverts()) verts[v] = m.points[v];
-        if (m.cell_type() == 0) {
+        if (m.cell_type() == Volume::TETRAHEDRON) {
             tets.resize(4 * m.ncells());
             FOR(t, m.ncells()) FOR(tv, 4) tets[4 * t + tv] = m.vert(t, tv);
-        }
-        else if (m.cell_type() == 1) {
+        } else if (m.cell_type() == Volume::HEXAHEDRON) {
             hexes.resize(8 * m.ncells());
             FOR(h, m.ncells()) FOR(hv, 8) hexes[8 * h + hv] = m.vert(h, hv);
-        }
-        else {
+        } else if (m.cell_type() == Volume::WEDGE) {
+            wedges.resize(6 * m.ncells());
+            FOR(h, m.ncells()) FOR(hv, 6) wedges[6 * h + hv] = m.vert(h, hv);
+        } else if (m.cell_type() == Volume::PYRAMID) {
+            pyramids.resize(5 * m.ncells());
+            FOR(h, m.ncells()) FOR(hv, 5) pyramids[5 * h + hv] = m.vert(h, hv);
+        } else {
             std::cerr << "Volume type : " << m.cell_type() << "; not supported in our MEDIT writer";
         }
 
-        write_medit_format(filename, verts, edges, tris, quads, tets, hexes);
+        write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
     }
+
 
     PolyLineAttributes read_medit(const std::string filename, PolyLine& m) {
         std::vector<vec3> verts;
-        std::vector<int> edges;
-        std::vector<int> tris;
-        std::vector<int> quads;
-        std::vector<int> tets;
-        std::vector<int> hexes;
-        read_medit_format(filename, verts, edges, tris, quads, tets, hexes);
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = PolyLine();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -313,12 +363,8 @@ namespace UM {
 
     SurfaceAttributes read_medit(const std::string filename, Triangles& m) {
         std::vector<vec3> verts;
-        std::vector<int> edges;
-        std::vector<int> tris;
-        std::vector<int> quads;
-        std::vector<int> tets;
-        std::vector<int> hexes;
-        read_medit_format(filename, verts, edges, tris, quads, tets, hexes);
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Triangles();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -329,12 +375,8 @@ namespace UM {
 
     SurfaceAttributes read_medit(const std::string filename, Quads& m) {
         std::vector<vec3> verts;
-        std::vector<int> edges;
-        std::vector<int> tris;
-        std::vector<int> quads;
-        std::vector<int> tets;
-        std::vector<int> hexes;
-        read_medit_format(filename, verts, edges, tris, quads, tets, hexes);
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Quads();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -345,12 +387,8 @@ namespace UM {
 
     SurfaceAttributes read_medit(const std::string filename, Polygons& m) {
         std::vector<vec3> verts;
-        std::vector<int> edges;
-        std::vector<int> tris;
-        std::vector<int> quads;
-        std::vector<int> tets;
-        std::vector<int> hexes;
-        read_medit_format(filename, verts, edges, tris, quads, tets, hexes);
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Polygons();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -365,12 +403,8 @@ namespace UM {
 
     VolumeAttributes read_medit(const std::string filename, Tetrahedra& m) {
         std::vector<vec3> verts;
-        std::vector<int> edges;
-        std::vector<int> tris;
-        std::vector<int> quads;
-        std::vector<int> tets;
-        std::vector<int> hexes;
-        read_medit_format(filename, verts, edges, tris, quads, tets, hexes);
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Tetrahedra();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -381,12 +415,8 @@ namespace UM {
 
     VolumeAttributes read_medit(const std::string filename, Hexahedra& m) {
         std::vector<vec3> verts;
-        std::vector<int> edges;
-        std::vector<int> tris;
-        std::vector<int> quads;
-        std::vector<int> tets;
-        std::vector<int> hexes;
-        read_medit_format(filename, verts, edges, tris, quads, tets, hexes);
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Hexahedra();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -397,12 +427,28 @@ namespace UM {
     }
 
     VolumeAttributes read_medit(const std::string filename, Wedges& m) {
+        std::vector<vec3> verts;
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Wedges();
+        m.points.create_points(verts.size());
+        FOR(v, verts.size()) m.points[v] = verts[v];
+
+        m.create_cells(wedges.size() / 6);
+        FOR(h, m.ncells()) FOR(hv, 6) m.vert(h, hv) = wedges[5 * h + hv];
         return {};
     }
 
     VolumeAttributes read_medit(const std::string filename, Pyramids& m) {
+        std::vector<vec3> verts;
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
         m = Pyramids();
+        m.points.create_points(verts.size());
+        FOR(v, verts.size()) m.points[v] = verts[v];
+
+        m.create_cells(pyramids.size() / 5);
+        FOR(h, m.ncells()) FOR(hv, 5) m.vert(h, hv) = pyramids[5 * h + hv];
         return {};
     }
 

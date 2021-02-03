@@ -139,8 +139,6 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    Polygons::Polygons() : Surface(), offset(1, 0) {}
-
     int Polygons::create_facets(const int n, const int size) {
         for (int i=0; i<n*size; i++)
             facets.push_back(0);

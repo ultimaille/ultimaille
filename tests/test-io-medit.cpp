@@ -26,7 +26,8 @@ Edges
 1 2 0
 2 3 0
 
-End)";
+End
+)";
 
 static const std::string tri_str =
 R"(MeshVersionFormatted 2
@@ -44,7 +45,8 @@ Triangles
 1
 1 2 3 1
 
-End)";
+End
+)";
 
 static const std::string quad_str =
 R"(MeshVersionFormatted 2
@@ -66,6 +68,31 @@ Quadrilaterals
 End
 )";
 
+static const std::string poly_str =
+R"(MeshVersionFormatted 2
+
+Dimension
+3
+
+Vertices
+5
+ 1         0        0 0
+ 0.309017  0.951057 0 0
+-0.809017  0.587785 0 0
+-0.809017 -0.587785 0 0
+ 0.309017 -0.951057 0 0
+
+Triangles
+1
+1 2 3 0
+
+Quadrilaterals
+1
+4 5 1 3 0
+
+End
+)";
+
 static const std::string tet_str =
 R"(MeshVersionFormatted 2
 
@@ -83,7 +110,8 @@ Tetrahedra
 1
 1 2 3 4 1
 
-End)";
+End
+)";
 
 static const std::string hex_str =
 R"(MeshVersionFormatted 2
@@ -106,7 +134,8 @@ Hexahedra
 1
 1 2 3 4 5 6 7 8 1
 
-End)";
+End
+)";
 
 static const std::string wedge_str =
 R"(MeshVersionFormatted 2
@@ -123,12 +152,12 @@ Vertices
 1. 0. 1. 1
 0. 1. 1. 1
 
-
 Prisms
 1
 1 2 3 4 5 6 1
 
-End)";
+End
+)";
 
 static const std::string pyramid_str =
 R"(MeshVersionFormatted 2
@@ -148,7 +177,8 @@ Pyramids
 1
 1 2 3 4 5 1
 
-End)";
+End
+)";
 
 TEST_CASE("Polyline IO test", "[Medit]") {
     static const std::string filename[2] = { "ultimaille-test-polyline-in.mesh", "ultimaille-test-polyline-out.mesh" };
@@ -179,7 +209,7 @@ TEST_CASE("Triangles IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==3 );
         REQUIRE( m[i].nfacets()==1 );
-        REQUIRE( std::abs(m[i].util.area(0)-.5)<ftol );
+        CHECK( std::abs(m[i].util.area(0)-.5)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -197,17 +227,30 @@ TEST_CASE("Quads IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].nfacets()==1 );
-        REQUIRE( std::abs(m[i].util.area(0)-1.)<ftol );
+        CHECK( std::abs(m[i].util.area(0)-1.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
 }
 
-/*
 TEST_CASE("Medit poly IO test", "[Polygons]") {
-    REQUIRE( false );
+    static const std::string filename[2] = { "ultimaille-test-polygons-in.mesh", "ultimaille-test-polygons-out.mesh" };
+    std::ofstream ofs(filename[0], std::ios::binary);
+    ofs << poly_str;
+    ofs.close();
+
+    Polygons m[2] = {};
+    for (int i : range(2)) {
+        read_by_extension(filename[i], m[i]);
+
+        REQUIRE( m[i].nverts()==5 );
+        REQUIRE( m[i].nfacets()==2 );
+        REQUIRE( m[i].facet_size(0)==3 );
+        REQUIRE( m[i].facet_size(1)==4 );
+        if (!i)
+            write_by_extension(filename[1], m[0]);
+    }
 }
-*/
 
 TEST_CASE("Tetrahedra IO test", "[Medit]") {
     static const std::string filename[2] = { "ultimaille-test-tetrahedra-in.mesh", "ultimaille-test-tetrahedra-out.mesh" };
@@ -221,24 +264,13 @@ TEST_CASE("Tetrahedra IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
+        CHECK( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
 }
 
 TEST_CASE("Hexahedra IO test", "[Medit]") {
-    {
-        Hexahedra m;
-        *m.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {1,1,0}, {0,0,1}, {1,0,1}, {0,1,1}, {1,1,1} };
-        m.cells = {0,1,2,3,4,5,6,7};
-
-        double vol = m.util.cell_volume(0);
-        std::cerr << "Hex volume: " << vol << std::endl;
-    }
-
-
-
     static const std::string filename[2] = { "ultimaille-test-hexahedra-in.mesh", "ultimaille-test-hexahedra-out.mesh" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << hex_str;
@@ -247,11 +279,10 @@ TEST_CASE("Hexahedra IO test", "[Medit]") {
     Hexahedra m[2] = {};
     for (int i : range(2)) {
         read_by_extension(filename[i], m[i]);
-        std::cerr << "Vol: " << m[i].util.cell_volume(0) << std::endl;
 
         REQUIRE( m[i].nverts()==8 );
         REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-1.)<ftol );
+        CHECK( std::abs(m[i].util.cell_volume(0)-1.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -270,7 +301,7 @@ TEST_CASE("Wedges IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==6 );
         REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-.5)<ftol );
+        CHECK( std::abs(m[i].util.cell_volume(0)-.5)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -288,7 +319,7 @@ TEST_CASE("Pyramids IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==5 );
         REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
+        CHECK( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
