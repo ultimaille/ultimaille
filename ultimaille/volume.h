@@ -79,7 +79,7 @@ namespace UM {
      *     ^            /.\           The facets are numbered w.r.t the opposite vertex.
      *     |           / . \          For the reference tetrahedron v0=(0,0,0), v1=(1,0,0), v2=(0,1,0), v3=(0,0,1),
      *     |          /  .  \         the facets are numbered as follows:
-     *     .         /   .   \        f0:x+y+z=1 f1:x=0 f2:y=0, f3:z=0
+     *     o         /   .   \        f0:x+y+z=1 f1:x=0 f2:y=0, f3:z=0
      *    / \       /    .    \
      *  /     \    /   . 0 .   \        The vertices inside each facet are numbered in a way that the normal vector
      * X       Y  /  .       .  \       points outside (CCW ordering when viewed from outside).
@@ -131,7 +131,7 @@ namespace UM {
      * ^  Y  |/          |/                                             ^  Y  |/          |/
      * | /   0-----------1                                              | /   +-----------+
      * |/                                                               |/
-     * +----> X                                                         +----> X
+     * o----> X                                                         o----> X
      *
      * The vertices inside each facet are numbered in a way that the normal vector points outside
      * (CCW ordering when viewed from outside).
@@ -167,7 +167,7 @@ namespace UM {
      * ^  Y  |.           .|                     ^  Y  |.           .|
      * | /   0-------------1                     | /   +-------------+
      * |/                                        |/
-     * +----> X                                  +----> X
+     * o----> X                                  o----> X
      *
      * The vertices inside each facet are numbered in a way that the normal vector points outside
      * (CCW ordering when viewed from outside).
@@ -188,20 +188,27 @@ namespace UM {
     /**
      * LOCAL NUMBERING CONVENTION
      *
-     *            3-------------2                      +-------------+
-     *            |\          / |                      |\          / |
-     *            | \      /    |                      | \   3  /    |
-     *            |  \  /       |                      |  \  /       |
-     *            |   4         |                      | 2 \/ 0   4  |
-     *            |  /  \_      |                      |  /  \_      |
-     *      Y     | /      \_   |                      | /    1 \_   |
-     *      ^     |/          \ |                      |/          \ |
-     *      |     0-------------1                      +-------------+
-     *      |
-     *      +----> X
-     *     /
-     *    /
-     *   Z
+     *                   4                                                      .
+     *                 .::'.                                                  .::'.
+     *                : : : '.                                               : : : '.
+     *              .' :  :  '.                                            .' :  :  '.
+     *             .'  :  :    '.                                         .'  :  :    '.
+     *            :   :   :     '.                                       :   :   :     '.
+     *          .:    :    :      :                                    .:    :    :      :
+     *         .'    :     :       '.                                 .'    :3    :       '.
+     *        .'     :     :         :                               .'     :     :    4    :
+     *       :      :      :          '.                            :      :      :          '.
+     *     .'       :       :          '.                         .'   2   :      :1          '.
+     *    .'       :     .. 2            '.                      .'       :     ..'.            '.
+     *   :  ......':'''''     '''...      '.                    :  ......':'''''     '''...      '.
+     *  3.'''     :                 '''...  '                  ..'''     :                 '''...  '
+     *   '.       :                       ''' 1                 '.       :      0                ''':
+     *    '.     :                     ...'''           Z        '.     :                     ...'''
+     *     '.    :               ...'''          Y     :          '.    :               ...'''
+     *      '.  :         ...''''                 '.  :            '.  :         ...''''
+     *       '. :   ...'''                         '. :   ..>X      '. :   ...'''
+     *         `0.''                                 'o.''            `..''
+     *
      *
      * The vertices inside each facet are numbered in a way that the normal vector points outside
      * (CCW ordering when viewed from outside).
