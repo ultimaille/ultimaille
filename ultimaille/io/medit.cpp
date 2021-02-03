@@ -4,7 +4,11 @@
 #include <sstream>
 #include <array>
 #include "ultimaille/io/medit.h"
+#include "ultimaille/assert.h"
 #define FOR(i, n) for(int i = 0; i < static_cast<int>(n); i++)
+
+
+constexpr std::array<int, 8> hex_medit2geogram = { 0,1,3,2,4,5,7,6 };
 
 namespace UM {
     inline void file_must_no_be_at_end(std::ifstream& f, const std::string& reason = " should'nt") {
@@ -14,6 +18,7 @@ namespace UM {
             exit(1);
         }
     }
+
     inline static bool string_start(const std::string& string, const std::string& start_of_string) {
         size_t start = 0;
         FOR(i, string.size()) if (string[i] != ' ' && string[i] != '\t') {
@@ -24,8 +29,8 @@ namespace UM {
         if (copy_without_space.size() < start_of_string.size()) return false;
         return (std::string(copy_without_space.begin(), copy_without_space.begin() + (long int)start_of_string.size()) == start_of_string);
     }
-    void read_medit_format(const std::string& filename, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_) {
 
+    void read_medit_format(const std::string& filename, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_) {
         std::ifstream in;
         in.open(filename, std::ifstream::in);
         if (in.fail()) {
@@ -155,19 +160,14 @@ namespace UM {
                     FOR(i, 8) {
                         int a = 0;
                         iss >> a;
-                        constexpr std::array<int, 8> medit = { 1,0,2,3,5,4,6,7 };
-
-                        hexes_[8 * h + medit[i]] = a - 1;
+                        hexes_[8 * h + hex_medit2geogram[i]] = a - 1;
                     }
                 }
             }
-
         }
-
     }
 
-
-    void write_medit_format(const std::string& filename, const std::vector<vec3>& verts_, const std::vector<int>& edges_, const std::vector<int>& tris_, const std::vector<int>& quads_, const std::vector<int>& tets_, const  std::vector<int>& hexes_, const bool GMSH_numerotation) {
+    void write_medit_format(const std::string& filename, const std::vector<vec3>& verts_, const std::vector<int>& edges_, const std::vector<int>& tris_, const std::vector<int>& quads_, const std::vector<int>& tets_, const  std::vector<int>& hexes_) {
         std::ofstream out_f;
         out_f.open(filename, std::ifstream::out);
         if (out_f.fail()) {
@@ -227,14 +227,7 @@ namespace UM {
             out << "Hexahedra" << std::endl;
             out << hexes_.size() / 8 << std::endl;
             FOR(h, hexes_.size() / 8) {
-                // geogram convention -> GMSH + Medit
-                constexpr std::array<int, 8> sign_of_det = { 0,2,1,3,4,6,5,7 };
-                constexpr std::array<int, 8> medit = { 1,0,2,3,5,4,6,7 };
-                if (GMSH_numerotation)
-                    FOR(i, 8) out << hexes_[8 * h + sign_of_det[medit[i]]] + 1 << " ";
-                else
-                    FOR(i, 8) out << hexes_[8 * h + medit[i]] + 1 << " ";
-
+                FOR(i, 8) out << hexes_[8 * h + hex_medit2geogram[i]] + 1 << " ";
                 out << "1" << std::endl;
             }
             out << std::endl << "End" << std::endl;
@@ -245,8 +238,6 @@ namespace UM {
         out_f.close();
     }
 
-
-
     void write_medit(const std::string filename, const PolyLine& pl) {
         std::vector<vec3> verts(pl.nverts());
         std::vector<int> edges(2 * pl.nsegments());
@@ -256,8 +247,9 @@ namespace UM {
         std::vector<int> hexes;
         FOR(v, pl.nverts()) verts[v] = pl.points[v];
         FOR(e, pl.nsegments()) FOR(ev, 2) edges[2 * e + ev] = pl.vert(e, ev);
-        write_medit_format(filename, verts, edges, tris, quads, tets, hexes, false);
+        write_medit_format(filename, verts, edges, tris, quads, tets, hexes);
     }
+
     void write_medit(const std::string filename, const Surface& m) {
         std::vector<vec3> verts(m.nverts());
         std::vector<int> edges;
@@ -277,9 +269,10 @@ namespace UM {
                 std::cerr << "Polygon are not supported in our MEDIT writer";
             }
         }
-        write_medit_format(filename, verts, edges, tris, quads, tets, hexes, false);
+        write_medit_format(filename, verts, edges, tris, quads, tets, hexes);
     }
-    void write_medit(const std::string filename, const Volume& m, bool hexes_GMSH_numerotation) {
+
+    void write_medit(const std::string filename, const Volume& m) {
         std::vector<vec3> verts(m.nverts());;
         std::vector<int> edges;
         std::vector<int> tris;
@@ -299,9 +292,8 @@ namespace UM {
             std::cerr << "Volume type : " << m.cell_type() << "; not supported in our MEDIT writer";
         }
 
-        write_medit_format(filename, verts, edges, tris, quads, tets, hexes, hexes_GMSH_numerotation);
+        write_medit_format(filename, verts, edges, tris, quads, tets, hexes);
     }
-
 
     PolyLineAttributes read_medit(const std::string filename, PolyLine& m) {
         std::vector<vec3> verts;
@@ -399,7 +391,7 @@ namespace UM {
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
-        m.create_cells(tets.size() / 8);
+        m.create_cells(hexes.size() / 8);
         FOR(h, m.ncells()) FOR(hv, 8) m.vert(h, hv) = hexes[8 * h + hv];
         return {};
     }

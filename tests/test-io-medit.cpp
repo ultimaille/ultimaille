@@ -228,6 +228,17 @@ TEST_CASE("Tetrahedra IO test", "[Medit]") {
 }
 
 TEST_CASE("Hexahedra IO test", "[Medit]") {
+    {
+        Hexahedra m;
+        *m.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {1,1,0}, {0,0,1}, {1,0,1}, {0,1,1}, {1,1,1} };
+        m.cells = {0,1,2,3,4,5,6,7};
+
+        double vol = m.util.cell_volume(0);
+        std::cerr << "Hex volume: " << vol << std::endl;
+    }
+
+
+
     static const std::string filename[2] = { "ultimaille-test-hexahedra-in.mesh", "ultimaille-test-hexahedra-out.mesh" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << hex_str;
@@ -236,6 +247,7 @@ TEST_CASE("Hexahedra IO test", "[Medit]") {
     Hexahedra m[2] = {};
     for (int i : range(2)) {
         read_by_extension(filename[i], m[i]);
+        std::cerr << "Vol: " << m[i].util.cell_volume(0) << std::endl;
 
         REQUIRE( m[i].nverts()==8 );
         REQUIRE( m[i].ncells()==1 );

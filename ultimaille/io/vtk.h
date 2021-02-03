@@ -1,15 +1,13 @@
 #ifndef __VTK_H__
 #define __VTK_H__
 
-#include <vector>
 #include <cstring>
 #include "ultimaille/attributes.h"
 #include "ultimaille/volume.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/polyline.h"
 
-
-// TODO : ATTRIBUTE NOT YET SUPPORTED
+// TODO: colors and scalar fields are yet to be implemented
 
 namespace UM {
     void write_vtk(const std::string filename, const PolyLine &pl);
