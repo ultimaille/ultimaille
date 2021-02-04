@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "knn.h"
 #include "colocate.h"
 

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <limits>
+#include <algorithm>
 #include "vec.h"
 
 namespace UM {

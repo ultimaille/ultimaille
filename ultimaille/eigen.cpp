@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <algorithm>
 
 #include "eigen.h"
 

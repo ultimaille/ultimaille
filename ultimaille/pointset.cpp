@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "pointset.h"
 #include "attributes.h"
 #include "assert.h"
