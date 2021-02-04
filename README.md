@@ -41,7 +41,7 @@ git clone https://github.com/ssloy/ultimaille.git
 cd ultimaille
 mkdir build
 cd build
-cmake ..
+cmake -DUNIT_TESTS:BOOL=ON
 make
 bin/test
 ```

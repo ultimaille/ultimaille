@@ -72,7 +72,7 @@ namespace UM {
 
         struct Util : Surface::Util {
             Util(const Triangles &mesh) : Surface::Util(mesh) {}
-            double area(const int f) const;
+            double unsigned_area(const int f) const;
             vec3 normal(const int f) const;
         } util;
     };
@@ -97,7 +97,7 @@ namespace UM {
 
         struct Util : Surface::Util {
             Util(const Quads &mesh) : Surface::Util(mesh) {}
-            double area(const int f) const;
+            double unsigned_area(const int f) const;
             vec3 normal(const int f) const;
         } util;
     };

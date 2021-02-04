@@ -36,7 +36,7 @@ namespace UM {
             write_vtk(path, m);
         if constexpr (std::is_same_v<decltype(empty_attr(m)), SurfaceAttributes>) {
             if (ext == ".obj")
-                write_wavefront_obj(path, m);
+                write_wavefront_obj(path, m, a);
         }
     }
 

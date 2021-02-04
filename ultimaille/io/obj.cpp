@@ -100,7 +100,7 @@ namespace UM {
                 CornerAttribute<vec2> tex_coord(m);
                 for (int f=0; f<m.nfacets(); f++) {
                     for (int v=0; v<m.facet_size(f); v++) {
-                        um_assert(VTID[f][v]>=0 && VTID[f][v]<VT.size());
+                        um_assert(VTID[f][v]>=0 && VTID[f][v]<(int)VT.size());
                         tex_coord[m.corner(f, v)] = VT[VTID[f][v]];
                     }
                     std::get<2>(sa).emplace_back("tex_coord", tex_coord.ptr);
@@ -109,7 +109,7 @@ namespace UM {
         }
 
         in.close();
-//        std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;
+//      std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;
         return sa;
     }
 
@@ -141,18 +141,56 @@ namespace UM {
         return sa;
     }
 
-    void write_wavefront_obj(const std::string filename, const Surface &m) {
+    void write_wavefront_obj(const std::string filename, const Surface &m, const SurfaceAttributes attr) {
         std::fstream out;
         out.open(filename, std::ios_base::out);
         out << std::fixed << std::setprecision(4);
         for (int v=0; v<m.nverts(); v++)
             out << "v " << m.points[v] << std::endl;
+
+        for (auto &pair : std::get<0>(attr)) { // export tex_coord per vertex
+            if (pair.first!="tex_coord") continue;
+            std::shared_ptr<GenericAttributeContainer> ptr = pair.second;
+            if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
+                std::vector<vec2> tmp = cont_ptr->data;
+                um_assert((int)tmp.size()==m.nverts());
+                for (int v=0; v<m.nverts(); v++)
+                    out << "vt " << tmp[v] << std::endl;
+                for (int f=0; f<m.nfacets(); f++) {
+                    out << "f ";
+                    for (int v=0; v<m.facet_size(f); v++)
+                        out << (m.vert(f,v)+1) << "/" << (m.vert(f,v)+1) << " ";
+                    out << std::endl;
+                }
+                goto clear;
+            }
+        }
+
+        for (auto &pair : std::get<2>(attr)) { // export tex_coord per corner
+            if (pair.first!="tex_coord") continue;
+            std::shared_ptr<GenericAttributeContainer> ptr = pair.second;
+            if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
+                std::vector<vec2> tmp = cont_ptr->data;
+                um_assert((int)tmp.size()==m.ncorners());
+                for (int v=0; v<m.ncorners(); v++)
+                    out << "vt " << tmp[v] << std::endl;
+                for (int f=0; f<m.nfacets(); f++) {
+                    out << "f ";
+                    for (int v=0; v<m.facet_size(f); v++)
+                        out << (m.vert(f,v)+1) << "/" << (m.corner(f,v)+1) << " ";
+                    out << std::endl;
+                }
+                goto clear;
+            }
+        }
+
         for (int f=0; f<m.nfacets(); f++) {
             out << "f ";
             for (int v=0; v<m.facet_size(f); v++)
                 out << (m.vert(f,v)+1) << " ";
             out << std::endl;
         }
+clear:
         out.close();
     }
 }

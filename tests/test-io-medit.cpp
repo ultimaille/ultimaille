@@ -209,7 +209,7 @@ TEST_CASE("Triangles IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==3 );
         REQUIRE( m[i].nfacets()==1 );
-        CHECK( std::abs(m[i].util.area(0)-.5)<ftol );
+        CHECK( std::abs(m[i].util.unsigned_area(0)-.5)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -227,7 +227,7 @@ TEST_CASE("Quads IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].nfacets()==1 );
-        CHECK( std::abs(m[i].util.area(0)-1.)<ftol );
+        CHECK( std::abs(m[i].util.unsigned_area(0)-1.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }

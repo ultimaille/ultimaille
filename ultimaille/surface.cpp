@@ -5,8 +5,8 @@
 #include "attributes.h"
 
 namespace UM {
-    // unsigned area for a 3D triangle
-    inline double area(const vec3 &A, const vec3 &B, const vec3 &C) {
+    // unsigned unsigned_area for a 3D triangle
+    inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
         return 0.5*cross(B-A, C-A).norm();
     }
 
@@ -18,11 +18,11 @@ namespace UM {
         return ave / static_cast<double>(nbv);
     }
 
-    double Triangles::Util::area(const int f) const {
+    double Triangles::Util::unsigned_area(const int f) const {
         const vec3 &A = m.points[m.vert(f, 0)];
         const vec3 &B = m.points[m.vert(f, 1)];
         const vec3 &C = m.points[m.vert(f, 2)];
-        return UM::area(A, B, C);
+        return UM::unsigned_area(A, B, C);
     }
 
     vec3 Triangles::Util::normal(const int f) const {
@@ -32,13 +32,13 @@ namespace UM {
         return cross(B-A, C-A).normalize();
     }
 
-    double Quads::Util::area(const int f) const {
+    double Quads::Util::unsigned_area(const int f) const {
         double a = 0;
         vec3 G = m.util.bary_verts(f);
         for (int lv=0; lv<4; lv++) {
             const vec3 &A = m.points[m.vert(f,  lv     )];
             const vec3 &B = m.points[m.vert(f, (lv+1)%4)];
-            a += UM::area(G, A, B);
+            a += UM::unsigned_area(G, A, B);
         }
         return a;
     }
@@ -75,10 +75,10 @@ namespace UM {
                 corners_old2new[corner(f, lv)] = new_nb_corners++;
             facets_old2new[f] = new_nb_facets++;
         }
-        std::cerr << "compressing facet attributes\n";
+//      std::cerr << "compressing facet attributes\n";
         for (auto &wp : attr_facets)  if (auto spt = wp.lock())
             spt->compress(facets_old2new);
-        std::cerr << "compressing corner attributes\n";
+//      std::cerr << "compressing corner attributes\n";
         for (auto &wp : attr_corners) if (auto spt = wp.lock())
             spt->compress(corners_old2new);
     }

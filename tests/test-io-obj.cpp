@@ -89,261 +89,114 @@ f 5/1/1 6/2/1 7/3/1 8/4/1
 )";
 
 
-
-/*
-
-static const std::string tri_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-3
-0. 0. 0. 1
-1. 0. 0. 1
-0. 1. 0. 1
-
-Triangles
-1
-1 2 3 1
-
-End)";
-
-static const std::string quad_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-4
-0. 0. 0. 1
-1. 0. 0. 1
-1. 1. 0. 1
-0. 1. 0. 1
-
-Quadrilaterals
-1
-1 2 3 4  1
-
-End
-)";
-
-static const std::string tet_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-4
-0. 0. 0. 1
-1. 0. 0. 1
-0. 1. 0. 1
-0. 1. 1. 1
-
-Tetrahedra
-1
-1 2 3 4 1
-
-End)";
-
-static const std::string hex_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-8
-0. 0. 0. 1
-1. 0. 0. 1
-1. 1. 0. 1
-0. 1. 0. 1
-0. 0. 1. 1
-1. 0. 1. 1
-1. 1. 1. 1
-0. 1. 1. 1
-
-Hexahedra
-1
-1 2 3 4 5 6 7 8 1
-
-End)";
-
-static const std::string wedge_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-6
-0. 0. 0. 1
-1. 0. 0. 1
-0. 1. 0. 1
-0. 0. 1. 1
-1. 0. 1. 1
-0. 1. 1. 1
-
-Prisms
-1
-1 2 3 4 5 6 1
-
-End)";
-
-static const std::string pyramid_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-5
-0.  0.  0.  1
-1.  0.  0.  1
-1.  1.  0.  1
-0.  1.  0.  1
-0.5 0.5 0.5 1
-
-Pyramids
-1
-1 2 3 4 5 1
-
-End)";
-
-TEST_CASE("Medit polyline IO test", "[Polyline]") {
-    static const std::string filename[2] = { "ultimaille-test-polyline-in.mesh", "ultimaille-test-polyline-out.mesh" };
+TEST_CASE("tex_coord per vertex IO test#1", "[OBJ]") {
+    static const std::string filename[2] = { "ultimaille-test-tex_coord1-in.obj", "ultimaille-test-tex_coord1-out.obj" };
     std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << edges_str;
-    ofs.close();
-
-    PolyLine m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
-
-        REQUIRE( m[i].nverts()==3 );
-        REQUIRE( m[i].nsegments()==2 );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
-    }
-}
-
-TEST_CASE("Medit triangles IO test", "[Triangles]") {
-    static const std::string filename[2] = { "ultimaille-test-triangles-in.mesh", "ultimaille-test-triangles-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << tri_str;
+    ofs << obj1_str;
     ofs.close();
 
     Triangles m[2] = {};
     for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
-
-        REQUIRE( m[i].nverts()==3 );
-        REQUIRE( m[i].nfacets()==1 );
-        REQUIRE( std::abs(m[i].util.area(0)-.5)<ftol );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
-    }
-}
-
-TEST_CASE("Medit quads IO test", "[Quads]") {
-    static const std::string filename[2] = { "ultimaille-test-quads-in.mesh", "ultimaille-test-quads-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << quad_str;
-    ofs.close();
-
-    Quads m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
+        SurfaceAttributes attr = read_by_extension(filename[i], m[i]);
 
         REQUIRE( m[i].nverts()==4 );
-        REQUIRE( m[i].nfacets()==1 );
-        REQUIRE( std::abs(m[i].util.area(0)-1.)<ftol );
+        REQUIRE( m[i].nfacets()==2 );
+
+        bool found = false;
+        for (auto &pair : std::get<0>(attr)) {
+            if (pair.first!="tex_coord") continue;
+            found = true;
+        }
+        CHECK( found );
+
+        for (int f : range(2))
+            CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
         if (!i)
-            write_by_extension(filename[1], m[0]);
+            write_by_extension(filename[1], m[0], attr);
     }
 }
-*/
 
-TEST_CASE("Medit poly IO test", "[Polygons]") {
-    REQUIRE( false );
-}
-
-/*
-TEST_CASE("Medit tetra IO test", "[Tetrahedra]") {
-    static const std::string filename[2] = { "ultimaille-test-tetrahedra-in.mesh", "ultimaille-test-tetrahedra-out.mesh" };
+TEST_CASE("tex_coord per vertex IO test#2", "[OBJ]") {
+    static const std::string filename[2] = { "ultimaille-test-tex_coord2-in.obj", "ultimaille-test-tex_coord2-out.obj" };
     std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << tet_str;
+    ofs << obj2_str;
     ofs.close();
 
-    Tetrahedra m[2] = {};
+    Triangles m[2] = {};
     for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
+        SurfaceAttributes attr = read_by_extension(filename[i], m[i]);
 
         REQUIRE( m[i].nverts()==4 );
-        REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
+        REQUIRE( m[i].nfacets()==2 );
+
+        bool found = false;
+        for (auto &pair : std::get<0>(attr)) {
+            if (pair.first!="tex_coord") continue;
+            found = true;
+        }
+        CHECK( found );
+
+        for (int f : range(2))
+            CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
         if (!i)
-            write_by_extension(filename[1], m[0]);
+            write_by_extension(filename[1], m[0], attr);
     }
 }
 
-TEST_CASE("Medit hexa IO test", "[Hexahedra]") {
-    static const std::string filename[2] = { "ultimaille-test-hexahedra-in.mesh", "ultimaille-test-hexahedra-out.mesh" };
+TEST_CASE("tex_coord per corner IO test", "[OBJ]") {
+    static const std::string filename[2] = { "ultimaille-test-tex_coord3-in.obj", "ultimaille-test-tex_coord3-out.obj" };
     std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << hex_str;
+    ofs << obj3_str;
     ofs.close();
 
-    Hexahedra m[2] = {};
+    Triangles m[2] = {};
     for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
+        SurfaceAttributes attr = read_by_extension(filename[i], m[i]);
+
+        REQUIRE( m[i].nverts()==4 );
+        REQUIRE( m[i].nfacets()==2 );
+
+        bool found = false;
+        for (auto &pair : std::get<2>(attr)) {
+            if (pair.first!="tex_coord") continue;
+            found = true;
+        }
+        CHECK( found );
+
+        for (int f : range(2))
+            CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
+
+        if (!i)
+            write_by_extension(filename[1], m[0], attr);
+    }
+}
+
+TEST_CASE("Polygons IO test", "[OBJ]") {
+    static const std::string filename[2] = { "ultimaille-test-tex_coord4-in.obj", "ultimaille-test-tex_coord4-out.obj" };
+    std::ofstream ofs(filename[0], std::ios::binary);
+    ofs << obj4_str;
+    ofs.close();
+
+    Polygons m[2] = {};
+    for (int i : range(2)) {
+        SurfaceAttributes attr = read_by_extension(filename[i], m[i]);
 
         REQUIRE( m[i].nverts()==8 );
-        REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-1.)<ftol );
+        REQUIRE( m[i].nfacets()==3 );
+
+        bool found = false;
+        for (auto &pair : std::get<2>(attr)) {
+            if (pair.first!="tex_coord") continue;
+            found = true;
+        }
+        CHECK( found );
+
+//      for (int f : range(2))
+//          CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
+//      CHECK( std::abs(m[i].util.unsigned_area(2)-4.)<ftol );
+
         if (!i)
-            write_by_extension(filename[1], m[0]);
+            write_by_extension(filename[1], m[0], attr);
     }
 }
 
-
-TEST_CASE("Medit wedges IO test", "[Wedges]") {
-    static const std::string filename[2] = { "ultimaille-test-wedges-in.mesh", "ultimaille-test-wedges-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << wedge_str;
-    ofs.close();
-
-    Wedges m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
-
-        REQUIRE( m[i].nverts()==6 );
-        REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-.5)<ftol );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
-    }
-}
-
-TEST_CASE("Medit pyramids IO test", "[Pyramids]") {
-    static const std::string filename[2] = { "ultimaille-test-pyramids-in.mesh", "ultimaille-test-pyramids-out.mesh" };
-    std::ofstream ofs(filename[0], std::ios::binary);
-    ofs << pyramid_str;
-    ofs.close();
-
-    Pyramids m[2] = {};
-    for (int i : range(2)) {
-        read_by_extension(filename[i], m[i]);
-
-        REQUIRE( m[i].nverts()==5 );
-        REQUIRE( m[i].ncells()==1 );
-        REQUIRE( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
-        if (!i)
-            write_by_extension(filename[1], m[0]);
-    }
-}
-
-
-*/

@@ -13,7 +13,7 @@ namespace UM {
     SurfaceAttributes read_wavefront_obj(const std::string filename, Triangles &m);
     SurfaceAttributes read_wavefront_obj(const std::string filename, Quads  &m);
     SurfaceAttributes read_wavefront_obj(const std::string filename, Polygons  &m);
-    void write_wavefront_obj(const std::string filename, const Surface &m);
+    void write_wavefront_obj(const std::string filename, const Surface &m, const SurfaceAttributes attr = {});
 }
 
 #endif // __OBJ_H__
