@@ -50,6 +50,10 @@ if(OpenMP_CXX_FOUND)
 endif()
 set_target_properties(ultimaille PROPERTIES SOVERSION 1.0)
 
-add_subdirectory(tests)
 add_subdirectory(sandpit)
+
+option(UNIT_TESTS "UNIT_TESTS" OFF)
+if (UNIT_TESTS)
+    add_subdirectory(tests)
+endif()
 

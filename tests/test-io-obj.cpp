@@ -9,25 +9,88 @@
 using namespace UM;
 static const double ftol = 1e-13;
 
+// vt per vertex, vn present
+static const std::string obj1_str =
+R"(
+v -1 0 -1
+v  1 0 -1
+v  1 0  1
+v -1 0  1
+
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+
+vn 0 1 0
+
+f 3/3/1 2/2/1 1/1/1
+f 4/4/1 3/3/1 1/1/1
+)";
+
+// vt per vertex, vn absent
+static const std::string obj2_str =
+R"(
+v -1 0 -1
+v  1 0 -1
+v  1 0  1
+v -1 0  1
+
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+
+f 3/3 2/2 1/1
+f 4/4 3/3 1/1
+)";
+
+// vt per corner
+static const std::string obj3_str =
+R"(
+v -1 0 -1
+v  1 0 -1
+v  1 0  1
+v -1 0  1
+
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+
+f 3/1 2/2 1/3
+f 4/1 3/3 1/4
+)";
+
+
+// vt per corner, vn present, 1 quad + 2 triangles
+static const std::string obj4_str =
+R"(
+v -1 0 -1
+v  1 0 -1
+v  1 0  1
+v -1 0  1
+
+v -1 1 -1
+v  1 1 -1
+v  1 1  1
+v -1 1  1
+
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+
+vn 0 1 0
+
+f 3/3/1 2/2/1 1/1/1
+f 4/4/1 3/3/1 1/1/1
+f 5/1/1 6/2/1 7/3/1 8/4/1
+)";
+
+
+
 /*
-static const std::string edges_str =
-R"(MeshVersionFormatted 2
-
-Dimension
-3
-
-Vertices
-3
-0. 0.9 0. 0
-0. 0.8 0. 0
-1. 0.3 0. 0
-
-Edges
-2
-1 2 0
-2 3 0
-
-End)";
 
 static const std::string tri_str =
 R"(MeshVersionFormatted 2

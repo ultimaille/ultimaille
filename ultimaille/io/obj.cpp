@@ -11,9 +11,10 @@ namespace UM {
     // TODO: export vn (corner and point) and vt (corner) attributes
     SurfaceAttributes read_wavefront_obj(const std::string filename, Polygons &m) {
         SurfaceAttributes sa;
-//        std::vector<vec3> VN;
+        std::vector<vec3> VN;
         std::vector<vec2> VT;
         std::vector<std::vector<int>> VTID;
+        std::vector<std::vector<int>> VNID;
 
         m = Polygons();
         std::ifstream in;
@@ -34,16 +35,16 @@ namespace UM {
                 for (int i=0;i<3;i++) iss >> v[i];
                 m.points.data->push_back(v);
             } else if (type_token=="vn") {
-//              vec3 v;
-//              for (int i=0;i<3;i++) iss >> v[i];
-//              VN.push_back(v);
+                vec3 v;
+                for (int i=0;i<3;i++) iss >> v[i];
+                VN.push_back(v);
             } else if (type_token=="vt") {
                 vec2 v;
                 for (int i=0;i<2;i++) iss >> v[i];
                 VT.push_back(v);
             } else if (type_token=="f") {
                 std::vector<int> vid;
-                // std::vector<int> vnid;
+                std::vector<int> vnid;
                 std::vector<int> vtid;
                 int tmp;
                 while (1) { // in wavefront obj all indices start at 1, not zero
@@ -56,19 +57,20 @@ namespace UM {
                         if (iss.peek() == '/') {
                             iss.get();
                             iss >> tmp;
-                            // vnid.push_back(tmp-1);
+                            vnid.push_back(tmp-1);
                         } else {
                             iss >> tmp;
                             vtid.push_back(tmp-1);
                             if (iss.peek() == '/') {
                                 iss.get();
                                 iss >> tmp;
-                                // vnid.push_back(tmp-1);
+                                vnid.push_back(tmp-1);
                             }
                         }
                     }
                 }
                 VTID.push_back(vtid);
+                VNID.push_back(vnid);
 
                 int off_f = m.create_facets(1, vid.size());
                 for (int i=0; i<static_cast<int>(vid.size()); i++)
@@ -89,10 +91,25 @@ namespace UM {
             for (int v=0; v<m.nverts(); v++)
                 tex_coord[v] = VT[v];
             std::get<0>(sa).emplace_back("tex_coord", tex_coord.ptr);
+        } else {
+            bool vt_c_attr = ((int)VTID.size()==m.nfacets() && (int)VT.size()>0); // check whether tex_coord is a CornerAttribute
+            if (vt_c_attr) for (int f=0; f<m.nfacets(); f++) {
+                vt_c_attr = vt_c_attr && ((int)VTID[f].size()==m.facet_size(f));
+            }
+            if (vt_c_attr) {
+                CornerAttribute<vec2> tex_coord(m);
+                for (int f=0; f<m.nfacets(); f++) {
+                    for (int v=0; v<m.facet_size(f); v++) {
+                        um_assert(VTID[f][v]>=0 && VTID[f][v]<VT.size());
+                        tex_coord[m.corner(f, v)] = VT[VTID[f][v]];
+                    }
+                    std::get<2>(sa).emplace_back("tex_coord", tex_coord.ptr);
+                }
+            }
         }
 
         in.close();
-        std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;
+//        std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;
         return sa;
     }
 
