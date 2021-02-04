@@ -53,7 +53,7 @@ TEST_CASE("Hexahedra numbering convention test", "[numbering convention]") {
     // positive volume for the right-hand orientation
     CHECK( std::abs(m.util.cell_volume(0)-1.)<ftol );
 
-    // normals pointing outside + facet i is opposite to vertex i
+    // normals pointing outside
     const vec3 ref_nrm[] = {{-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}, {0,0,-1}, {0,0,1}};
     for (int f : range(6)) {
         vec3 n = m.util.facet_normal(0, f);
@@ -76,7 +76,7 @@ TEST_CASE("Wedges numbering convention test", "[numbering convention]") {
     // positive volume for the right-hand orientation
     CHECK( std::abs(m.util.cell_volume(0)-.5)<ftol );
 
-    // normals pointing outside + facet i is opposite to vertex i
+    // normals pointing outside
     const vec3 ref_nrm[] = {{0,0,-1}, {0,0,1}, {0,-1,0}, {-1,0,0}, {1/std::sqrt(2.),1/std::sqrt(2.),0}};
     for (int f : range(5)) {
         vec3 n = m.util.facet_normal(0, f);
@@ -99,7 +99,7 @@ TEST_CASE("Pyramids numbering convention test", "[numbering convention]") {
     // positive volume for the right-hand orientation
     CHECK( std::abs(m.util.cell_volume(0)-1./6.)<ftol );
 
-    // normals pointing outside + facet i is opposite to vertex i
+    // normals pointing outside
     const vec3 ref_nrm[] = {{0,0,-1}, vec3{0,-1,1}.normalize(), vec3{-1,0,1}.normalize(), vec3{0,1,1}.normalize(), vec3{1,0,1}.normalize()};
     for (int f : range(5)) {
         vec3 n = m.util.facet_normal(0, f);
