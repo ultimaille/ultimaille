@@ -10,7 +10,7 @@ namespace UM {
 
     void release_assert(bool expr, const source_location& loc, const char* expression);
 
-#if defined(__linux__)
+#if defined(__GNUC__)
 #define CUR_SOURCE_LOCATION source_location{__FILE__, __LINE__, __PRETTY_FUNCTION__}
 #else
 #define CUR_SOURCE_LOCATION source_location{__FILE__, __LINE__, __FUNCSIG__}
