@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -144,7 +145,8 @@ namespace UM {
     void write_wavefront_obj(const std::string filename, const Surface &m, const SurfaceAttributes attr) {
         std::fstream out;
         out.open(filename, std::ios_base::out);
-        out << std::fixed << std::setprecision(14);
+//      out << std::fixed << std::setprecision(14);
+        out << std::setprecision(std::numeric_limits<double>::max_digits10);
         for (int v=0; v<m.nverts(); v++)
             out << "v " << m.points[v] << std::endl;
 
