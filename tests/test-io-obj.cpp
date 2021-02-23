@@ -102,12 +102,10 @@ TEST_CASE("tex_coord per vertex IO test#1", "[OBJ]") {
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].nfacets()==2 );
 
-        bool found = false;
-        for (auto &pair : std::get<0>(attr)) {
-            if (pair.first!="tex_coord") continue;
-            found = true;
-        }
-        CHECK( found );
+        int cnt = 0;
+        for (auto &pair : std::get<0>(attr))
+            cnt += (pair.first=="tex_coord");
+        CHECK( cnt==1 );
 
         for (int f : range(2))
             CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
@@ -129,12 +127,10 @@ TEST_CASE("tex_coord per vertex IO test#2", "[OBJ]") {
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].nfacets()==2 );
 
-        bool found = false;
-        for (auto &pair : std::get<0>(attr)) {
-            if (pair.first!="tex_coord") continue;
-            found = true;
-        }
-        CHECK( found );
+        int cnt = 0;
+        for (auto &pair : std::get<0>(attr))
+            cnt += (pair.first=="tex_coord");
+        CHECK( cnt==1 );
 
         for (int f : range(2))
             CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
@@ -156,12 +152,10 @@ TEST_CASE("tex_coord per corner IO test", "[OBJ]") {
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].nfacets()==2 );
 
-        bool found = false;
-        for (auto &pair : std::get<2>(attr)) {
-            if (pair.first!="tex_coord") continue;
-            found = true;
-        }
-        CHECK( found );
+        int cnt = 0;
+        for (auto &pair : std::get<2>(attr))
+            cnt += (pair.first=="tex_coord");
+        CHECK( cnt==1 );
 
         for (int f : range(2))
             CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
@@ -184,12 +178,10 @@ TEST_CASE("Polygons IO test", "[OBJ]") {
         REQUIRE( m[i].nverts()==8 );
         REQUIRE( m[i].nfacets()==3 );
 
-        bool found = false;
-        for (auto &pair : std::get<2>(attr)) {
-            if (pair.first!="tex_coord") continue;
-            found = true;
-        }
-        CHECK( found );
+        int cnt = 0;
+        for (auto &pair : std::get<2>(attr))
+            cnt += (pair.first=="tex_coord");
+        CHECK( cnt==1 );
 
 //      for (int f : range(2))
 //          CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );

@@ -103,8 +103,8 @@ namespace UM {
                         um_assert(VTID[f][v]>=0 && VTID[f][v]<(int)VT.size());
                         tex_coord[m.corner(f, v)] = VT[VTID[f][v]];
                     }
-                    std::get<2>(sa).emplace_back("tex_coord", tex_coord.ptr);
                 }
+                std::get<2>(sa).emplace_back("tex_coord", tex_coord.ptr);
             }
         }
 
@@ -144,7 +144,7 @@ namespace UM {
     void write_wavefront_obj(const std::string filename, const Surface &m, const SurfaceAttributes attr) {
         std::fstream out;
         out.open(filename, std::ios_base::out);
-        out << std::fixed << std::setprecision(4);
+        out << std::fixed << std::setprecision(14);
         for (int v=0; v<m.nverts(); v++)
             out << "v " << m.points[v] << std::endl;
 
