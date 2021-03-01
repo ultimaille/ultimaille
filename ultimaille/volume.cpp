@@ -170,7 +170,7 @@ namespace UM {
     }
 
     int Volume::create_cells(const int n) {
-        assert(n>0);
+        assert(n>=0);
         cells.resize(cells.size()+n*nverts_per_cell());
         resize_attrs();
         return ncells()-n;
