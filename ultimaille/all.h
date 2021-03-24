@@ -12,6 +12,7 @@
 #include <ultimaille/polyline.h>
 #include <ultimaille/range.h>
 #include <ultimaille/surface.h>
+#include <ultimaille/surface_connectivity.h>
 #include <ultimaille/volume.h>
 #include <ultimaille/volume_connectivity.h>
 #include <ultimaille/HLBFGS_wrapper.h>

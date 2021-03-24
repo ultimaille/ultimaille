@@ -27,3 +27,6 @@ target_link_libraries(test-numbering PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2:
 add_executable(test-volume-connectivity test-volume-connectivity.cpp)
 target_link_libraries(test-volume-connectivity PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
 
+add_executable(test-surface-connectivity test-surface-connectivity.cpp)
+target_link_libraries(test-surface-connectivity PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
+

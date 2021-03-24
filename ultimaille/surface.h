@@ -133,28 +133,6 @@ namespace UM {
         } util;
     };
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    struct SurfaceConnectivity { // half-edge-like connectivity interface
-        SurfaceConnectivity(const Surface &p_m);
-
-        vec3 geom(const int corner_id) const;
-        int facet(const int corner_id) const;
-        int  from(const int corner_id) const;
-        int    to(const int corner_id) const;
-        int  prev(const int corner_id) const;
-        int  next(const int corner_id) const;
-        int opposite(const int corner_id) const;
-        bool is_boundary_vert(const int v) const;
-        int next_around_vertex(const int corner_id) const;
-
-        void reset();
-        const Surface &m;
-        std::vector<int> v2c; // vertex to corner
-        std::vector<int> c2f; // corner to facet
-        std::vector<int> c2c; // corner to next corner sharing the same vertex (unordered)
-    };
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,43 +223,6 @@ namespace UM {
         assert(fi>=0 && fi<nfacets());
         assert(lv>=0 && lv<facet_size(fi));
         return facets[offset[fi]+lv];
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline vec3 SurfaceConnectivity::geom(const int corner_id) const {
-        return m.points[to(corner_id)] - m.points[from(corner_id)];
-    }
-
-    inline int SurfaceConnectivity::facet(const int corner_id) const {
-        return c2f[corner_id];
-    }
-
-    inline int SurfaceConnectivity::from(const int corner_id) const {
-        int fi = c2f[corner_id];
-        int lv = corner_id - m.corner(fi, 0);
-        return m.vert(fi, lv);
-    }
-
-    inline int SurfaceConnectivity::to(const int corner_id) const {
-        int fi = c2f[corner_id];
-        int lv = corner_id - m.corner(fi, 0);
-        int n = m.facet_size(fi);
-        return m.vert(fi, (lv+1)%n);
-    }
-
-    inline int SurfaceConnectivity::next(const int corner_id) const {
-        int fi = c2f[corner_id];
-        int lv = corner_id - m.corner(fi, 0);
-        int n = m.facet_size(fi);
-        return m.corner(fi, (lv+1)%n);
-    }
-
-    inline int SurfaceConnectivity::prev(const int corner_id) const {
-        int fi = c2f[corner_id];
-        int lv = corner_id - m.corner(fi, 0);
-        int n = m.facet_size(fi);
-        return m.corner(fi, (lv-1+n)%n);
     }
 }
 

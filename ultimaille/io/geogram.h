@@ -6,6 +6,7 @@
 #include "ultimaille/attributes.h"
 #include "ultimaille/volume.h"
 #include "ultimaille/surface.h"
+#include "ultimaille/surface_connectivity.h"
 #include "ultimaille/polyline.h"
 
 namespace UM {
