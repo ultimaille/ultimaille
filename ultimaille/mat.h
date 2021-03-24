@@ -124,6 +124,26 @@ namespace UM {
         return result;
     }
 
+    template<int nrows,int ncols>mat<nrows,ncols> & operator+=(mat<nrows,ncols> &lhs, const mat<nrows,ncols> &rhs) {
+        for (int i=nrows; i--; lhs[i] += rhs[i]);
+        return lhs;
+    }
+
+    template<int nrows,int ncols>mat<nrows,ncols> & operator-=(mat<nrows,ncols> &lhs, const mat<nrows,ncols> &rhs) {
+        for (int i=nrows; i--; lhs[i] -= rhs[i]);
+        return lhs;
+    }
+
+    template<int nrows,int ncols>mat<nrows,ncols> & operator*=(mat<nrows,ncols> &lhs, const double rhs) {
+        for (int i=nrows; i--; lhs[i] *= rhs);
+        return lhs;
+    }
+
+    template<int nrows,int ncols>mat<nrows,ncols> & operator/=(mat<nrows,ncols> &lhs, const double rhs) {
+        for (int i=nrows; i--; lhs[i] /= rhs);
+        return lhs;
+    }
+
     template<int nrows,int ncols> std::ostream& operator<<(std::ostream& out, const mat<nrows,ncols>& m) {
         for (int i=0; i<nrows; i++) out << m[i] << std::endl;
         return out;

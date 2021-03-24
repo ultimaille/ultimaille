@@ -44,6 +44,21 @@ namespace UM {
         return a;
     }
 
+    template<int n> vec<n>& operator-=(vec<n>& a, const vec<n>& b) {
+        for (int i=n; i--; a[i]-=b[i]);
+        return a;
+    }
+
+    template<int n> vec<n>& operator*=(vec<n>& a, const double b) {
+        for (int i=n; i--; a[i]*=b);
+        return a;
+    }
+
+    template<int n> vec<n>& operator/=(vec<n>& a, const double b) {
+        for (int i=n; i--; a[i]/=b);
+        return a;
+    }
+
     template<int n> vec<n> operator-(const vec<n>& lhs, const vec<n>& rhs) {
         vec<n> ret = lhs;
         for (int i=n; i--; ret[i]-=rhs[i]);
