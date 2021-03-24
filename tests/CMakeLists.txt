@@ -9,6 +9,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
+add_executable(test-attributes test-attributes.cpp)
+target_link_libraries(test-attributes PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
+
 add_executable(test-io-geogram test-io-geogram.cpp)
 target_link_libraries(test-io-geogram PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
 
