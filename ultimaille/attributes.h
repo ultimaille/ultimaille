@@ -31,18 +31,15 @@ namespace UM {
     };
 
     typedef std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > NamedContainer;
-    typedef std::tuple<
-            std::vector<NamedContainer>,
-            std::vector<NamedContainer> > PolyLineAttributes;
-    typedef std::tuple<
-            std::vector<NamedContainer>,
-            std::vector<NamedContainer>,
-            std::vector<NamedContainer> > SurfaceAttributes;
-    typedef std::tuple<
-            std::vector<NamedContainer>,
-            std::vector<NamedContainer>,
-            std::vector<NamedContainer>,
-            std::vector<NamedContainer> > VolumeAttributes;
+    struct PolyLineAttributes {
+        std::vector<NamedContainer> points, segments;
+    };
+    struct SurfaceAttributes {
+        std::vector<NamedContainer> points, facets, corners;
+    };
+    struct VolumeAttributes {
+        std::vector<NamedContainer> points, cells, cell_facets, cell_corners;
+    };
 
     template <typename T> struct GenericAttribute {
         GenericAttribute() : ptr(nullptr) {}
@@ -135,15 +132,15 @@ namespace UM {
         PointAttribute(Volume  &m) : PointAttribute(m.points) {}
 
         PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
-            bind_attribute(this, name, seg.nverts(), std::get<0>(attributes), seg.points.attr);
+            bind_attribute(this, name, seg.nverts(), attributes.points, seg.points.attr);
         }
 
         PointAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.nverts(), std::get<0>(attributes), m.points.attr);
+            bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr);
         }
 
         PointAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.nverts(), std::get<0>(attributes), m.points.attr);
+            bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr);
         }
     };
 
@@ -153,7 +150,7 @@ namespace UM {
         }
 
         SegmentAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
-            bind_attribute(this, name, seg.nsegments(), std::get<1>(attributes), seg.attr);
+            bind_attribute(this, name, seg.nsegments(), attributes.segments, seg.attr);
         }
     };
 
@@ -163,7 +160,7 @@ namespace UM {
         }
 
         FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.nfacets(), std::get<1>(attributes), m.attr_facets);
+            bind_attribute(this, name, m.nfacets(), attributes.facets, m.attr_facets);
         }
     };
 
@@ -173,7 +170,7 @@ namespace UM {
         }
 
         CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.ncorners(), std::get<2>(attributes), m.attr_corners);
+            bind_attribute(this, name, m.ncorners(), attributes.corners, m.attr_corners);
         }
     };
 
@@ -183,7 +180,7 @@ namespace UM {
         }
 
         CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.ncells(), std::get<1>(attributes), m.attr_cells);
+            bind_attribute(this, name, m.ncells(), attributes.cells, m.attr_cells);
         }
     };
 
@@ -193,7 +190,7 @@ namespace UM {
         }
 
         CellFacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.nfacets(), std::get<2>(attributes), m.attr_facets);
+            bind_attribute(this, name, m.nfacets(), attributes.cell_facets, m.attr_facets);
         }
     };
 
@@ -203,7 +200,7 @@ namespace UM {
         }
 
         CellCornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.ncorners(), std::get<3>(attributes), m.attr_corners);
+            bind_attribute(this, name, m.ncorners(), attributes.cell_corners, m.attr_corners);
         }
     };
 

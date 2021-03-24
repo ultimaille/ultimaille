@@ -103,7 +103,7 @@ TEST_CASE("tex_coord per vertex IO test#1", "[OBJ]") {
         REQUIRE( m[i].nfacets()==2 );
 
         int cnt = 0;
-        for (auto &pair : std::get<0>(attr))
+        for (auto &pair : attr.points)
             cnt += (pair.first=="tex_coord");
         CHECK( cnt==1 );
 
@@ -128,7 +128,7 @@ TEST_CASE("tex_coord per vertex IO test#2", "[OBJ]") {
         REQUIRE( m[i].nfacets()==2 );
 
         int cnt = 0;
-        for (auto &pair : std::get<0>(attr))
+        for (auto &pair : attr.points)
             cnt += (pair.first=="tex_coord");
         CHECK( cnt==1 );
 
@@ -153,7 +153,7 @@ TEST_CASE("tex_coord per corner IO test", "[OBJ]") {
         REQUIRE( m[i].nfacets()==2 );
 
         int cnt = 0;
-        for (auto &pair : std::get<2>(attr))
+        for (auto &pair : attr.corners)
             cnt += (pair.first=="tex_coord");
         CHECK( cnt==1 );
 
@@ -179,7 +179,7 @@ TEST_CASE("Polygons IO test", "[OBJ]") {
         REQUIRE( m[i].nfacets()==3 );
 
         int cnt = 0;
-        for (auto &pair : std::get<2>(attr))
+        for (auto &pair : attr.corners)
             cnt += (pair.first=="tex_coord");
         CHECK( cnt==1 );
 

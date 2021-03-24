@@ -90,7 +90,7 @@ namespace UM {
                 writer.addAttribute("GEO::Mesh::edges", "GEO::Mesh::edges::edge_vertex", "index_t", reinterpret_cast<const index_t *>(segments.data()), pl.nsegments(), 2);
             }
 
-            std::vector<NamedContainer> A[2] = {std::get<0>(attr), std::get<1>(attr)};
+            std::vector<NamedContainer> A[2] = {attr.points, attr.segments};
             for (int z=0; z<2; z++) {
                 auto &att = A[z];
 
@@ -157,7 +157,7 @@ namespace UM {
             }
             writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet.data(), m.ncorners(), 1);
 
-            std::vector<NamedContainer> A[3] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr)};
+            std::vector<NamedContainer> A[3] = {attr.points, attr.facets, attr.corners};
             for (int z=0; z<3; z++) {
                 auto &att = A[z];
 
@@ -244,7 +244,7 @@ namespace UM {
 
             int bruno_nfacets = m.nfacets()+m.ncells()*geogram_nb_padding_per_cell_type[m.cell_type()]; // AARGH Bruno!
             writer.addAttributeSize("GEO::Mesh::cell_facets", bruno_nfacets);
-            std::vector<NamedContainer> A[4] = {std::get<0>(attr), std::get<1>(attr), std::get<2>(attr), std::get<3>(attr)};
+            std::vector<NamedContainer> A[4] = {attr.points, attr.cells, attr.cell_facets, attr.cell_corners};
             for (int z=0; z<4; z++) {
                 auto &att = A[z];
 
@@ -599,10 +599,7 @@ namespace UM {
         for (auto &nc : attrib[6])
             (*nc.second).compress(corners_old2new);
 
-        std::get<0>(va) = attrib[0];
-        std::get<1>(va) = attrib[4];
-        std::get<2>(va) = attrib[5];
-        std::get<3>(va) = attrib[6];
+        va = {attrib[0], attrib[4], attrib[5], attrib[6]};
     }
 
     VolumeAttributes read_geogram(const std::string filename, Tetrahedra &m) {
@@ -614,10 +611,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
-        for (auto &a : std::get<1>(va)) m.attr_cells.emplace_back(a.second);
-        for (auto &a : std::get<2>(va)) m.attr_facets.emplace_back(a.second);
-        for (auto &a : std::get<3>(va)) m.attr_corners.emplace_back(a.second);
+        for (auto &a : va.points      ) m.points.attr.emplace_back(a.second);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
 
         return va;
     }
@@ -631,10 +628,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
-        for (auto &a : std::get<1>(va)) m.attr_cells.emplace_back(a.second);
-        for (auto &a : std::get<2>(va)) m.attr_facets.emplace_back(a.second);
-        for (auto &a : std::get<3>(va)) m.attr_corners.emplace_back(a.second);
+        for (auto &a : va.points      ) m.points.attr.emplace_back(a.second);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
 
         return va;
     }
@@ -648,10 +645,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
-        for (auto &a : std::get<1>(va)) m.attr_cells.emplace_back(a.second);
-        for (auto &a : std::get<2>(va)) m.attr_facets.emplace_back(a.second);
-        for (auto &a : std::get<3>(va)) m.attr_corners.emplace_back(a.second);
+        for (auto &a : va.points      ) m.points.attr.emplace_back(a.second);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
 
         return va;
     }
@@ -665,10 +662,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : std::get<0>(va)) m.points.attr.emplace_back(a.second);
-        for (auto &a : std::get<1>(va)) m.attr_cells.emplace_back(a.second);
-        for (auto &a : std::get<2>(va)) m.attr_facets.emplace_back(a.second);
-        for (auto &a : std::get<3>(va)) m.attr_corners.emplace_back(a.second);
+        for (auto &a : va.points      ) m.points.attr.emplace_back(a.second);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
 
         return va;
     }
@@ -691,7 +688,7 @@ namespace UM {
         for (auto &a : attrib[2]) polygons.attr_facets.emplace_back(a.second);
         for (auto &a : attrib[3]) polygons.attr_corners.emplace_back(a.second);
 
-        return make_tuple(attrib[0], attrib[2], attrib[3]);
+        return {attrib[0], attrib[2], attrib[3]};
     }
 
     SurfaceAttributes read_geogram(const std::string filename, Triangles &m) {
@@ -736,7 +733,7 @@ namespace UM {
         for (auto &a : attrib[0]) pl.points.attr.emplace_back(a.second);
         for (auto &a : attrib[1]) pl.attr.emplace_back(a.second);
 
-        return make_tuple(attrib[0], attrib[1]);
+        return {attrib[0], attrib[1]};
     }
 }
 

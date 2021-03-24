@@ -91,7 +91,7 @@ namespace UM {
             PointAttribute<vec2> tex_coord(m.points);
             for (int v=0; v<m.nverts(); v++)
                 tex_coord[v] = VT[v];
-            std::get<0>(sa).emplace_back("tex_coord", tex_coord.ptr);
+            sa.points.emplace_back("tex_coord", tex_coord.ptr);
         } else {
             bool vt_c_attr = ((int)VTID.size()==m.nfacets() && (int)VT.size()>0); // check whether tex_coord is a CornerAttribute
             if (vt_c_attr) for (int f=0; f<m.nfacets(); f++) {
@@ -105,7 +105,7 @@ namespace UM {
                         tex_coord[m.corner(f, v)] = VT[VTID[f][v]];
                     }
                 }
-                std::get<2>(sa).emplace_back("tex_coord", tex_coord.ptr);
+                sa.corners.emplace_back("tex_coord", tex_coord.ptr);
             }
         }
 
@@ -150,7 +150,7 @@ namespace UM {
         for (int v=0; v<m.nverts(); v++)
             out << "v " << m.points[v] << std::endl;
 
-        for (auto &pair : std::get<0>(attr)) { // export tex_coord per vertex
+        for (auto &pair : attr.points) { // export tex_coord per vertex
             if (pair.first!="tex_coord") continue;
             std::shared_ptr<GenericAttributeContainer> ptr = pair.second;
             if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
@@ -168,7 +168,7 @@ namespace UM {
             }
         }
 
-        for (auto &pair : std::get<2>(attr)) { // export tex_coord per corner
+        for (auto &pair : attr.corners) { // export tex_coord per corner
             if (pair.first!="tex_coord") continue;
             std::shared_ptr<GenericAttributeContainer> ptr = pair.second;
             if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
