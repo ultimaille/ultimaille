@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
 #include <iostream>
@@ -133,7 +132,7 @@ CELL_TYPES 2
 9
 )";
 
-TEST_CASE("Medit poly IO test", "[Polygons]") {
+TEST_CASE("Poly IO test", "[Polygons]") {
     static const std::string filename[2] = { "ultimaille-test-polygons-in.vtk", "ultimaille-test-polygons-out.vtk" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << poly_str;

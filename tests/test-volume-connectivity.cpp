@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
 #include <iostream>
@@ -14,7 +13,7 @@ constexpr int BUNH = 6;
 constexpr int BUND = 4;
 constexpr uint32_t bunny_bitfield[] = { 0xc30d0418u, 0x37dff3e0u, 0x7df71e0cu, 0x004183c3u, 0x00000400u };
 
-bool bunny(const int i, const int j, const int k) {
+static bool bunny(const int i, const int j, const int k) {
     int cubeID = i+j*BUNW+k*BUNW*BUNH;
     if (cubeID<0 || cubeID>=BUNW*BUNH*BUND) return false;
     return bunny_bitfield[cubeID/32] & (1u << (cubeID&31));

@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
 #include <iostream>
@@ -29,7 +28,7 @@ Edges
 End
 )";
 
-TEST_CASE("Polyline IO test", "[Medit]") {
+TEST_CASE("Medit Polyline IO test", "[Medit]") {
     static const std::string filename[2] = { "ultimaille-test-polyline-in.mesh", "ultimaille-test-polyline-out.mesh" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << edges_str;
@@ -65,7 +64,7 @@ Triangles
 End
 )";
 
-TEST_CASE("Triangles IO test", "[Medit]") {
+TEST_CASE("Medit Triangles IO test", "[Medit]") {
     static const std::string filename[2] = { "ultimaille-test-triangles-in.mesh", "ultimaille-test-triangles-out.mesh" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << tri_str;
@@ -103,7 +102,7 @@ Quadrilaterals
 End
 )";
 
-TEST_CASE("Quads IO test", "[Medit]") {
+TEST_CASE("Medit Quads IO test", "[Medit]") {
     static const std::string filename[2] = { "ultimaille-test-quads-in.mesh", "ultimaille-test-quads-out.mesh" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << quad_str;
@@ -185,7 +184,7 @@ Tetrahedra
 End
 )";
 
-TEST_CASE("Tetrahedra IO test", "[Medit]") {
+TEST_CASE("Medit Tetrahedra IO test", "[Medit]") {
     static const std::string filename[2] = { "ultimaille-test-tetrahedra-in.mesh", "ultimaille-test-tetrahedra-out.mesh" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << tet_str;
@@ -227,7 +226,7 @@ Hexahedra
 End
 )";
 
-TEST_CASE("Hexahedra IO test", "[Medit]") {
+TEST_CASE("Medit Hexahedra IO test", "[Medit]") {
     static const std::string filename[2] = { "ultimaille-test-hexahedra-in.mesh", "ultimaille-test-hexahedra-out.mesh" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << hex_str;
@@ -267,7 +266,7 @@ Prisms
 End
 )";
 
-TEST_CASE("Wedges IO test", "[Medit]") {
+TEST_CASE("Medit Wedges IO test", "[Medit]") {
     static const std::string filename[2] = { "ultimaille-test-wedges-in.mesh", "ultimaille-test-wedges-out.mesh" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << wedge_str;
@@ -306,7 +305,7 @@ Pyramids
 End
 )";
 
-TEST_CASE("Pyramids IO test", "[Medit]") {
+TEST_CASE("Medit Pyramids IO test", "[Medit]") {
     static const std::string filename[2] = { "ultimaille-test-pyramids-in.mesh", "ultimaille-test-pyramids-out.mesh" };
     std::ofstream ofs(filename[0], std::ios::binary);
     ofs << pyramid_str;

@@ -9,27 +9,15 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(test-attributes test-attributes.cpp)
-target_link_libraries(test-attributes PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
-
-add_executable(test-io-geogram test-io-geogram.cpp)
-target_link_libraries(test-io-geogram PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
-
-add_executable(test-io-obj test-io-obj.cpp)
-target_link_libraries(test-io-obj PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
-
-add_executable(test-io-medit test-io-medit.cpp)
-target_link_libraries(test-io-medit PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
-
-add_executable(test-io-vtk test-io-vtk.cpp)
-target_link_libraries(test-io-vtk PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
-
-add_executable(test-numbering test-numbering.cpp)
-target_link_libraries(test-numbering PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
-
-add_executable(test-volume-connectivity test-volume-connectivity.cpp)
-target_link_libraries(test-volume-connectivity PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
-
-add_executable(test-surface-connectivity test-surface-connectivity.cpp)
-target_link_libraries(test-surface-connectivity PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
+add_executable(test-all catch-main.cpp
+               test-attributes.cpp
+               test-io-geogram.cpp
+               test-io-medit.cpp
+               test-io-obj.cpp
+               test-io-vtk.cpp
+               test-numbering.cpp
+               test-surface-connectivity.cpp
+               test-volume-connectivity.cpp
+              )
+target_link_libraries(test-all PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
 
