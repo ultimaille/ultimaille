@@ -24,3 +24,6 @@ target_link_libraries(test-io-vtk PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Ca
 add_executable(test-numbering test-numbering.cpp)
 target_link_libraries(test-numbering PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
 
+add_executable(test-volume-connectivity test-volume-connectivity.cpp)
+target_link_libraries(test-volume-connectivity PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
+
