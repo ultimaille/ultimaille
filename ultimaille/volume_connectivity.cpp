@@ -51,7 +51,7 @@ namespace UM {
 
     // c, org and dst are global indices
     int VolumeConnectivity::halfedge_from_verts(const int c, const int org, const int dst) const {
-        assert(c>=0); assert(org>=0); assert(dest>=0);
+        assert(c>=0); assert(org>=0); assert(dst>=0);
 
         for (int cf=0; cf<m.nfacets_per_cell(); cf++) {
             int nbv = m.facet_size(c, cf);
