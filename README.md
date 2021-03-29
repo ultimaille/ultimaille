@@ -38,14 +38,15 @@ You can not mix tetrahedra and hexahedra in a single mesh, I believe that it is 
 * Despite that, there will be no `size_t` and `iterator::` in the code. An int is an int. Period.
 * There will be as little templates as it is reasonable, the default data types are `int` and `double`.
 
-# Compile and run:
+# Compile and run unit tests:
 ```sh
 git clone https://github.com/ssloy/ultimaille.git &&
 cd ultimaille &&
 mkdir build &&
 cd build &&
-cmake -DUNIT_TESTS:BOOL=ON &&
-make &&
-bin/test-all
+cmake -DUNIT_TESTS:BOOL=ON .. &&
+make -j &&
+cd tests && 
+ctest
 ```
 
