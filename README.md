@@ -1,5 +1,6 @@
 # WARNING: UNDER CONSTRUCTION!
-
+[![Build](https://github.com/ssloy/ultimaille/actions/workflows/continuous.yml/badge.svg?event=push)](https://github.com/ssloy/ultimaille/actions/workflows/continuous.yml)
+[![Nightly](https://github.com/ssloy/ultimaille/actions/workflows/nightly.yml/badge.svg)](https://github.com/ssloy/ultimaille/actions/workflows/nightly.yml)
 # UltiMaille: the ultimate mesh processing library
 This library does *not* contain any ready-to-execute remeshing algorithms. It simply provides a friendly way to manipulate a surface/volume mesh, it is meant to be used by your geometry processing software.
 
