@@ -198,7 +198,7 @@ namespace UM {
                     file_must_no_be_at_end(in, "parsing Pyramids");
                     std::getline(in, line);
                     std::istringstream iss(line.c_str());
-                    FOR(i, 6) {
+                    FOR(i, 5) {
                         int a = 0;
                         iss >> a;
                         pyramids_[5 * h + i] = a - 1;

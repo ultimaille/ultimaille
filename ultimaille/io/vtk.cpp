@@ -261,7 +261,7 @@ namespace UM {
                 FOR(i, 4) quads.push_back(m.vert(f, i));
             }
             else {
-                std::cerr << "Polygon are not supported in our vtk writer";
+                std::cerr << "Polygon are not supported in our vtk writer" << std::endl;
             }
         }
         write_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
@@ -284,7 +284,7 @@ namespace UM {
             pyramids.resize(5 * m.ncells());
             FOR(h, m.ncells()) FOR(hv, 5) pyramids[5 * h + hv] = m.vert(h, hv);
         } else {
-            std::cerr << "Volume type : " << m.cell_type() << "; not supported in our vtk writer";
+            std::cerr << "Volume type : " << m.cell_type() << "; not supported in our vtk writer" << std::endl;
         }
 
         write_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
