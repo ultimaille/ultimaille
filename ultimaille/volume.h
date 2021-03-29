@@ -319,7 +319,7 @@ namespace UM {
     }
 
     inline int Hexahedra::facet_vert(const int c, const int lf, const int lv) const {
-        assert(c>=0 && c<ncells() && lf>=0 && lf<6 && lv>=0 && lv<4);
+        assert(c>=0 && c<ncells()); assert(lf>=0 && lf<6); assert(lv>=0 && lv<4);
         static constexpr int facet_vertex[6][4] = {{0,4,6,2}, {1,3,7,5}, {0,1,5,4}, {2,6,7,3}, {0,2,3,1}, {4,5,7,6}};
         return vert(c, facet_vertex[lf][lv]);
     }

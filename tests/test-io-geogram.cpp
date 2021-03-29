@@ -201,7 +201,7 @@ TEST_CASE("Tetrahedra + VolumeAttributes IO test", "[geogram]") {
         cdouble[c] = m.util.cell_volume(c);
 
     for (int cf : range(m.nfacets()))
-        cfvec3[cf] = m.util.bary_facet(cf/m.nverts_per_cell(), cf%m.nverts_per_cell());
+        cfvec3[cf] = m.util.bary_facet(cf/m.nfacets_per_cell(), cf%m.nfacets_per_cell());
 
     for (int cc : range(m.ncorners()))
         ccint[cc] = rand();
@@ -250,6 +250,7 @@ TEST_CASE("Hexahedra + VolumeAttributes IO test", "[geogram]") {
     CellFacetAttribute<vec3> cfvec3(m);
     CellCornerAttribute<int> ccint(m);
 
+
     for (int v : range(m.nverts()))
         vbool[v] = rand()&1;
 
@@ -257,7 +258,7 @@ TEST_CASE("Hexahedra + VolumeAttributes IO test", "[geogram]") {
         cdouble[c] = m.util.cell_volume(c);
 
     for (int cf : range(m.nfacets()))
-        cfvec3[cf] = m.util.bary_facet(cf/m.nverts_per_cell(), cf%m.nverts_per_cell());
+        cfvec3[cf] = m.util.bary_facet(cf/m.nfacets_per_cell(), cf%m.nfacets_per_cell());
 
     for (int cc : range(m.ncorners()))
         ccint[cc] = rand();
@@ -313,7 +314,7 @@ TEST_CASE("Wedges + VolumeAttributes IO test", "[geogram]") {
         cdouble[c] = m.util.cell_volume(c);
 
     for (int cf : range(m.nfacets()))
-        cfvec3[cf] = m.util.bary_facet(cf/m.nverts_per_cell(), cf%m.nverts_per_cell());
+        cfvec3[cf] = m.util.bary_facet(cf/m.nfacets_per_cell(), cf%m.nfacets_per_cell());
 
     for (int cc : range(m.ncorners()))
         ccint[cc] = rand();
@@ -369,7 +370,7 @@ TEST_CASE("Pyramids + VolumeAttributes IO test", "[geogram]") {
         cdouble[c] = m.util.cell_volume(c);
 
     for (int cf : range(m.nfacets()))
-        cfvec3[cf] = m.util.bary_facet(cf/m.nverts_per_cell(), cf%m.nverts_per_cell());
+        cfvec3[cf] = m.util.bary_facet(cf/m.nfacets_per_cell(), cf%m.nfacets_per_cell());
 
     for (int cc : range(m.ncorners()))
         ccint[cc] = rand();
