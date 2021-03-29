@@ -16,10 +16,10 @@ Eigen::MatrixXi F;
 ```
 Is it a polygonal surface or a tetrahedral mesh? If surface, is it triangulated or is it a generic polygonal mesh? I simply can not tell... Thus, ultimaille provides several classes that allow to represent meshes:
 ```
-    PointSet
-    PolyLine
-    Triangles, Quads, Polygons
-    Tetrahedra, Hexahedra, Wedges, Pyramids
+PointSet
+PolyLine
+Triangles, Quads, Polygons
+Tetrahedra, Hexahedra, Wedges, Pyramids
 ```
 
 You can not mix tetrahedra and hexahedra in a single mesh, I believe that it is confusing to do otherwise. If you need a mixed mesh, create a separate mesh for each cell type: these classes allow to share a common set of vertices via a `std::shared_ptr`.
