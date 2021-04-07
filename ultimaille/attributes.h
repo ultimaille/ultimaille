@@ -15,7 +15,7 @@ namespace UM {
     };
 
     template <typename T> struct AttributeContainer : GenericAttributeContainer {
-        AttributeContainer(const int n, const T def = T()) : data(n), default_value(def) {}
+        AttributeContainer(const int n, const T def = T()) : data(n, def), default_value(def) {}
         void resize(const int n) { data.resize(n, default_value); }
         void compress(const std::vector<int> &old2new) { // NB: old2new is not a permutation!
             assert(old2new.size()==data.size());
