@@ -129,8 +129,8 @@ namespace UM {
             pts.attr.push_back(this->ptr);
         }
 
-        PointAttribute(Surface &m, const T def = T()) : PointAttribute(m.points) {}
-        PointAttribute(Volume  &m, const T def = T()) : PointAttribute(m.points) {}
+        PointAttribute(Surface &m, const T def = T()) : PointAttribute(m.points, def) {}
+        PointAttribute(Volume  &m, const T def = T()) : PointAttribute(m.points, def) {}
 
         PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
             bind_attribute(this, name, seg.nverts(), attributes.points, seg.points.attr);
