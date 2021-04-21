@@ -33,7 +33,7 @@ namespace UM {
 #endif
         sort(G, 0, nboxes);
 
-        offset = std::pow(2., 1. + mylog2(nboxes)) - 1;
+        offset = static_cast<int>(std::pow(2., 1. + mylog2(nboxes))) - 1;
         tree.resize(offset + nboxes);
 
         for (int b=0; b<nboxes; b++)
@@ -59,7 +59,7 @@ namespace UM {
 
         if (dest - org <= 2) return;
 
-        int m = org + pow(2., mylog2(dest-org-1));
+        int m = org + static_cast<int>(pow(2., mylog2(dest-org-1)));
 #if defined(_OPENMP) && _OPENMP>=200805
 #pragma omp task
 #endif
