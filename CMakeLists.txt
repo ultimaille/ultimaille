@@ -44,7 +44,7 @@ add_library(ultimaille ${SOURCES})
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
-target_link_libraries(ultimaille zlib hlbfgs)
+target_link_libraries(ultimaille zlib hlbfgs stlbfgs)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(ultimaille OpenMP::OpenMP_CXX)
 endif()

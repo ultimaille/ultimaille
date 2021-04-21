@@ -1,0 +1,3 @@
+[submodule "ext/stlbfgs"]
+	path = ext/stlbfgs
+	url = https://github.com/ssloy/stlbfgs.git
