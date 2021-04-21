@@ -11,7 +11,14 @@ namespace UM {
         return ans ;
     }
 
+    HBoxes::HBoxes() {
+    }
+
     HBoxes::HBoxes(std::vector<BBox3> const &boxes) {
+        init(boxes);
+    }
+
+    void HBoxes::init(std::vector<BBox3> const &boxes) {
         int nboxes = boxes.size();
         std::vector<vec3> G(nboxes);
         tree_pos_to_org.resize(nboxes);

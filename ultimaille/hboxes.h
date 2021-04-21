@@ -61,8 +61,10 @@ namespace UM {
     };
 
     struct HBoxes {
+        HBoxes();
         HBoxes(std::vector<BBox3> const &inboxes);
 
+        void init(std::vector<BBox3> const &inboxes);
         void sort(std::vector<vec3> &G, int org, int dest) const;
         void intersect(BBox3 const &b, std::vector<int> &primitives, int node = 0) const;
 
