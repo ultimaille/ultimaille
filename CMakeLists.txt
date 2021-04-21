@@ -52,8 +52,8 @@ set_target_properties(ultimaille PROPERTIES SOVERSION 1.0)
 
 add_subdirectory(sandpit)
 
-option(UNIT_TESTS "UNIT_TESTS" OFF)
-if (UNIT_TESTS)
+option(UM_UNIT_TESTS "UM_UNIT_TESTS" OFF)
+if (UM_UNIT_TESTS)
     add_subdirectory(tests)
 endif()
 
