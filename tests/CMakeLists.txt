@@ -20,7 +20,7 @@ add_executable(um-test-all catch-main.cpp
                test-surface-connectivity.cpp
                test-volume-connectivity.cpp
               )
-target_link_libraries(test-all PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
+target_link_libraries(um-test-all PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
 
 FetchContent_GetProperties(Catch2) 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
