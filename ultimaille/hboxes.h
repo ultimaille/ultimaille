@@ -68,9 +68,9 @@ namespace UM {
         void sort(std::vector<vec3> &G, int org, int dest) const;
         void intersect(BBox3 const &b, std::vector<int> &primitives, int node = 0) const;
 
-        int offset;
-        mutable std::vector<int> tree_pos_to_org;
-        std::vector<BBox3> tree;
+        int offset = -1;
+        mutable std::vector<int> tree_pos_to_org = {};
+        std::vector<BBox3> tree = {};
     };
 }
 
