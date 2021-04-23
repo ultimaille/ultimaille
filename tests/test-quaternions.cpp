@@ -1,5 +1,6 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <catch2/catch.hpp>
-
 #include <iostream>
 #include <ultimaille/all.h>
 
