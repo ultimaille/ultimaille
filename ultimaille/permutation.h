@@ -5,7 +5,6 @@
 #include <cassert>
 
 namespace UM {
-    // TODO: invert the permutation in place (or apply_reverse)
     struct Permutation {
         Permutation(int n) : ind(n) {
             std::iota(ind.begin(), ind.end(), 0);
@@ -15,7 +14,6 @@ namespace UM {
         auto begin() { return ind.begin(); }
         auto end()   { return ind.end();   }
         int &operator[](const int i) { return ind[i]; }
-
 
         bool is_valid() {
             int n = size();
@@ -29,15 +27,7 @@ namespace UM {
         }
 
         // Imagine a data array A = [a, b, c, d, e] and a permutation P = [4, 3, 2, 0, 1]; after applying P we get [e, d, c, a, b].
-        // A trivial solution would be:
-        //
-        //  template<typename T> void apply_permutation(std::vector<T>& A, const std::vector<int>& P) {
-        //      std::vector<T> A2(A.size());
-        //      for (size_t i = 0; i < A.size(); i++)
-        //          A2[i] = A[P[i]];
-        //      A = A2;
-        //  }
-        //
+        // A trivial solution is given in apply_lin function that creates a copy of the data to permute.
         // Let us say we want to use constant space and linear time to apply the permutation.
         //
         // P[X] = Y means "an item on position Y should be at position X".
@@ -64,30 +54,28 @@ namespace UM {
         // set the corresponding entry in P to -n - 1: P becomes [-5, -4, 2, -1, -2], which can be recovered in O(n) trivially.
         // It is not thread-safe, thus I prefer to allocate a vector of booleans to indicate the elements in the right place.
 
-#if 0
-        // thread-unsafe, but constant memory
-        template <typename T> inline void apply(std::vector<T>& data) {
-            int n = ind.size();
-            assert(data.size()==static_cast<size_t>(n));
-            std::vector<int>& ind = const_cast<std::vector<int>&>(this->ind);
 
+//      // thread-unsafe, but constant memory
+//      template <typename T> inline void apply(std::vector<T>& data) {
+//          int n = ind.size();
+//          assert(data.size()==static_cast<size_t>(n));
+//          std::vector<int>& ind = const_cast<std::vector<int>&>(this->ind);
+//          for (int i=0; i<n; ++i) {
+//              if (ind[i] < 0) continue;
+//              int cur = i;
+//              while (ind[cur] != i) {
+//                  assert(ind[cur]>=0);
+//                  const int target = ind[cur];
+//                  std::swap(data[cur], data[target]);
+//                  ind[cur] = -1 - target;
+//                  cur = target;
+//              }
+//              ind[cur] = -1 - ind[cur];
+//          }
+//          for (int i=0; i<n; ++i)
+//              ind[i] = -1 - ind[i];
+//      }
 
-            for (int i=0; i<n; ++i) {
-                if (ind[i] < 0) continue;
-                int cur = i;
-                while (ind[cur] != i) {
-                    assert(ind[cur]>=0);
-                    const int target = ind[cur];
-                    std::swap(data[cur], data[target]);
-                    ind[cur] = -1 - target;
-                    cur = target;
-                }
-                ind[cur] = -1 - ind[cur];
-            }
-            for (int i=0; i<n; ++i)
-                ind[i] = -1 - ind[i];
-        }
-#endif
         template <typename T> void apply(std::vector<T>& data) const {
             int n = size();
             assert(static_cast<int>(data.size())==n);
