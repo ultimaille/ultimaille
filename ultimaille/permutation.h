@@ -101,7 +101,7 @@ namespace UM {
                 if (marked[i]) continue;
                 int cur = i;
                 do {
-                    assert(!marked[cur]);
+                    assert(!marked[ind[cur]]);
                     std::swap(data[i], data[ind[cur]]);
                     marked[ind[cur]] = true;
                     cur = ind[cur];
