@@ -23,6 +23,6 @@
 #include <ultimaille/io/by_extension.h>
 #include <ultimaille/eigen.h>
 
-//#include <ultimaille/permutation.h>
+#include <ultimaille/permutation.h>
 //#include <ultimaille/voronoi.h>
 

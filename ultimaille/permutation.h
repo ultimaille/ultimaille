@@ -5,20 +5,25 @@
 #include <cassert>
 
 namespace UM {
-    // TODO: move the permutation data inside the struct (instead of an external ref)
     // TODO: invert the permutation in place (or apply_reverse)
     struct Permutation {
-        Permutation(const std::vector<int> &p) : destinations(p) {
-            is_valid();
+        Permutation(int n) : ind(n) {
+            std::iota(ind.begin(), ind.end(), 0);
         }
 
+        int size() const { return ind.size(); }
+        auto begin() { return ind.begin(); }
+        auto end()   { return ind.end();   }
+        int &operator[](const int i) { return ind[i]; }
+
+
         bool is_valid() {
-            int n = destinations.size();
+            int n = size();
             std::vector<bool> visited(n, false);
             for (int i=0; i<n; i++) {
-                if (destinations[i]<0 || destinations[i] >= n || visited[i])
+                if (ind[i]<0 || ind[i] >= n || visited[ind[i]])
                     return false;
-                visited[destinations[i]] = true;
+                visited[ind[i]] = true;
             }
             return true;
         }
@@ -62,48 +67,80 @@ namespace UM {
 #if 0
         // thread-unsafe, but constant memory
         template <typename T> inline void apply(std::vector<T>& data) {
-            int n = destinations.size();
+            int n = ind.size();
             assert(data.size()==static_cast<size_t>(n));
-            std::vector<int>& destinations = const_cast<std::vector<int>&>(this->destinations);
+            std::vector<int>& ind = const_cast<std::vector<int>&>(this->ind);
 
 
             for (int i=0; i<n; ++i) {
-                if (destinations[i] < 0) continue;
+                if (ind[i] < 0) continue;
                 int cur = i;
-                while (destinations[cur] != i) {
-                    assert(destinations[cur]>=0);
-                    const int target = destinations[cur];
+                while (ind[cur] != i) {
+                    assert(ind[cur]>=0);
+                    const int target = ind[cur];
                     std::swap(data[cur], data[target]);
-                    destinations[cur] = -1 - target;
+                    ind[cur] = -1 - target;
                     cur = target;
                 }
-                destinations[cur] = -1 - destinations[cur];
+                ind[cur] = -1 - ind[cur];
             }
             for (int i=0; i<n; ++i)
-                destinations[i] = -1 - destinations[i];
+                ind[i] = -1 - ind[i];
         }
-#else
-        template <typename T> inline void apply(std::vector<T>& data) const {
-            int n = destinations.size();
-            assert(data.size()==static_cast<size_t>(n));
+#endif
+        template <typename T> void apply(std::vector<T>& data) const {
+            int n = size();
+            assert(static_cast<int>(data.size())==n);
             std::vector<bool> marked(n, false);
-
             for (int i=0; i<n; ++i) {
                 if (marked[i]) continue;
                 int cur = i;
-                while (destinations[cur] != i) {
+                while (ind[cur] != i) {
                     assert(!marked[cur]);
-                    const int target = destinations[cur];
-                    std::swap(data[cur], data[target]);
+                    std::swap(data[cur], data[ind[cur]]);
                     marked[cur] = true;
-                    cur = target;
+                    cur = ind[cur];
                 }
                 marked[cur] = true;
             }
         }
-#endif
 
-        const std::vector<int> &destinations;
+        template <typename T> void apply_reverse(std::vector<T>& data) const {
+            int n = size();
+            assert(static_cast<int>(data.size())==n);
+            std::vector<bool> marked(n, false);
+            for (int i=0; i<n; ++i) {
+                if (marked[i]) continue;
+                int cur = i;
+                do {
+                    assert(!marked[cur]);
+                    std::swap(data[i], data[ind[cur]]);
+                    marked[ind[cur]] = true;
+                    cur = ind[cur];
+                } while (ind[cur] != i);
+                marked[i] = true;
+            }
+        }
+
+        template <typename T> void apply_lin(std::vector<T>& data) const {
+            int n = size();
+            assert(static_cast<int>(data.size())==n);
+            std::vector<T> data2(n);
+            for (int i = 0; i<n; i++)
+                data2[i] = data[ind[i]];
+            data = data2;
+        }
+
+        template <typename T> void apply_reverse_lin(std::vector<T>& data) const {
+            int n = size();
+            assert(static_cast<int>(data.size())==n);
+            std::vector<T> data2(n);
+            for (int i = 0; i<n; i++)
+                data2[ind[i]] = data[i];
+            data = data2;
+        }
+
+        std::vector<int> ind;
     };
 }
 

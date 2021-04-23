@@ -10,16 +10,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(um-test-all catch-main.cpp
-               test-attributes.cpp
-               test-io-geogram.cpp
-               test-io-medit.cpp
-               test-io-obj.cpp
-               test-io-vtk.cpp
-               test-numbering.cpp
-               test-surface-connectivity.cpp
-               test-volume-connectivity.cpp
-              )
+file(GLOB TEST_SOURCES *.cpp)
+
+add_executable(um-test-all ${TEST_SOURCES})
 target_link_libraries(um-test-all PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
 
 FetchContent_GetProperties(Catch2) 
