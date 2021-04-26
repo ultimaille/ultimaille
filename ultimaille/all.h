@@ -24,5 +24,6 @@
 #include <ultimaille/eigen.h>
 
 #include <ultimaille/permutation.h>
+#include <ultimaille/hilbert_sort.h>
 //#include <ultimaille/voronoi.h>
 
