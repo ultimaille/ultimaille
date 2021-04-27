@@ -218,7 +218,8 @@ namespace UM {
             exit(1);
         }
         std::stringstream out;
-        out << std::fixed << std::setprecision(4);
+        out << std::setprecision(std::numeric_limits<double>::max_digits10);
+//        out << std::fixed << std::setprecision(4);
         out << "MeshVersionFormatted 2" << std::endl << std::endl;
         out << "Dimension" << std::endl << "3" << std::endl << std::endl;
 

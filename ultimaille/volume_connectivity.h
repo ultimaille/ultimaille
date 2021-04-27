@@ -25,6 +25,8 @@ namespace UM {
         int opposite_c(const int he) const; // TODO speed-up the implementation
         int opposite_f(const int he) const; // of these two functions
 
+        std::vector<int> halfedges_around_edge(const int he) const;
+
         static constexpr int max_f = 6; // max number of faces per cell
         static constexpr int max_h = 4; // max number of halfedges per face
         const Volume &m;
