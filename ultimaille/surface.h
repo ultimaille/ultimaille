@@ -4,7 +4,7 @@
 #include <memory>
 #include "algebra/vec.h"
 #include "pointset.h"
-#include "assert.h"
+#include "syntactic-sugar/assert.h"
 
 namespace UM {
     struct GenericAttributeContainer;

@@ -2,7 +2,7 @@
 #define __VOLUME_H__
 #include <vector>
 #include <memory>
-#include "assert.h"
+#include "syntactic-sugar/assert.h"
 #include "algebra/vec.h"
 #include "pointset.h"
 

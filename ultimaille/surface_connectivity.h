@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 #include "surface.h"
-#include "assert.h"
+#include "syntactic-sugar/assert.h"
 
 namespace UM {
     struct SurfaceConnectivity { // half-edge-like connectivity interface

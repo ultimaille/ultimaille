@@ -1,7 +1,7 @@
 #include <algorithm>
 #include "pointset.h"
 #include "attributes.h"
-#include "assert.h"
+#include "syntactic-sugar/assert.h"
 
 namespace UM {
     void PointSet::Util::bbox(vec3 &min, vec3 &max) {

@@ -4,7 +4,7 @@
 #include <sstream>
 #include <array>
 #include "ultimaille/io/medit.h"
-#include "ultimaille/assert.h"
+#include "ultimaille/syntactic-sugar/assert.h"
 #define FOR(i, n) for(int i = 0; i < static_cast<int>(n); i++)
 
 constexpr std::array<int, 8> hex_medit2geogram = { 0,1,3,2,4,5,7,6 };

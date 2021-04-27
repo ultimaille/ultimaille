@@ -2,7 +2,7 @@
 #define __VOLUME_CONNECTIVITY_H__
 #include <vector>
 #include <memory>
-#include "assert.h"
+#include "syntactic-sugar/assert.h"
 #include "volume.h"
 
 namespace UM {

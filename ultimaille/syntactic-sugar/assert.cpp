@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "assert.h"
+#include "ultimaille/syntactic-sugar/assert.h"
 
 namespace UM {
     void release_assert(bool expr, const source_location& loc, const char* expression) {
