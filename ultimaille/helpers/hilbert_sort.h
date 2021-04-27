@@ -4,7 +4,7 @@
 #include <vector>
 #include <cassert>
 #include <algorithm>
-#include <ultimaille/vec.h>
+#include "ultimaille/algebra/vec.h"
 
 namespace UM {
     //    _  _ _ _ _             _     ___          _

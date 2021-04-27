@@ -2,7 +2,7 @@
 #include <cassert>
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "hboxes.h"
+#include "ultimaille/helpers/hboxes.h"
 
 namespace UM {
     inline unsigned int mylog2(unsigned int x) {

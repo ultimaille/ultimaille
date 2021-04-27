@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 #include "assert.h"
-#include "vec.h"
+#include "algebra/vec.h"
 #include "pointset.h"
 
 namespace UM {

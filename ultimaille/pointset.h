@@ -2,7 +2,7 @@
 #define __POINTSET_H__
 #include <vector>
 #include <memory>
-#include "vec.h"
+#include "algebra/vec.h"
 
 namespace UM {
     struct GenericAttributeContainer;

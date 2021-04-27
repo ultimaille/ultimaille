@@ -1,13 +1,24 @@
+#include <ultimaille/algebra/vec.h>
+#include <ultimaille/algebra/mat.h>
+#include <ultimaille/algebra/quaternion.h>
+#include <ultimaille/algebra/eigen.h>
+
+#include <ultimaille/helpers/colocate.h>
+#include <ultimaille/helpers/constraints.h>
+#include <ultimaille/helpers/disjointset.h>
+#include <ultimaille/helpers/permutation.h>
+#include <ultimaille/helpers/hilbert_sort.h>
+#include <ultimaille/helpers/hboxes.h>
+#include <ultimaille/helpers/knn.h>
+
+#include <ultimaille/io/obj.h>
+#include <ultimaille/io/geogram.h>
+#include <ultimaille/io/medit.h>
+#include <ultimaille/io/vtk.h>
+#include <ultimaille/io/by_extension.h>
+
 #include <ultimaille/assert.h>
 #include <ultimaille/attributes.h>
-#include <ultimaille/colocate.h>
-#include <ultimaille/constraints.h>
-#include <ultimaille/disjointset.h>
-#include <ultimaille/vec.h>
-#include <ultimaille/mat.h>
-#include <ultimaille/quaternion.h>
-#include <ultimaille/hboxes.h>
-#include <ultimaille/knn.h>
 #include <ultimaille/pointset.h>
 #include <ultimaille/polyline.h>
 #include <ultimaille/range.h>
@@ -16,14 +27,4 @@
 #include <ultimaille/volume.h>
 #include <ultimaille/volume_connectivity.h>
 #include <ultimaille/HLBFGS_wrapper.h>
-#include <ultimaille/io/obj.h>
-#include <ultimaille/io/geogram.h>
-#include <ultimaille/io/medit.h>
-#include <ultimaille/io/vtk.h>
-#include <ultimaille/io/by_extension.h>
-#include <ultimaille/eigen.h>
-
-#include <ultimaille/permutation.h>
-#include <ultimaille/hilbert_sort.h>
-//#include <ultimaille/voronoi.h>
 

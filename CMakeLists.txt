@@ -38,7 +38,7 @@ else()
     add_compile_options(-Wall -Wextra -pedantic)
 endif()
 
-file(GLOB SOURCES ultimaille/*.cpp ultimaille/*.h ultimaille/io/*.cpp ultimaille/io/*.h)
+file(GLOB SOURCES ultimaille/*.cpp ultimaille/*.h ultimaille/algebra/*.cpp ultimaille/algebra/*.h ultimaille/helpers/*.cpp ultimaille/helpers/*.h ultimaille/io/*.cpp ultimaille/io/*.h)
 add_library(ultimaille ${SOURCES})
 #set_property(TARGET ultimaille PROPERTY CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD 17)

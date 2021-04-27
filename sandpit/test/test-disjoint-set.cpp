@@ -5,7 +5,7 @@
 #include <utility>
 #include <ctime>
 
-#include <ultimaille/disjointset.h>
+#include <ultimaille/helpers/disjointset.h>
 
 using namespace UM;
 

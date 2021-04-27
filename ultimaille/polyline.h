@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <memory>
-#include "vec.h"
+#include "algebra/vec.h"
 #include "pointset.h"
 #include "assert.h"
 

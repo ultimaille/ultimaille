@@ -1,6 +1,6 @@
 #include <algorithm>
-#include "knn.h"
-#include "colocate.h"
+#include "ultimaille/helpers/knn.h"
+#include "ultimaille/helpers/colocate.h"
 
 namespace UM {
     void colocate(const std::vector<vec3> &points, std::vector<int> &old2new, double tolerance) {

@@ -4,7 +4,7 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
-#include "vec.h"
+#include "ultimaille/algebra/vec.h"
 
 namespace UM {
     struct BBox3 {
