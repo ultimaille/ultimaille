@@ -279,8 +279,7 @@ namespace UM {
         return 4;
     }
 
-    inline int Tetrahedra::facet_size(const int c, const int lf) const {
-        (void)c; (void)lf; // suppress unused parameter warnings
+    inline int Tetrahedra::facet_size([[maybe_unused]] const int c, [[maybe_unused]] const int lf) const {
         return 3;
     }
 
@@ -314,8 +313,7 @@ namespace UM {
         return 6;
     }
 
-    inline int Hexahedra::facet_size(const int c, const int lf) const {
-        (void)c; (void)lf; // suppress unused parameter warnings
+    inline int Hexahedra::facet_size([[maybe_unused]] const int c, [[maybe_unused]] const int lf) const {
         return 4;
     }
 
@@ -349,8 +347,7 @@ namespace UM {
         return 5;
     }
 
-    inline int Wedges::facet_size(const int c, const int lf) const {
-        (void)c;
+    inline int Wedges::facet_size([[maybe_unused]] const int c, const int lf) const {
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell());
         if (lf<2) return 3;
         return 4;
@@ -386,8 +383,7 @@ namespace UM {
         return 5;
     }
 
-    inline int Pyramids::facet_size(const int c, const int lf) const {
-        (void)c;
+    inline int Pyramids::facet_size([[maybe_unused]] const int c, const int lf) const {
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell());
         if (!lf) return 4;
         return 3;

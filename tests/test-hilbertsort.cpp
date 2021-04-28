@@ -14,7 +14,7 @@ TEST_CASE("Test max dist", "[Hilbert sort]") {
     int n = 1000000;
     PointSet pts;
 
-    for (int i : range(n))
+    for ([[maybe_unused]] int i : range(n))
         pts.push_back({rand01(), rand01(), rand01()});
 
     Permutation perm(n);
