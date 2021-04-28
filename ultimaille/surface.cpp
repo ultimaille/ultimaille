@@ -26,6 +26,20 @@ namespace UM {
         return UM::unsigned_area(A, B, C);
     }
 
+    void Triangles::Util::project(const int f, vec2& z0, vec2& z1, vec2& z2) const {
+        const vec3 &A = m.points[m.vert(f, 0)];
+        const vec3 &B = m.points[m.vert(f, 1)];
+        const vec3 &C = m.points[m.vert(f, 2)];
+
+        vec3 X = (B - A).normalize(); // construct an orthonormal 3d basis
+        vec3 Z = cross(X, C - A).normalize();
+        vec3 Y = cross(Z, X);
+
+        z0 = vec2(0,0); // project the triangle to the 2d basis (X,Y)
+        z1 = vec2((B - A).norm(), 0);
+        z2 = vec2((C - A)*X, (C - A)*Y);
+    }
+
     vec3 Triangles::Util::normal(const int f) const {
         const vec3 &A = m.points[m.vert(f, 0)];
         const vec3 &B = m.points[m.vert(f, 1)];
