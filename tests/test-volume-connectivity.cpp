@@ -44,14 +44,7 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
                 m.vert(c, lv) = old2new[m.vert(c, lv)];
     }
 
-    { // remove isolated vertices
-        std::vector<bool> to_kill(m.nverts(), true);
-        for (int c : range(m.ncells()))
-            for (int lv : range(8))
-                to_kill[m.vert(c, lv)] = false;
-        m.delete_vertices(to_kill);
-    }
-
+    m.delete_isolated_vertices();
     VolumeConnectivity vec(m);
 
     CellFacetAttribute<bool> boundary(m);

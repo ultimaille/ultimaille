@@ -17,6 +17,7 @@ namespace UM {
 
         void delete_vertices(const std::vector<bool> &to_kill);
         virtual void delete_facets(const std::vector<bool> &to_kill);
+        void delete_isolated_vertices();
         void resize_attrs();
         void compress_attrs(const std::vector<bool> &facets_to_kill);
 

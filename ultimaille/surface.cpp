@@ -19,6 +19,14 @@ namespace UM {
         return ave / static_cast<double>(nbv);
     }
 
+    void Surface::delete_isolated_vertices()  {
+        std::vector<bool> to_kill(nverts(), true);
+        for (int f=0; f<nfacets(); f++)
+            for (int lv=0; lv<facet_size(f); lv++)
+                to_kill[vert(f, lv)] = false;
+        delete_vertices(to_kill);
+    }
+
     double Triangles::Util::unsigned_area(const int f) const {
         const vec3 &A = m.points[m.vert(f, 0)];
         const vec3 &B = m.points[m.vert(f, 1)];

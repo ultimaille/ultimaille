@@ -169,6 +169,14 @@ namespace UM {
             v = old2new[v];
     }
 
+    void Volume::delete_isolated_vertices()  {
+        std::vector<bool> to_kill(nverts(), true);
+        for (int c=0; c<ncells(); c++)
+            for (int lv=0; lv<nverts_per_cell(); lv++)
+                to_kill[vert(c, lv)] = false;
+        delete_vertices(to_kill);
+    }
+
     int Volume::create_cells(const int n) {
         assert(n>=0);
         cells.resize(cells.size()+n*nverts_per_cell());

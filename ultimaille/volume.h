@@ -22,6 +22,7 @@ namespace UM {
         int  create_cells(const int n);
         void delete_cells(const std::vector<bool> &to_kill);
         void delete_vertices(const std::vector<bool> &to_kill);
+        void delete_isolated_vertices();
 
         void resize_attrs();
         void compress_attrs(const std::vector<bool> &cells_to_kill);
