@@ -32,7 +32,7 @@ You can not mix tetrahedra and hexahedra in a single mesh, I believe that it is 
 
 # Compile and run unit tests:
 ```sh
-git clone https://github.com/ssloy/ultimaille.git &&
+git clone --recurse-submodules https://github.com/ssloy/ultimaille.git &&
 cd ultimaille &&
 mkdir build &&
 cd build &&
