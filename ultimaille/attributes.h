@@ -129,8 +129,13 @@ namespace UM {
             pts.attr.push_back(this->ptr);
         }
 
+        PointAttribute(const PointSet &pts, const T def = T()) : GenericAttribute<T>(pts.size(), def) {
+        }
+
         PointAttribute(Surface &m, const T def = T()) : PointAttribute(m.points, def) {}
+        PointAttribute(const Surface &m, const T def = T()) : PointAttribute(m.points, def) {}
         PointAttribute(Volume  &m, const T def = T()) : PointAttribute(m.points, def) {}
+        PointAttribute(const Volume  &m, const T def = T()) : PointAttribute(m.points, def) {}
 
         PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
             bind_attribute(this, name, seg.nverts(), attributes.points, seg.points.attr);
@@ -150,6 +155,9 @@ namespace UM {
             seg.attr.push_back(this->ptr);
         }
 
+        SegmentAttribute(const PolyLine &seg, const T def = T()) : GenericAttribute<T>(seg.nsegments(), def) {
+        }
+
         SegmentAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
             bind_attribute(this, name, seg.nsegments(), attributes.segments, seg.attr);
         }
@@ -158,6 +166,9 @@ namespace UM {
     template <typename T> struct FacetAttribute : GenericAttribute<T> {
         FacetAttribute(Surface &m, const T def = T()) : GenericAttribute<T>(m.nfacets(), def) {
             m.attr_facets.push_back(this->ptr);
+        }
+
+        FacetAttribute(const Surface &m, const T def = T()) : GenericAttribute<T>(m.nfacets(), def) {
         }
 
         FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
@@ -170,6 +181,9 @@ namespace UM {
             m.attr_corners.push_back(this->ptr);
         }
 
+        CornerAttribute(const Surface &m, const T def = T()) : GenericAttribute<T>(m.ncorners(), def) {
+        }
+
         CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m) : GenericAttribute<T>() {
             bind_attribute(this, name, m.ncorners(), attributes.corners, m.attr_corners);
         }
@@ -178,6 +192,9 @@ namespace UM {
     template <typename T> struct CellAttribute : GenericAttribute<T> {
         CellAttribute(Volume &m, const T def = T()) : GenericAttribute<T>(m.ncells(), def) {
             m.attr_cells.push_back(this->ptr);
+        }
+
+        CellAttribute(const Volume &m, const T def = T()) : GenericAttribute<T>(m.ncells(), def) {
         }
 
         CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
@@ -190,6 +207,9 @@ namespace UM {
             m.attr_facets.push_back(this->ptr);
         }
 
+        CellFacetAttribute(const Volume &m, const T def = T()) : GenericAttribute<T>(m.nfacets(), def) {
+        }
+
         CellFacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
             bind_attribute(this, name, m.nfacets(), attributes.cell_facets, m.attr_facets);
         }
@@ -198,6 +218,9 @@ namespace UM {
     template <typename T> struct CellCornerAttribute : GenericAttribute<T> {
         CellCornerAttribute(Volume &m, const T def = T()) : GenericAttribute<T>(m.ncorners(), def) {
             m.attr_corners.push_back(this->ptr);
+        }
+
+        CellCornerAttribute(const Volume &m, const T def = T()) : GenericAttribute<T>(m.ncorners(), def) {
         }
 
         CellCornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m) : GenericAttribute<T>() {
