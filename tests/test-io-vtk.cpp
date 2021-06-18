@@ -8,6 +8,31 @@
 using namespace UM;
 static const double ftol = 1e-13;
 
+static const std::string points_str =
+R"(# vtk DataFile Version 4.2
+written by meshio v4.3.6
+ASCII
+DATASET UNSTRUCTURED_GRID
+POINTS 3 double
+0.0 0.9 0.0 0.0 0.8 0.0 1.0 0.3 0.0
+)";
+
+TEST_CASE("PointSet IO test", "[VTK]") {
+    static const std::string filename[2] = { "ultimaille-test-pointset-in.vtk", "ultimaille-test-pointset-out.vtk" };
+    std::ofstream ofs(filename[0], std::ios::binary);
+    ofs << points_str;
+    ofs.close();
+
+    PointSet m[2] = {};
+    for (int i : range(2)) {
+        read_by_extension(filename[i], m[i]);
+
+        REQUIRE( m[i].size()==3 );
+        if (!i)
+            write_by_extension(filename[1], m[0]);
+    }
+}
+
 static const std::string edges_str =
 R"(# vtk DataFile Version 4.2
 written by meshio v4.3.6

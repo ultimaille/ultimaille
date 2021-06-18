@@ -76,6 +76,42 @@ namespace UM {
         gzFile file_;
     };
 
+    void write_geogram(const std::string filename, const PointSet &ps, PointSetAttributes attr) {
+        try {
+            GeogramGZWriter writer(filename);
+            writer.addFileHeader();
+            writer.addAttributeSize("GEO::Mesh::vertices", ps.size());
+            writer.addAttribute("GEO::Mesh::vertices", "point", "double", reinterpret_cast<const double *>(ps.data->data()), ps.size(), 3);
+
+            auto &att = attr.points;
+
+            for (int i=0; i<static_cast<int>(att.size()); i++) {
+                std::string name = att[i].first;
+                std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                std::string place = "GEO::Mesh::vertices";
+
+                // TODO externalize that
+                if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr.get()!=nullptr) {
+                    writer.addAttribute(place, name, "int", cont_ptr->data.data(), cont_ptr->data.size(), 1);
+                } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr.get()!=nullptr) {
+                    writer.addAttribute(place, name, "double", cont_ptr->data.data(), cont_ptr->data.size(), 1);
+                } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
+                    writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 2);
+                } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr.get()!=nullptr) {
+                    writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 3);
+                } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr.get()!=nullptr) {
+                    std::vector<char> tmp(cont_ptr->data.size());
+                    for (int i=0; i<(int)cont_ptr->data.size(); i++) tmp[i] = cont_ptr->data[i];
+                    writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
+                } else {
+                    assert(false);
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Ooops: catch error= " << e.what() << " when creating " << filename << "\n";
+        }
+    }
+
     void write_geogram(const std::string filename, const PolyLine &pl, PolyLineAttributes attr) {
         try {
             GeogramGZWriter writer(filename);
@@ -734,6 +770,18 @@ namespace UM {
         for (auto &a : attrib[1]) pl.attr.emplace_back(a.second);
 
         return {attrib[0], attrib[1]};
+    }
+
+    PointSetAttributes read_geogram(const std::string filename, PointSet &ps) {
+        ps = PointSet();
+
+        std::vector<NamedContainer> attrib[7];
+        read_geogram(filename, attrib);
+        parse_pointset_attributes(ps, attrib[0]);
+
+        for (auto &a : attrib[0]) ps.attr.emplace_back(a.second);
+
+        return {attrib[0]};
     }
 }
 

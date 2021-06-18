@@ -25,10 +25,12 @@
  */
 
 namespace UM {
+    void write_medit(const std::string filename, const PointSet &ps);
     void write_medit(const std::string filename, const PolyLine &pl);
     void write_medit(const std::string filename, const Surface &m);
     void write_medit(const std::string filename, const Volume  &m);
 
+    PointSetAttributes read_medit(const std::string filename, PointSet   &m);
     PolyLineAttributes read_medit(const std::string filename, PolyLine   &m);
     SurfaceAttributes  read_medit(const std::string filename, Triangles  &m);
     SurfaceAttributes  read_medit(const std::string filename, Quads      &m);

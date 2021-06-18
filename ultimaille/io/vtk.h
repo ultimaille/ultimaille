@@ -10,10 +10,12 @@
 // TODO: colors and scalar fields are yet to be implemented
 
 namespace UM {
+    void write_vtk(const std::string filename, const PointSet &ps);
     void write_vtk(const std::string filename, const PolyLine &pl);
     void write_vtk(const std::string filename, const Surface &m);
     void write_vtk(const std::string filename, const Volume  &m);
 
+    PointSetAttributes read_vtk(const std::string filename, PointSet   &m);
     PolyLineAttributes read_vtk(const std::string filename, PolyLine   &m);
     SurfaceAttributes  read_vtk(const std::string filename, Triangles  &m);
     SurfaceAttributes  read_vtk(const std::string filename, Quads      &m);
@@ -25,5 +27,5 @@ namespace UM {
 }
 
 
-#endif // __MEDIT_H__
+#endif // __VTK_H__
 

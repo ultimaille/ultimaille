@@ -8,6 +8,37 @@
 using namespace UM;
 static const double ftol = 1e-13;
 
+static const std::string points_str =
+R"(MeshVersionFormatted 2
+
+Dimension
+3
+
+Vertices
+3
+0. 0.9 0. 0
+0. 0.8 0. 0
+1. 0.3 0. 0
+
+End
+)";
+
+TEST_CASE("Medit PointSet IO test", "[Medit]") {
+    static const std::string filename[2] = { "ultimaille-test-pointset-in.mesh", "ultimaille-test-pointset-out.mesh" };
+    std::ofstream ofs(filename[0], std::ios::binary);
+    ofs << points_str;
+    ofs.close();
+
+    PointSet m[2] = {};
+    for (int i : range(2)) {
+        read_by_extension(filename[i], m[i]);
+
+        REQUIRE( m[i].size()==3 );
+        if (!i)
+            write_by_extension(filename[1], m[0]);
+    }
+}
+
 static const std::string edges_str =
 R"(MeshVersionFormatted 2
 

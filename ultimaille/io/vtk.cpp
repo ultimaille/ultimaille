@@ -67,6 +67,10 @@ namespace UM {
         file_must_no_be_at_end(in, "parsing VTK");
         in >> line;
         if (!string_start(line, "CELLS")) {
+            if (in.eof()) {
+                in.close();
+                return;
+            }
             std::cerr << "Error in vtk while reading : " << filename << std::endl;
             exit(1);
         }
@@ -240,6 +244,13 @@ namespace UM {
 
 
 
+    void write_vtk(const std::string filename, const PointSet& ps) {
+        std::vector<vec3> verts(ps.size());
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        FOR(v, ps.size()) verts[v] = ps[v];
+        write_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
+    }
+
     void write_vtk(const std::string filename, const PolyLine& pl) {
         std::vector<vec3> verts(pl.nverts());
         std::vector<int> edges(2 * pl.nsegments());
@@ -289,6 +300,16 @@ namespace UM {
 
         write_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
     }
+
+    PointSetAttributes read_vtk(const std::string filename, PointSet   &m) {
+        std::vector<vec3> verts;
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        read_vtk_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
+        m = PointSet();
+        m.create_points(verts.size());
+        FOR(v, verts.size()) m[v] = verts[v];
+        return {};
+     }
 
     PolyLineAttributes read_vtk(const std::string filename, PolyLine& m) {
         std::vector<vec3> verts;

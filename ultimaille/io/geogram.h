@@ -10,10 +10,12 @@
 #include "ultimaille/polyline.h"
 
 namespace UM {
+    void write_geogram(const std::string filename, const PointSet &ps, const PointSetAttributes attr = {{}});
     void write_geogram(const std::string filename, const PolyLine &pl, const PolyLineAttributes attr = {{}, {}});
     void write_geogram(const std::string filename, const Surface &m,   const SurfaceAttributes  attr = {{}, {}, {}});
     void write_geogram(const std::string filename, const Volume  &m,   const VolumeAttributes   attr = {{}, {}, {}, {}});
 
+    PointSetAttributes read_geogram(const std::string filename, PointSet   &m);
     PolyLineAttributes read_geogram(const std::string filename, PolyLine   &m);
     SurfaceAttributes  read_geogram(const std::string filename, Triangles  &m);
     SurfaceAttributes  read_geogram(const std::string filename, Quads      &m);

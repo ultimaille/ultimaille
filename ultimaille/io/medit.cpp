@@ -301,6 +301,13 @@ namespace UM {
         out_f.close();
     }
 
+    void write_medit(const std::string filename, const PointSet& ps) {
+        std::vector<vec3> verts(ps.size());
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        FOR(v, ps.size()) verts[v] = ps[v];
+        write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
+    }
+
     void write_medit(const std::string filename, const PolyLine& pl) {
         std::vector<vec3> verts(pl.nverts());
         std::vector<int> edges(2 * pl.nsegments());
@@ -350,6 +357,17 @@ namespace UM {
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
     }
 
+
+    PointSetAttributes read_medit(const std::string filename, PointSet& m) {
+        std::vector<vec3> verts;
+        std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
+        std::vector<int> vcolors;
+        read_medit_format(filename, vcolors, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
+        m = PointSet();
+        m.create_points(verts.size());
+        FOR(v, verts.size()) m[v] = verts[v];
+        return {};
+    }
 
     PolyLineAttributes read_medit(const std::string filename, PolyLine& m) {
         std::vector<vec3> verts;

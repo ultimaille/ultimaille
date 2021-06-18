@@ -11,6 +11,7 @@
 #include <ultimaille/helpers/hboxes.h>
 #include <ultimaille/helpers/knn.h>
 
+#include <ultimaille/io/xyz.h>
 #include <ultimaille/io/obj.h>
 #include <ultimaille/io/geogram.h>
 #include <ultimaille/io/medit.h>

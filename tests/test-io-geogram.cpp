@@ -9,7 +9,28 @@
 using namespace UM;
 static const double ftol = 1e-13;
 
-TEST_CASE("PolyLine + VolumeAttributes IO test", "[geogram]") {
+TEST_CASE("PointSet + PointSetAttributes IO test", "[geogram]") {
+    static const std::string filename = "ultimaille-test-pointset.geogram";
+    PointSet m;
+    *m.data = {{0,.9,0}, {0,.8,0}, {1.,.3,0.}};
+    PointAttribute<bool> vbool(m);
+    for (int v : range(m.size()))
+        vbool[v] = rand()&1;
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}});
+
+    PointSet m2;
+    PointSetAttributes attrs = read_by_extension(filename, m2);
+
+    REQUIRE( m.size()==m2.size() );
+
+    PointAttribute<bool> vbool2("vbool", attrs, m2);
+    for (int v=0; v<m.size(); v++) {
+        REQUIRE( (m[v]-m2[v]).norm()<ftol );
+        REQUIRE( vbool[v]==vbool2[v] );
+    }
+}
+
+TEST_CASE("PolyLine + PolyLineAttributes IO test", "[geogram]") {
     static const std::string filename = "ultimaille-test-polyline.geogram";
     PolyLine m;
     *m.points.data = {{0,.9,0}, {0,.8,0}, {1.,.3,0.}};

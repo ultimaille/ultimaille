@@ -22,7 +22,6 @@ static double rand11() {
     return (rand()/(double)RAND_MAX)*2.-1.;
 }
 
-static const double ftol = 1e-13;
 
 TEST_CASE("2x2", "[eigen decomposition]") {
     mat2x2 A = {{{4.,1.}, {1.,2.}}};
@@ -32,8 +31,8 @@ TEST_CASE("2x2", "[eigen decomposition]") {
 
     vec2 eval_test = {3.+std::sqrt(2.), 3.-std::sqrt(2.)};
     mat2x2 evec_test = mat2x2{{{1./std::sqrt(4.-2.*std::sqrt(2.)), -1./std::sqrt(4.+2.*std::sqrt(2.))},{(std::sqrt(2.)-1.)/std::sqrt(4.-2.*std::sqrt(2.)), (std::sqrt(2.)+1.)/std::sqrt(4.+2.*std::sqrt(2.))}}};
-    CHECK( (eval-eval_test).norm()<ftol );
-    CHECK( (evec-evec_test).norm()<ftol );
+    CHECK( (eval-eval_test).norm()<1e-13 );
+    CHECK( (evec-evec_test).norm()<1e-13 );
 }
 
 
@@ -42,10 +41,10 @@ TEST_CASE("3x3", "[eigen decomposition]") {
     mat3x3 evec;
     vec3 eval;
     eigendecompose_symmetric(A, eval, evec);
-    CHECK( std::abs(eval[0]-5.)<ftol );
+    CHECK( std::abs(eval[0]-5.)<1e-13 );
     CHECK((
-            (std::abs(eval[1]-1.)<ftol && std::abs(eval[2]+1.)<ftol) ||
-            (std::abs(eval[2]-1.)<ftol && std::abs(eval[1]+1.)<ftol)
+            (std::abs(eval[1]-1.)<1e-13 && std::abs(eval[2]+1.)<1e-13) ||
+            (std::abs(eval[2]-1.)<1e-13 && std::abs(eval[1]+1.)<1e-13)
          ));
 }
 
@@ -66,7 +65,7 @@ TEST_CASE("3x3b", "[eigen decomposition]") {
         eigendecompose_symmetric(A, eval, evec);
 
         for (int i=0; i<3; i++) {
-            CHECK( std::abs(eval[i]-eval_test[i])<ftol );
+            CHECK( std::abs(eval[i]-eval_test[i])<1e-12 );
             CHECK( ((R.col(i) - evec.col(i)).norm()<1e-6 || (R.col(i) + evec.col(i)).norm()<1e-6) );
         }
     }

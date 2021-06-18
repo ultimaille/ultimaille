@@ -8,23 +8,14 @@
 #include "ultimaille/io/geogram.h"
 #include "ultimaille/io/medit.h"
 #include "ultimaille/io/vtk.h"
+#include "ultimaille/io/xyz.h"
 #include "ultimaille/io/obj.h"
 
 namespace UM {
-    inline PolyLineAttributes empty_attr(const PolyLine &m) {
-        (void)m;
-        return {};
-    }
-
-    inline SurfaceAttributes empty_attr(const Surface &m) {
-        (void)m;
-        return {};
-    }
-
-    inline VolumeAttributes empty_attr(const Volume &m) {
-        (void)m;
-        return {};
-    }
+    inline PointSetAttributes empty_attr([[maybe_unused]] const PointSet &m) { return {}; }
+    inline PolyLineAttributes empty_attr([[maybe_unused]] const PolyLine &m) { return {}; }
+    inline SurfaceAttributes  empty_attr([[maybe_unused]] const Surface  &m) { return {}; }
+    inline VolumeAttributes   empty_attr([[maybe_unused]] const Volume   &m) { return {}; }
 
     template <class M> void write_by_extension(const std::string path, const M &m, const decltype(empty_attr(m)) a = {}) {
         std::string ext = std::filesystem::path(path).extension().string();
@@ -34,6 +25,10 @@ namespace UM {
             write_medit(path, m);
         if (ext == ".vtk")
             write_vtk(path, m);
+        if constexpr (std::is_same_v<decltype(empty_attr(m)), PointSetAttributes>) {
+            if (ext == ".xyz")
+                write_xyz(path, m);
+        }
         if constexpr (std::is_same_v<decltype(empty_attr(m)), SurfaceAttributes>) {
             if (ext == ".obj")
                 write_wavefront_obj(path, m, a);
@@ -48,6 +43,10 @@ namespace UM {
             return read_medit(path, m);
         if (ext == ".vtk")
             return read_vtk(path, m);
+        if constexpr (std::is_same_v<decltype(empty_attr(m)), PointSetAttributes>) {
+            if (ext == ".xyz")
+                return read_xyz(path, m);
+        }
         if constexpr (std::is_same_v<decltype(empty_attr(m)), SurfaceAttributes>) {
             if (ext == ".obj")
                 return read_wavefront_obj(path, m);

@@ -32,6 +32,9 @@ namespace UM {
     };
 
     typedef std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > NamedContainer;
+    struct PointSetAttributes {
+        std::vector<NamedContainer> points;
+    };
     struct PolyLineAttributes {
         std::vector<NamedContainer> points, segments;
     };
@@ -136,6 +139,10 @@ namespace UM {
         PointAttribute(const Surface &m, const T def = T()) : PointAttribute(m.points, def) {}
         PointAttribute(Volume  &m, const T def = T()) : PointAttribute(m.points, def) {}
         PointAttribute(const Volume  &m, const T def = T()) : PointAttribute(m.points, def) {}
+
+        PointAttribute(std::string name, PointSetAttributes &attributes, PointSet &ps) : GenericAttribute<T>() {
+            bind_attribute(this, name, ps.size(), attributes.points, ps.attr);
+        }
 
         PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg) : GenericAttribute<T>() {
             bind_attribute(this, name, seg.nverts(), attributes.points, seg.points.attr);
