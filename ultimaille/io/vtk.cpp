@@ -2,152 +2,218 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <iterator>
 #include <array>
 #include "ultimaille/io/vtk.h"
 
 #define FOR(i, n) for(int i = 0; i < static_cast<int>(n); i++)
 
 namespace UM {
-    inline void file_must_no_be_at_end(std::ifstream& f, const std::string& reason = " should'nt") {
-        if (f.eof()) {
-            f.close();
-            std::cout << "File ended to soon while : " << reason << std::endl;
-            exit(1);
-        }
-    }
 
-    inline static bool string_start(const std::string& string, const std::string& start_of_string) {
-        size_t start = 0;
-        FOR(i, string.size()) if (string[i] != ' ' && string[i] != '\t') {
-            start = (size_t)i;
-            break;
+    struct LineInput {
+        LineInput() = delete;
+
+        LineInput(const std::string& filename) {
+            in.open(filename, std::ifstream::in);
+            if (in.fail())
+                std::cerr << "Failed to open ASCII file " << filename << std::endl;
+            getline();
         }
-        std::string copy_without_space(string.begin() + start, string.end());
-        if (copy_without_space.size() < start_of_string.size()) return false;
-        return (std::string(copy_without_space.begin(), copy_without_space.begin() + (long int)start_of_string.size()) == start_of_string);
+
+        bool good() {
+            return in.good();
+        }
+
+        void getline() {
+            line = {};
+            if (in.good()) {
+                std::getline(in, line);
+                parse_words();
+            }
+        }
+
+        void getline_nonempty() {
+            do {
+                getline();
+            } while (!words.size() && in.good());
+        }
+
+        /*
+        int nfields() {
+            std::istringstream iss(line);
+            return std::distance(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>());
+        }
+        */
+
+        void parse_words() {
+            words.resize(0);
+            std::istringstream iss(line);
+            std::string str;
+            while (iss>>str)
+                words.push_back(str);
+        }
+
+        ~LineInput() {
+            in.close();
+        }
+
+        std::ifstream in = {};
+        std::string line = {};
+        std::vector<std::string> words = {};
+    };
+
+    static bool starts_with(const std::string str, const std::string prefix) { // TODO part of C++20, remove after migration
+        return ((prefix.size() <= str.size()) && std::equal(prefix.begin(), prefix.end(), str.begin()));
     }
 
     void read_vtk_format(const std::string& filename, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_, std::vector<int>& wedges_, std::vector<int>& pyramids_) {
-        std::ifstream in;
-        in.open(filename, std::ifstream::in);
-        if (in.fail()) {
-            std::cerr << "Failed to open " << filename << std::endl;
-            exit(1);
+        LineInput li(filename);
+
+        if (!starts_with(li.line, "# vtk DataFile Version")) {
+            std::cerr << "This is not a valid VTK file" << std::endl;
+            return;
         }
 
-        std::string line;
-        std::getline(in, line);
-        if (!string_start(line, "# vtk DataFile Version")) {
-            std::cerr << "This vtk files seems incomplete, still trying... " << std::endl;
+        li.getline(); // any text, 256 characters maximum
+
+        li.getline(); // ASCII or BINARY
+        if (!starts_with(li.line, "ASCII")) {
+            std::cerr << "Error: only ASCII VTK file format is supported" << std::endl;
+            return;
         }
-        std::getline(in, line);
-//      std::cerr << "File loaded info :  " << line << std::endl;
-        std::getline(in, line);
-        if (line.find("ASCII") == std::string::npos) {
-            std::cerr << "This reader only reads standard ASCII VTK, failed reading " << filename << std::endl;
-            exit(1);
+
+        li.getline_nonempty(); // DATASET, can be one of the following: STRUCTURED_POINTS STRUCTURED_GRID UNSTRUCTURED_GRID POLYDATA STRUCTURED_POINTS RECTILINEAR_GRID FIELD
+        if (!starts_with(li.line, "DATASET UNSTRUCTURED_GRID")) {
+            std::cerr << "Error: only UNSTRUCTURED_GRID VTK files are supported" << std::endl;
+            return;
         }
-        std::getline(in, line);
-        if (line.find("UNSTRUCTURED_GRID") == std::string::npos) {
-            std::cerr << "This reader only reads UNSTRUCTURED_GRID standard ASCII VTK, failed reading " << filename << std::endl;
-        }
-        in >> line;
-        if (!string_start(line, "POINTS")) {
-            std::cerr << "This reader only reads UNSTRUCTURED_GRID standard ASCII VTK, failed reading " << filename << std::endl;
-            exit(1);
-        }
-        int nb_vertices = 0; in >> nb_vertices;
-        std::string uselessstring; in >> uselessstring;
-        verts_.resize(nb_vertices);
-        FOR(v, nb_vertices) FOR(d, 3) {
-            file_must_no_be_at_end(in, "parsing VTK");
-            in >> verts_[v][d];
-        }
-        std::getline(in, line);
-        file_must_no_be_at_end(in, "parsing VTK");
-        in >> line;
-        if (!string_start(line, "CELLS")) {
-            if (in.eof()) {
-                in.close();
+
+        { // load the point cloud
+            li.getline_nonempty();
+            if (li.words.size()!=3 || li.words.front()!="POINTS") {
+                std::cerr << "Error: unstructured grid data must begin with POINTS section" << std::endl;
                 return;
             }
-            std::cerr << "Error in vtk while reading : " << filename << std::endl;
-            exit(1);
-        }
-        file_must_no_be_at_end(in, "parsing VTK");
-        int nb_cells = 0; in >> nb_cells;
-        file_must_no_be_at_end(in, "parsing VTK");
-        int nb_data = 0; in >> nb_data;
-        std::vector<int> start_of_cell(nb_cells);
-        std::vector<int> cell_content(nb_data - nb_cells);
-        int actual_start = 0;
-        FOR(i, nb_cells) {
-            file_must_no_be_at_end(in, "parsing VTK");
-            int cell_size = 0; in >> cell_size;
-            start_of_cell[i] = actual_start;
-            FOR(j, cell_size) {
-                file_must_no_be_at_end(in, "parsing VTK");
-                int id = 0; in >> id;
-                cell_content[actual_start + j] = id;
+            if (li.words.back()!="float" && li.words.back()!="double") {
+                std::cerr << "Error: unsupported point data type" << std::endl;
+                return;
             }
-            actual_start += cell_size;
-        }
-        std::getline(in, line);
-        file_must_no_be_at_end(in, "parsing VTK");
-        in >> line;
-        if (!string_start(line, "CELL_TYPES")) {
-            std::cerr << "Error in vtk while reading : " << filename << std::endl;
-            exit(1);
-        }
-        file_must_no_be_at_end(in, "parsing VTK");
-        int new_nb_cells = 0; in >> new_nb_cells;
-        if (new_nb_cells != nb_cells) {
-            std::cerr << "Incoherent nb of cell : " << filename << std::endl;
-            exit(1);
-        }
-        constexpr int pixel2quad[4] = { 0,1,3,2 };
-        constexpr int vtk2geo[8] = { 0,1,3,2,4,5,7,6 };
+            int nb_verts = std::stoi(li.words[1]);
+            verts_.resize(nb_verts);
 
-        FOR(i, nb_cells) {
-            file_must_no_be_at_end(in, "parsing VTK");
-            int cell_type = 0; in >> cell_type;
-            switch (cell_type)
-            {
-            case 3:
-                FOR(j, 2) edges_.push_back(cell_content[start_of_cell[i] + j]);
-                break;
-            case 5:
-                FOR(j, 3) tris_.push_back(cell_content[start_of_cell[i] + j]);
-                break;
-            case 8:
-                FOR(j, 3) quads_.push_back(cell_content[start_of_cell[i] + pixel2quad[j]]);
-                break;
-            case 9:
-                FOR(j, 4) quads_.push_back(cell_content[start_of_cell[i] + j]);
-                break;
-            case 10:
-                FOR(j, 4) tets_.push_back(cell_content[start_of_cell[i] + j]);
-                break;
-            case 11:
-                FOR(j, 8) hexes_.push_back(cell_content[start_of_cell[i] + j]);
-                break;
-            case 12:
-                FOR(j, 8) hexes_.push_back(cell_content[start_of_cell[i] + vtk2geo[j]]);
-                break;
-            case 13:
-                FOR(j, 6) wedges_.push_back(cell_content[start_of_cell[i] + j]);
-                break;
-            case 14:
-                FOR(j, 5) pyramids_.push_back(cell_content[start_of_cell[i] + j]);
-                break;
-            default:
-                break;
+            int cnt = 0;
+            do { // there can be multiple data points per line
+                li.getline_nonempty();
+                for (std::string w : li.words) {
+                    verts_[cnt/3][cnt%3] = std::stod(w);
+                    cnt++;
+                }
+            } while (li.good() && cnt<nb_verts*3);
+        }
+
+        std::vector<int> cells = {};
+        std::vector<int> offset = { 0 };
+        { // load raw connectivity
+            li.getline_nonempty();
+            if (li.in.eof()) return;
+            if (li.words.size()!=3 || li.words.front()!="CELLS") {
+                std::cerr << "Error: POINTS section must be followed by CELLS section" << std::endl;
+                std::cerr << filename << std::endl;
+                return;
+            }
+            int nb_cells = std::stoi(li.words[1]);
+            int data_len = std::stoi(li.words[2]);
+
+            offset.reserve(nb_cells+1);
+            cells.reserve(data_len);
+
+            int cell_size = -1; // current cell size
+            int cntc = 0; // number of indices loaded for the current cell
+            int cntf = 0; // overall number of fields loaded
+            while (li.good() && cntf<data_len) {
+                li.getline_nonempty();
+                for (std::string w : li.words) {
+                    if (cell_size<0) {
+                        cell_size = std::stoi(w);
+                        cntc = 0;
+                        offset.push_back(offset.back()+cell_size);
+                    } else {
+                        cells.push_back(std::stoi(w));
+                        if (++cntc==cell_size) cell_size = -1;
+                    }
+                    cntf++;
+                }
+            }
+        }
+
+        { // dispatch the connectivity data to different arrays w.r.t the cell type
+            li.getline_nonempty();
+            if (li.words.size()!=2 || li.words.front()!="CELL_TYPES") {
+                std::cerr << "Error: CELLS section must be followed by CELL_TYPES section" << std::endl;
+                return;
+            }
+            int nb_cells = std::stoi(li.words[1]);
+            if (nb_cells+1u!=offset.size()) {
+                std::cerr << "Error: incoherent number of cells in the CELL_TYPES section" << std::endl;
+                return;
             }
 
+            int cnt = 0;
+            do {
+                li.getline_nonempty();
+                for (std::string w : li.words) {
+                    int cell_type = std::stoi(w);
+                    int cell_size = offset[cnt+1] - offset[cnt];
+                    constexpr int pixel2quad[4] = { 0,1,3,2 };
+                    constexpr int vtk2geo[8] = { 0,1,3,2,4,5,7,6 };
+                    for (int j=0; j<cell_size; j++) {
+                        switch (cell_type) {
+                            case  3:    edges_.push_back(cells[offset[cnt] + j]);             break;
+                            case  5:     tris_.push_back(cells[offset[cnt] + j]);             break;
+                            case  8:    quads_.push_back(cells[offset[cnt] + pixel2quad[j]]); break;
+                            case  9:    quads_.push_back(cells[offset[cnt] + j]);             break;
+                            case 10:     tets_.push_back(cells[offset[cnt] + j]);             break;
+                            case 11:    hexes_.push_back(cells[offset[cnt] + j]);             break;
+                            case 12:    hexes_.push_back(cells[offset[cnt] + vtk2geo[j]]);    break;
+                            case 13:   wedges_.push_back(cells[offset[cnt] + j]);             break;
+                            case 14: pyramids_.push_back(cells[offset[cnt] + j]);             break;
+                            default: break;
+                        }
+                    }
+                    cnt++;
+                }
+            } while (li.good() && cnt<nb_cells);
         }
 
+        {
+            int attr = -1;
+            while (li.good()) {
+                li.getline_nonempty();
+                if (li.words.size()==2) {
+                    if (li.words.front()=="CELL_DATA" ) { attr = 0; li.getline_nonempty(); }
+                    if (li.words.front()=="POINT_DATA") { attr = 1; li.getline_nonempty(); }
+                }
+                if (attr<0) continue;
+                if (li.words.size()<3 || li.words.front()!="SCALARS") continue; // TODO NORMALS, VECTORS, TEXTURE_COORDINATES
+                std::string name = li.words[1];
+                std::string datatype = li.words[2];
+                int dim = li.words.size()==4 ? std::stoi(li.words.back()) : 1;
+                li.getline_nonempty();
+                if (li.words.size()!=2 || li.words.front()!="LOOKUP_TABLE") continue;
+                if (li.words.back()!="default")
+                    std::cerr << "Error: only default lookup table is supported" << std::endl;
+
+                int nb = attr ? verts_.size() : offset.size()-1;
+                int cnt = 0;
+                do {
+                    li.getline_nonempty();
+                    for (std::string w : li.words) {
+                        cnt++;
+                    }
+                } while (li.good() && cnt<nb*dim);
+            }
+        }
     }
-
 
     void write_vtk_format(const std::string& filename, const std::vector<vec3>& verts_, const std::vector<int>& edges_, const std::vector<int>& tris_, const std::vector<int>& quads_, const std::vector<int>& tets_, const  std::vector<int>& hexes_, const  std::vector<int>& wedges_, const  std::vector<int>& pyramids_) {
         std::ofstream out_f;
@@ -157,7 +223,7 @@ namespace UM {
             return;
         }
         std::stringstream out;
-        out << std::fixed << std::setprecision(4);
+        out << std::setprecision(std::numeric_limits<double>::max_digits10);
         out << "# vtk DataFile Version 3.0" << std::endl;
         out << "Mesh saved with ultimaille: https://github.com/ssloy/ultimaille" << std::endl;
         out << "ASCII" << std::endl;
