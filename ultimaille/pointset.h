@@ -19,7 +19,7 @@ namespace UM {
             return *this;
         }
 
-        int size() const { return data->size(); }
+        int size()   const { return data->size(); }
         vec3& operator[](const int i)       { return data->at(i); }
         const vec3& operator[](const int i) const { return data->at(i); }
         int use_count() { return data.use_count(); }

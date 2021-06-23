@@ -15,7 +15,7 @@ file(GLOB TEST_SOURCES *.cpp)
 add_executable(um-test-all ${TEST_SOURCES})
 target_link_libraries(um-test-all PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
 
-FetchContent_GetProperties(Catch2) 
+FetchContent_GetProperties(Catch2)
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 include(Catch)
 
