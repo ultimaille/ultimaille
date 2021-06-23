@@ -201,6 +201,7 @@ namespace UM {
                     if (li.words.front()=="POINT_DATA") { place = 0; li.getline_nonempty(); }
                 }
                 if (place<0) continue;
+//              std::cerr << "==" << place << std::endl;
                 if (li.words.size()<3 || li.words.front()!="SCALARS") continue; // TODO NORMALS, VECTORS, TEXTURE_COORDINATES
                 std::string name = li.words[1];
                 std::string datatype = li.words[2];
@@ -219,19 +220,23 @@ namespace UM {
                 std::vector<std::string> data;
                 do {
                     li.getline_nonempty();
-                    for (int i=0; i<(int)li.words.size(); i++) {
-                        if (cell_types[cnt++]!=celltype2keep) continue;
-                        data.push_back(li.words[i]);
+                    for (std::string &w : li.words) {
+                        if (!place || cell_types[cnt]==celltype2keep)
+                            data.push_back(w);
+                        cnt++;
                     }
 //                  cnt += li.words.size();
 //                  data.insert(std::end(data), std::begin(li.words), std::end(li.words));
                 } while (li.good() && cnt<nb*dim);
 //              um_assert(data.size()==nb*dim);
 
+//              std::cerr << "zzz " << place << " " << datatype << std::endl;
                 std::shared_ptr<GenericAttributeContainer> P;
                 if (datatype=="bit") {
+//                  std::cerr << "Gngaslsdfkgj"<<std::endl;
                     GenericAttribute<bool> A(data.size());
                     std::transform(data.begin(), data.end(), A.ptr->data.begin(), [](const std::string& str) -> bool { return std::stoi(str); });
+//                  std::cerr << "a.data.size " << data.size() << " " << A.ptr->data.size() << std::endl;
                     P = A.ptr;
                 } else if (datatype=="unsigned_short" || datatype=="short" || datatype=="unsigned_int" || datatype=="int" || datatype=="unsigned_long" || datatype=="long") {
                     GenericAttribute<int> A(data.size());
@@ -252,18 +257,19 @@ namespace UM {
 
     void drop_attributes(const std::vector<NamedContainer> &nc, std::ofstream &out) {
         for (const auto [name, genptr] : nc) {
+//          std::cerr << "name " << name << std::endl;
             if (auto p = std::dynamic_pointer_cast<AttributeContainer<int> >(genptr); p.get()!=nullptr) {
-                out << "SCALARS " << name << " int 1" << std::endl;
+                out << "SCALARS " << name << " int 1" << std::endl << "LOOKUP_TABLE default" << std::endl;
                 for (auto v : p->data)
                     out << v << " ";
                 out << std::endl;
             } else if (auto p = std::dynamic_pointer_cast<AttributeContainer<double> >(genptr); p.get()!=nullptr) {
-                out << "SCALARS " << name << " double 1" << std::endl;
+                out << "SCALARS " << name << " double 1" << std::endl << "LOOKUP_TABLE default" << std::endl;
                 for (auto v : p->data)
                     out << v << " ";
                 out << std::endl;
             } else if (auto p = std::dynamic_pointer_cast<AttributeContainer<bool> >(genptr); p.get()!=nullptr) {
-                out << "SCALARS " << name << " bit 1" << std::endl;
+                out << "SCALARS " << name << " bit 1" << std::endl << "LOOKUP_TABLE default" << std::endl;
                 for (auto v : p->data)
                     out << v << " ";
                 out << std::endl;
@@ -325,7 +331,7 @@ namespace UM {
             for (int f=0; f<m.nfacets(); f++) {
                 if (m.facet_size(f)!=3 && m.facet_size(f)!=4) continue;
                 nqt++;
-                cnt += 3+ int(m.facet_size(f)==4);;;
+                cnt += 3+ int(m.facet_size(f)==4);
             }
             out << std::endl << "CELLS " << nqt << " " << (nqt+cnt) << std::endl;
             for (int f=0; f<m.nfacets(); f++) {

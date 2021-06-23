@@ -11,7 +11,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 file(GLOB TEST_SOURCES *.cpp)
-
+add_definitions(-DTEST_INPUT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/input/\")
 add_executable(um-test-all ${TEST_SOURCES})
 target_link_libraries(um-test-all PRIVATE ${CMAKE_DL_LIBS} ultimaille Catch2::Catch2)
 
