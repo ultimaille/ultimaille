@@ -18,7 +18,9 @@ namespace UM {
         int nverts() const;
         int nsegments() const;
 
-        // TODO delete_vertices, delete_segments
+        void compress_attrs(const std::vector<bool> &segments_to_kill);
+        void delete_vertices(const std::vector<bool> &to_kill);
+        void delete_segments(const std::vector<bool> &to_kill);
         int create_segments(const int n);
         void resize_attrs();
 

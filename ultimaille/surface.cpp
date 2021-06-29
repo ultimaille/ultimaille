@@ -132,13 +132,11 @@ namespace UM {
         assert(to_kill.size()==(size_t)nfacets());
         compress_attrs(to_kill);
 
-        int new_nb_facets  = 0;
         int new_nb_corners = 0;
         for (int f=0; f<nfacets(); f++) {
             if (to_kill[f]) continue;
             for (int lv=0; lv<facet_size(f); lv++)
                 facets[new_nb_corners++] = vert(f, lv);
-            ++new_nb_facets;
         }
         facets.resize(new_nb_corners);
     }
