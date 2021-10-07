@@ -2,6 +2,7 @@
 #include "pointset.h"
 #include "attributes.h"
 #include "syntactic-sugar/assert.h"
+#include "algebra/eigen.h"
 
 namespace UM {
     void PointSet::Util::bbox(vec3 &min, vec3 &max) {
@@ -11,6 +12,38 @@ namespace UM {
                 min[d] = std::min(min[d], p[d]);
                 max[d] = std::max(max[d], p[d]);
             }
+        }
+    }
+
+    vec3 PointSet::Util::barycenter() const {
+        vec3 ave = {0, 0, 0};
+        for (const vec3 &p : ps)
+            ave += p;
+        return ave / static_cast<double>(ps.size());
+    }
+
+    void PointSet::Util::principal_axes(vec3 &center, vec3 axes[3], double eigen_values[3]) {
+        axes[0] = {1,0,0}; // If the system is under-determined, return the trivial basis
+        axes[1] = {0,1,0};
+        axes[2] = {0,0,1};
+        eigen_values[2] = eigen_values[1] = eigen_values[0] = 1;
+        center = barycenter();
+        if (ps.size()<4) return;
+
+        mat3x3 M = {}; // covariance matrix
+        for (const vec3 &p : ps)
+            for (int i=0; i<3; i++)
+                for (int j=0; j<3; j++)
+                    M[i][j] += (p-center)[i]*(p-center)[j];
+        M /= static_cast<double>(ps.size());
+
+        vec3 eval;
+        mat3x3 evec;
+        eigendecompose_symmetric(M, eval, evec);
+
+        for (int i=0; i<3; i++) {
+            eigen_values[i] = eval[i];
+            axes[i] = evec.col(i);
         }
     }
 
