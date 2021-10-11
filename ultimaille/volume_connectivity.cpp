@@ -75,7 +75,7 @@ namespace UM {
     int VolumeConnectivity::opposite_c(const int he) const {
         assert(he>=0);
         int hfacet = facet(he);
-        assert(adjacent.size()>hfacet);
+        assert((int)adjacent.size()>hfacet);
         int opp_hfacet = adjacent[hfacet];
         if (opp_hfacet<0) return -1;
         int opp_cell = m.cell_from_facet(opp_hfacet);

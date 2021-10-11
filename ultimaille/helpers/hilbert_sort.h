@@ -20,8 +20,8 @@ namespace UM {
         }
 
         void apply(std::vector<int>& ind, int begin, int end) const {
-            assert(begin >= 0 && begin <= ind.size());
-            assert(end   >= 0 && end   <= ind.size());
+            assert(begin >= 0 && begin <= (int)ind.size());
+            assert(end   >= 0 && end   <= (int)ind.size());
             hilbert_sort<0, false, false, false>(ind.begin() + begin, ind.begin() + end);
         }
 
@@ -30,8 +30,8 @@ namespace UM {
             struct CmpHilbert {
                 CmpHilbert(const std::vector<vec3> &data) : pts(data) {}
                 bool operator() (int i, int j) const {
-                    assert(i  >= 0 &&  i < pts.size());
-                    assert(j  >= 0 &&  j < pts.size());
+                    assert(i  >= 0 &&  i < (int)pts.size());
+                    assert(j  >= 0 &&  j < (int)pts.size());
                     assert(AX >= 0 && AX < 3);
                     return DIR ?
                         (pts[i][AX] < pts[j][AX]) :
