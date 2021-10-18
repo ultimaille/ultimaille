@@ -5,14 +5,11 @@
 #include "algebra/eigen.h"
 
 namespace UM {
-    void PointSet::Util::bbox(vec3 &min, vec3 &max) {
-        min = max = ps[0];
-        for (vec3 const &p : ps) {
-            for (int d=0; d<3; d++) {
-                min[d] = std::min(min[d], p[d]);
-                max[d] = std::max(max[d], p[d]);
-            }
-        }
+    BBox3 PointSet::Util::bbox() {
+        BBox3 bbox;
+        for (vec3 const &p : ps)
+            bbox.add(p);
+        return bbox;
     }
 
     vec3 PointSet::Util::barycenter() const {
