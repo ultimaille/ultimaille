@@ -5,7 +5,7 @@
 #include "algebra/eigen.h"
 
 namespace UM {
-    BBox3 PointSet::Util::bbox() {
+    BBox3 PointSet::Util::bbox() const {
         BBox3 bbox;
         for (vec3 const &p : ps)
             bbox.add(p);
@@ -19,7 +19,7 @@ namespace UM {
         return ave / static_cast<double>(ps.size());
     }
 
-    void PointSet::Util::principal_axes(vec3 &center, vec3 axes[3], double eigen_values[3]) {
+    void PointSet::Util::principal_axes(vec3 &center, vec3 axes[3], double eigen_values[3]) const {
         axes[0] = {1,0,0}; // If the system is under-determined, return the trivial basis
         axes[1] = {0,1,0};
         axes[2] = {0,0,1};

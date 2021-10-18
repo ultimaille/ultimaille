@@ -46,8 +46,8 @@ namespace UM {
 
         struct Util {
             Util(const PointSet &ps_) : ps(ps_) {}
-            BBox3 bbox();
-            void principal_axes(vec3 &center, vec3 axes[3], double eigen_values[3]);
+            BBox3 bbox() const;
+            void principal_axes(vec3 &center, vec3 axes[3], double eigen_values[3]) const;
             vec3 barycenter() const;
             const PointSet &ps;
         } util;

@@ -51,8 +51,8 @@ namespace UM {
         GenericAttribute(std::shared_ptr<AttributeContainer<T> > p) : ptr(p) {}
         GenericAttribute(const GenericAttribute<T>& rhs) = delete;
         GenericAttribute<bool>& operator=(const GenericAttribute<T>& rhs) = delete;
-        T& operator[](const int i)       { return ptr->data[i]; }
-        T  operator[](const int i) const { return ptr->data[i]; }
+              T& operator[](const int i)       { return ptr->data[i]; }
+        const T& operator[](const int i) const { return ptr->data[i]; }
         std::shared_ptr<AttributeContainer<T> > ptr;
     };
 

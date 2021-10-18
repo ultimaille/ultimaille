@@ -6,7 +6,7 @@
 #include "surface_connectivity.h"
 
 namespace UM {
-    // unsigned unsigned_area for a 3D triangle
+    // unsigned area for a 3D triangle
     inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
         return 0.5*cross(B-A, C-A).norm();
     }
