@@ -316,7 +316,30 @@ namespace UM {
                 out << std::endl;
             }
             out << std::endl << "CELL_TYPES " << m.nsegments() << std::endl;
-        } else if constexpr (std::is_same_v<M, Triangles> || std::is_same_v<M, Quads>) {
+        } else if constexpr (std::is_base_of_v<Surface, M>) {
+            /*
+            if (auto ptr = dynamic_cast<Triangles *>(&m)) {
+            } else if (auto ptr = dynamic_cast<Quads *>(&m)) {
+            } else if (auto ptr = dynamic_cast<Polygons *>(&m)) {
+            }
+            */
+            int nqt = 0;
+            int cnt = 0;
+            for (int f=0; f<m.nfacets(); f++) {
+                if (m.facet_size(f)!=3 && m.facet_size(f)!=4) continue;
+                nqt++;
+                cnt += 3 + int(m.facet_size(f)==4);
+            }
+            out << std::endl << "CELLS " << nqt << " " << (nqt+cnt) << std::endl;
+            for (int f=0; f<m.nfacets(); f++) {
+                if (m.facet_size(f)!=3 && m.facet_size(f)!=4) continue;
+                out << m.facet_size(f) << " ";
+                for (int lv=0; lv<m.facet_size(f); lv++)
+                    out << m.vert(f, lv) << " ";
+                out << std::endl;
+            }
+            out << std::endl << "CELL_TYPES " << nqt << std::endl;
+        } /* else if constexpr (std::is_same_v<M, Triangles> || std::is_same_v<M, Quads>) {
             out << std::endl << "CELLS " << m.nfacets() << " " << (m.nfacets()*(1+m.facet_size(0))) << std::endl;
             for (int c=0; c<m.nfacets(); c++) {
                 out << m.facet_size(0) << " ";
@@ -342,7 +365,9 @@ namespace UM {
                 out << std::endl;
             }
             out << std::endl << "CELL_TYPES " << nqt << std::endl;
-        } else if constexpr (std::is_same_v<M, Tetrahedra> || std::is_same_v<M, Hexahedra> || std::is_same_v<M, Wedges> || std::is_same_v<M, Pyramids>) {
+        }*/
+        else if constexpr (std::is_base_of_v<Volume, M>) {
+//        else if constexpr (std::is_same_v<M, Tetrahedra> || std::is_same_v<M, Hexahedra> || std::is_same_v<M, Wedges> || std::is_same_v<M, Pyramids>) {
             out << std::endl << "CELLS " << m.ncells() << " " << (m.ncells()*(1+m.nverts_per_cell())) << std::endl;
             for (int c=0; c<m.ncells(); c++) {
                 out << m.nverts_per_cell() << " ";
@@ -357,7 +382,33 @@ namespace UM {
             for (int c=0; c<m.nsegments(); c++)
                 out << "3 ";
             out << std::endl;
-        } if constexpr (std::is_same_v<M, Triangles>) {
+        } else if constexpr (std::is_base_of_v<Surface, M>) {
+            for (int f=0; f<m.nfacets(); f++) {
+                if (m.facet_size(f)==3)
+                    out << "5 ";
+                if (m.facet_size(f)==4)
+                    out << "9 ";
+            }
+            out << std::endl;
+        } else if constexpr (std::is_base_of_v<Volume, M>) {
+            for (int c=0; c<m.ncells(); c++)
+                switch (m.cell_type()) {
+                    case Volume::CELL_TYPE::TETRAHEDRON:
+                        out << "10 "; break;
+// for the CELL_TYPE 12 here is the permutation:
+//          constexpr std::array<int, 8> vtk = { 0,1,3,2,4,5,7,6 };
+//          FOR(i, 8) out << " " << hexes_[8 * h + vtk[i]];
+                    case Volume::CELL_TYPE::HEXAHEDRON:
+                        out << "11 "; break;
+                    case Volume::CELL_TYPE::WEDGE:
+                        out << "13 "; break;
+                    case Volume::CELL_TYPE::PYRAMID:
+                        out << "14 "; break;
+                }
+            out << std::endl;
+        }
+
+        /* if constexpr (std::is_same_v<M, Triangles>) {
             for (int c=0; c<m.nfacets(); c++)
                 out << "5 ";
             out << std::endl;
@@ -378,9 +429,6 @@ namespace UM {
                 out << "10 ";
             out << std::endl;
         } else if constexpr (std::is_same_v<M, Hexahedra>) {
-// for the CELL_TYPE 12 here is the permutation:
-//          constexpr std::array<int, 8> vtk = { 0,1,3,2,4,5,7,6 };
-//          FOR(i, 8) out << " " << hexes_[8 * h + vtk[i]];
              for (int c=0; c<m.ncells(); c++)
                 out << "11 ";
             out << std::endl;
@@ -392,7 +440,7 @@ namespace UM {
              for (int c=0; c<m.ncells(); c++)
                 out << "14 ";
             out << std::endl;
-        }
+        }*/
 
         if constexpr (std::is_same_v<A, PointSetAttributes>) {
         } else if constexpr (std::is_same_v<A, PolyLineAttributes>) {
@@ -431,6 +479,16 @@ namespace UM {
         write_vtk_format(filename, pl, attr);
     }
 
+    void write_vtk(const std::string filename, const Surface &m, const SurfaceAttributes attr) {
+        write_vtk_format(filename, m, attr);
+    }
+
+    void write_vtk(const std::string filename, const Volume &m, const VolumeAttributes attr) {
+        write_vtk_format(filename, m, attr);
+    }
+
+
+/*
     void write_vtk(const std::string filename, const Triangles& m, const SurfaceAttributes attr) {
         write_vtk_format(filename, m, attr);
     }
@@ -458,6 +516,7 @@ namespace UM {
     void write_vtk(const std::string filename, const Pyramids& m, const VolumeAttributes attr) {
         write_vtk_format(filename, m, attr);
     }
+*/
 
     PointSetAttributes read_vtk(const std::string filename, PointSet   &m) {
         std::vector<vec3> verts;

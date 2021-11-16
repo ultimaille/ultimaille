@@ -10,6 +10,7 @@
 // TODO: colors and scalar fields are yet to be implemented
 
 namespace UM {
+/*
     void write_vtk(const std::string filename, const PointSet &ps, const PointSetAttributes attr = {});
     void write_vtk(const std::string filename, const PolyLine &pl, const PolyLineAttributes attr = {});
     void write_vtk(const std::string filename, const Triangles &m, const SurfaceAttributes attr = {});
@@ -19,6 +20,12 @@ namespace UM {
     void write_vtk(const std::string filename, const Hexahedra  &m, const VolumeAttributes attr = {});
     void write_vtk(const std::string filename, const Wedges     &m, const VolumeAttributes attr = {});
     void write_vtk(const std::string filename, const Pyramids   &m, const VolumeAttributes attr = {});
+*/
+    void write_vtk(const std::string filename, const PointSet &ps, const PointSetAttributes attr = {});
+    void write_vtk(const std::string filename, const PolyLine &pl, const PolyLineAttributes attr = {});
+    void write_vtk(const std::string filename, const Surface &m,   const SurfaceAttributes  attr = {});
+    void write_vtk(const std::string filename, const Volume  &m,   const VolumeAttributes   attr = {});
+
 
     PointSetAttributes read_vtk(const std::string filename, PointSet   &m);
     PolyLineAttributes read_vtk(const std::string filename, PolyLine   &m);
