@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <ultimaille/all.h>
+#include <cmath>
 
 using namespace UM;
 
@@ -60,3 +61,46 @@ TEST_CASE("query many", "[k-NN]") {
     }
 }
 
+TEST_CASE("query .geogram", "[k-NN]") {
+    PointSet cloud, request;
+    read_geogram(std::string(TEST_INPUT_DIR) +   "knn-cloud.geogram", cloud);
+    read_geogram(std::string(TEST_INPUT_DIR) + "knn-request.geogram", request);
+
+    {
+        std::vector<bool> to_kill(request.size(), false);
+        for (int i : range(request.size())) {
+            for (int d : {0,1,2}) {
+                if (std::isfinite(request[i][d])) continue;
+                to_kill[i] = true;
+            }
+        }
+        std::vector<int> old2new;
+        request.delete_points(to_kill, old2new);
+        write_geogram("knn-request.geogram", request);
+    }
+    {
+        std::vector<bool> to_kill(cloud.size(), false);
+        for (int i : range(cloud.size())) {
+            for (int d : {0,1,2}) {
+                if (std::isfinite(cloud[i][d])) continue;
+                to_kill[i] = true;
+            }
+        }
+        std::vector<int> old2new;
+        cloud.delete_points(to_kill, old2new);
+        write_geogram("knn-cloud.geogram", cloud);
+    }
+
+    KNN<3> knn(*cloud.data);
+
+    for (vec3 &r: request) {
+        vec3 n = cloud[knn.query(r)[0]];
+        double d1 = (r - n).norm2();
+        double d2 = std::numeric_limits<double>::max();
+
+        for (vec3 &c: cloud)
+            d2 = std::min(d2, (r - c).norm2());
+
+        CHECK( d1 <= d2 );
+    }
+}
