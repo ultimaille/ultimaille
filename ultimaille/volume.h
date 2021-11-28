@@ -36,7 +36,7 @@ namespace UM {
         int  vert(const int c, const int lv) const;
         int &vert(const int c, const int lv);
 
-        virtual int cell_type() const = 0;
+        virtual int cell_type() const = 0; // TODO C++20 allows virtual functions to be declared constexpr.
         virtual int  nverts_per_cell() const = 0;
         virtual int nfacets_per_cell() const = 0;
 

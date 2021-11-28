@@ -66,6 +66,19 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
 
     // TODO compress test
 
-//  write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"fvec3", fvec3.ptr}}, {{"cint", cint.ptr}}});
+    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"fvec3", fvec3.ptr}}, {{"cint", cint.ptr}}});
+
+    Polygons m2;
+    SurfaceAttributes attrs = read_by_extension(filename, m2);
+    FacetAttribute<int> fint2(m2, 18);
+    CornerAttribute<int> cint2("cint", attrs, m2, -122);
+    PointAttribute<bool> vbool2("vbool", attrs, m2, true);
+
+    m2.create_facets(1, 5);
+    CHECK(fint2[m2.nfacets()-1]==18);
+    CHECK(cint2[m2.ncorners()-1]==-122);
+
+    int offv = m2.points.create_points(1);
+    CHECK( vbool2[offv] );
 }
 
