@@ -13,7 +13,7 @@ namespace UM {
         GeogramGZWriter(std::string const &fName) : file_() {
             file_ = gzopen(fName.c_str(), "wb");
             if (!file_)
-                throw std::runtime_error("Can not open file");
+                throw std::runtime_error("Failed to open " + fName);
         }
 
         ~GeogramGZWriter() {
@@ -348,7 +348,7 @@ namespace UM {
                 //        std::cerr << "GeogramGZReader()\n";
                 file_ = gzopen(filename.c_str(), "rb");
                 if (!file_)
-                    throw std::runtime_error("Can not open file");
+                    throw std::runtime_error("Failed to open " + filename);
 
                 //        std::cerr << "read_chunk_header()\n";
                 read_chunk_header();
@@ -468,85 +468,81 @@ namespace UM {
     const std::string attrib_set_names[7] = {"GEO::Mesh::vertices", "GEO::Mesh::edges", "GEO::Mesh::facets", "GEO::Mesh::facet_corners", "GEO::Mesh::cells", "GEO::Mesh::cell_facets", "GEO::Mesh::cell_corners"};
     void read_geogram(const std::string filename, std::vector<NamedContainer> attr[7]) {
         int set_size[7] = {-1, -1, -1, -1, -1, -1, -1};
-        try {
-            GeogramGZReader in(filename);
-            std::string chunk_class;
-            for (chunk_class=in.next_chunk(); chunk_class!="EOFL"; chunk_class=in.next_chunk()) {
-                if (chunk_class == "ATTS") {
-                    std::string attribute_set_name = in.read_string();
-                    index_t nb_items = in.read_int();
-                    in.check_chunk_size();
-//                  std::cerr << "ATTS " << attribute_set_name << " " << nb_items << std::endl;
-                    for (int i=0; i<7; i++)
-                        if (attribute_set_name == attrib_set_names[i])
-                            set_size[i] = nb_items;
-                } else if (chunk_class == "ATTR") {
-                    std::string attribute_set_name = in.read_string();
-                    int nb_items = -1;
-                    for (int i=0; i<7; i++)
-                        if (attribute_set_name == attrib_set_names[i])
-                            nb_items = set_size[i];
+        GeogramGZReader in(filename);
+        std::string chunk_class;
+        for (chunk_class=in.next_chunk(); chunk_class!="EOFL"; chunk_class=in.next_chunk()) {
+            if (chunk_class == "ATTS") {
+                std::string attribute_set_name = in.read_string();
+                index_t nb_items = in.read_int();
+                in.check_chunk_size();
+                //                  std::cerr << "ATTS " << attribute_set_name << " " << nb_items << std::endl;
+                for (int i=0; i<7; i++)
+                    if (attribute_set_name == attrib_set_names[i])
+                        set_size[i] = nb_items;
+            } else if (chunk_class == "ATTR") {
+                std::string attribute_set_name = in.read_string();
+                int nb_items = -1;
+                for (int i=0; i<7; i++)
+                    if (attribute_set_name == attrib_set_names[i])
+                        nb_items = set_size[i];
 
-                    assert(nb_items>0);
+                assert(nb_items>0);
 
-                    std::string attribute_name = in.read_string();
-                    std::string element_type   = in.read_string();
-                    index_t element_size = in.read_int();
-                    index_t dimension    = in.read_int();
-                    size_t size = size_t(element_size) * size_t(dimension) * size_t(nb_items);
+                std::string attribute_name = in.read_string();
+                std::string element_type   = in.read_string();
+                index_t element_size = in.read_int();
+                index_t dimension    = in.read_int();
+                size_t size = size_t(element_size) * size_t(dimension) * size_t(nb_items);
 
-                    if (attribute_name=="GEO::Mesh::cell_facets::adjacent_cell" || attribute_name=="GEO::Mesh::facet_corners::corner_adjacent_facet") continue;
+                if (attribute_name=="GEO::Mesh::cell_facets::adjacent_cell" || attribute_name=="GEO::Mesh::facet_corners::corner_adjacent_facet") continue;
 
-//                  std::cerr << "ATTR " << attribute_set_name << " " << attribute_name << " " << element_type << " " << element_size << " " << dimension << "\n";
+                //                  std::cerr << "ATTR " << attribute_set_name << " " << attribute_name << " " << element_type << " " << element_size << " " << dimension << "\n";
 
-                    std::shared_ptr<GenericAttributeContainer> P;
-                    if (element_type=="char") {
-                        assert(dimension == 1);
-                        std::vector<char> tmp(nb_items);
-                        in.read_attribute(tmp.data(), size);
-                        GenericAttribute<int> A(nb_items);
-                        for (int i=0; i<nb_items; i++) {
-                            A[i] = tmp[i];
-                        }
-                        P = A.ptr;
-                    } else if (element_type=="int" || element_type=="index_t" || element_type=="signed_index_t") {
-                        GenericAttribute<int> A(nb_items);
-                        if (attribute_name=="GEO::Mesh::edges::edge_vertex")
-                            A.ptr->data.resize(nb_items*2); // TODO AARGH Bruno!
-                        assert(dimension == 1 || (attribute_name=="GEO::Mesh::edges::edge_vertex" && dimension == 2));
-                        void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
-                        in.read_attribute(ptr, size);
-                        P = A.ptr;
-                    } else if (element_type=="double" && 1==dimension) {
-                        GenericAttribute<double> A(nb_items);
-                        in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<double> >(A.ptr)->data.data(), size);
-                        P = A.ptr;
-                    } else if ((element_type=="vec2" && 1==dimension) || (element_type=="double" && 2==dimension)) {
-                        GenericAttribute<vec2> A(nb_items);
-                        in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<vec2> >(A.ptr)->data.data(), size);
-                        P = A.ptr;
-                    } else if ((element_type=="vec3" && 1==dimension) || (element_type=="double" && 3==dimension)) {
-                        GenericAttribute<vec3> A(nb_items);
-                        in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<vec3> >(A.ptr)->data.data(), size);
-                        P = A.ptr;
-                    } else if (element_type=="bool" && 1==dimension) {
-                        std::vector<char> tmp(nb_items, 0);
-                        in.read_attribute(tmp.data(), size);
-                        GenericAttribute<bool> A(nb_items);
-                        for (int i=0; i<nb_items; i++) A[i] = tmp[i];
-                        P = A.ptr;
-                    } else {
-                        continue;
+                std::shared_ptr<GenericAttributeContainer> P;
+                if (element_type=="char") {
+                    assert(dimension == 1);
+                    std::vector<char> tmp(nb_items);
+                    in.read_attribute(tmp.data(), size);
+                    GenericAttribute<int> A(nb_items);
+                    for (int i=0; i<nb_items; i++) {
+                        A[i] = tmp[i];
                     }
+                    P = A.ptr;
+                } else if (element_type=="int" || element_type=="index_t" || element_type=="signed_index_t") {
+                    GenericAttribute<int> A(nb_items);
+                    if (attribute_name=="GEO::Mesh::edges::edge_vertex")
+                        A.ptr->data.resize(nb_items*2); // TODO AARGH Bruno!
+                    assert(dimension == 1 || (attribute_name=="GEO::Mesh::edges::edge_vertex" && dimension == 2));
+                    void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
+                    in.read_attribute(ptr, size);
+                    P = A.ptr;
+                } else if (element_type=="double" && 1==dimension) {
+                    GenericAttribute<double> A(nb_items);
+                    in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<double> >(A.ptr)->data.data(), size);
+                    P = A.ptr;
+                } else if ((element_type=="vec2" && 1==dimension) || (element_type=="double" && 2==dimension)) {
+                    GenericAttribute<vec2> A(nb_items);
+                    in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<vec2> >(A.ptr)->data.data(), size);
+                    P = A.ptr;
+                } else if ((element_type=="vec3" && 1==dimension) || (element_type=="double" && 3==dimension)) {
+                    GenericAttribute<vec3> A(nb_items);
+                    in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<vec3> >(A.ptr)->data.data(), size);
+                    P = A.ptr;
+                } else if (element_type=="bool" && 1==dimension) {
+                    std::vector<char> tmp(nb_items, 0);
+                    in.read_attribute(tmp.data(), size);
+                    GenericAttribute<bool> A(nb_items);
+                    for (int i=0; i<nb_items; i++) A[i] = tmp[i];
+                    P = A.ptr;
+                } else {
+                    continue;
+                }
 
-                    for (int i=0; i<7; i++)
-                        if (attribute_set_name == attrib_set_names[i])
-                            attr[i].emplace_back(attribute_name, P);
-                } // chunk_class = ATTR
-            } // chunks
-        } catch (const std::exception& e) {
-            std::cerr << "Ooops: catch error= " << e.what() << " when reading " << filename << "\n";
-        }
+                for (int i=0; i<7; i++)
+                    if (attribute_set_name == attrib_set_names[i])
+                        attr[i].emplace_back(attribute_name, P);
+            } // chunk_class = ATTR
+        } // chunks
     }
 
     void parse_pointset_attributes(PointSet &pts, std::vector<NamedContainer> &attr) {

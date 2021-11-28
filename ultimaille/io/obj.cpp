@@ -20,10 +20,8 @@ namespace UM {
         m = Polygons();
         std::ifstream in;
         in.open (filename, std::ifstream::in);
-        if (in.fail()) {
-            std::cerr << "Failed to open " << filename << std::endl;
-            return {};
-        }
+        if (in.fail())
+            throw std::runtime_error("Failed to open " + filename);
         std::string line;
         while (!in.eof()) {
             std::getline(in, line);
@@ -145,6 +143,8 @@ namespace UM {
     void write_wavefront_obj(const std::string filename, const Surface &m, const SurfaceAttributes attr) {
         std::fstream out;
         out.open(filename, std::ios_base::out);
+        if (out.fail())
+            throw std::runtime_error("Failed to open " + filename);
 //      out << std::fixed << std::setprecision(14);
         out << std::setprecision(std::numeric_limits<double>::max_digits10);
         for (int v=0; v<m.nverts(); v++)

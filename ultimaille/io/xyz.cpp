@@ -10,6 +10,9 @@ namespace UM {
     void write_xyz(const std::string filename, const PointSet &ps) {
         std::fstream out;
         out.open(filename, std::ios_base::out);
+        if (out.fail()) {
+            throw std::runtime_error("Failed to open " + filename);
+        }
 //      out << ps.size() << std::endl;
         out << std::setprecision(std::numeric_limits<double>::max_digits10);
         for (const vec3 &p : ps)
@@ -22,8 +25,7 @@ namespace UM {
         std::ifstream in;
         in.open(filename, std::ifstream::in);
         if (in.fail()) {
-            std::cerr << "Could not load XYZ file " << filename << std::endl;
-            return {};
+            throw std::runtime_error("Failed to open " + filename);
         }
 
         std::string line;

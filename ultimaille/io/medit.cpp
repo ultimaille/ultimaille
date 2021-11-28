@@ -10,11 +10,10 @@
 constexpr std::array<int, 8> hex_medit2geogram = { 0,1,3,2,4,5,7,6 };
 
 namespace UM {
-    inline void file_must_no_be_at_end(std::ifstream& f, const std::string& reason = " should'nt") {
+    inline void file_must_no_be_at_end(std::ifstream& f, const std::string& reason = " should not") {
         if (f.eof()) {
             f.close();
-            std::cout << "File ended to soon while : " << reason << std::endl;
-            exit(1);
+            throw std::runtime_error("File ended to soon while " + reason);
         }
     }
 
@@ -32,10 +31,8 @@ namespace UM {
     void read_medit_format(const std::string& filename, std::vector<int>& vcolors_, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_, std::vector<int>& wedges_, std::vector<int>& pyramids_) {
         std::ifstream in;
         in.open(filename, std::ifstream::in);
-        if (in.fail()) {
-            std::cerr << "Failed to open " << filename << std::endl;
-            return;
-        }
+        if (in.fail())
+            throw std::runtime_error("Failed to open " + filename);
 
         std::string firstline;
 
@@ -213,10 +210,8 @@ namespace UM {
     void write_medit_format(const std::string& filename, const std::vector<vec3>& verts_, const std::vector<int>& edges_, const std::vector<int>& tris_, const std::vector<int>& quads_, const std::vector<int>& tets_, const  std::vector<int>& hexes_, const std::vector<int>& wedges_, const  std::vector<int>& pyramids_) {
         std::ofstream out_f;
         out_f.open(filename, std::ifstream::out);
-        if (out_f.fail()) {
-            std::cerr << "Failed to open " << filename << std::endl;
-            exit(1);
-        }
+        if (out_f.fail())
+            throw std::runtime_error("Failed to open " + filename);
         std::stringstream out;
         out << std::setprecision(std::numeric_limits<double>::max_digits10);
 //        out << std::fixed << std::setprecision(4);
@@ -328,9 +323,8 @@ namespace UM {
             else if (m.facet_size(f) == 4) {
                 FOR(i, 4) quads.push_back(m.vert(f, i));
             }
-            else {
-                std::cerr << "Polygon are not supported in our MEDIT writer";
-            }
+            else
+                std::cerr << "Warning: Polygons are not supported in our MEDIT writer";
         }
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
     }
@@ -352,7 +346,7 @@ namespace UM {
             pyramids.resize(5 * m.ncells());
             FOR(h, m.ncells()) FOR(hv, 5) pyramids[5 * h + hv] = m.vert(h, hv);
         } else {
-            std::cerr << "Volume type : " << m.cell_type() << "; not supported in our MEDIT writer";
+            std::cerr << "Warning: Volume type : " << m.cell_type() << "; not supported in our MEDIT writer";
         }
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
     }

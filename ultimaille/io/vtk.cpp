@@ -17,7 +17,7 @@ namespace UM {
         LineInput(const std::string& filename) {
             in.open(filename, std::ifstream::in);
             if (in.fail())
-                std::cerr << "Failed to open ASCII file " << filename << std::endl;
+                throw std::runtime_error("Failed to open " + filename);
             getline();
         }
 
@@ -70,35 +70,25 @@ namespace UM {
     void read_vtk_format(const std::string& filename, const int celltype2keep, std::vector<vec3>& verts_, std::vector<int> &cells_, std::vector<NamedContainer> attr[2]) {
         LineInput li(filename);
 
-        if (!starts_with(li.line, "# vtk DataFile Version")) {
-            std::cerr << "This is not a valid VTK file" << std::endl;
-            return;
-        }
+        if (!starts_with(li.line, "# vtk DataFile Version"))
+            throw std::runtime_error("This is not a valid VTK file");
 
         li.getline(); // any text, 256 characters maximum
 
         li.getline(); // ASCII or BINARY
-        if (!starts_with(li.line, "ASCII")) {
-            std::cerr << "Error: only ASCII VTK file format is supported" << std::endl;
-            return;
-        }
+        if (!starts_with(li.line, "ASCII"))
+            throw std::runtime_error("Error: only ASCII VTK file format is supported");
 
         li.getline_nonempty(); // DATASET, can be one of the following: STRUCTURED_POINTS STRUCTURED_GRID UNSTRUCTURED_GRID POLYDATA STRUCTURED_POINTS RECTILINEAR_GRID FIELD
-        if (!starts_with(li.line, "DATASET UNSTRUCTURED_GRID")) {
-            std::cerr << "Error: only UNSTRUCTURED_GRID VTK files are supported" << std::endl;
-            return;
-        }
+        if (!starts_with(li.line, "DATASET UNSTRUCTURED_GRID"))
+            throw std::runtime_error("Error: only UNSTRUCTURED_GRID VTK files are supported");
 
         { // load the point cloud
             li.getline_nonempty();
-            if (li.words.size()!=3 || li.words.front()!="POINTS") {
-                std::cerr << "Error: unstructured grid data must begin with POINTS section" << std::endl;
-                return;
-            }
-            if (li.words.back()!="float" && li.words.back()!="double") {
-                std::cerr << "Error: unsupported point data type" << std::endl;
-                return;
-            }
+            if (li.words.size()!=3 || li.words.front()!="POINTS")
+                throw std::runtime_error("Error: unstructured grid data must begin with POINTS section");
+            if (li.words.back()!="float" && li.words.back()!="double")
+                throw std::runtime_error("Error: unsupported point data type");
             int nb_verts = std::stoi(li.words[1]);
             verts_.resize(nb_verts);
 
@@ -117,11 +107,8 @@ namespace UM {
         { // load raw connectivity
             li.getline_nonempty();
             if (li.in.eof()) return;
-            if (li.words.size()!=3 || li.words.front()!="CELLS") {
-                std::cerr << "Error: POINTS section must be followed by CELLS section" << std::endl;
-                std::cerr << filename << std::endl;
-                return;
-            }
+            if (li.words.size()!=3 || li.words.front()!="CELLS")
+                throw std::runtime_error("Error: POINTS section must be followed by CELLS section");
             int nb_cells = std::stoi(li.words[1]);
             int data_len = std::stoi(li.words[2]);
 
@@ -150,15 +137,11 @@ namespace UM {
         std::vector<int> cell_types;
         { // dispatch the connectivity data to different arrays w.r.t the cell type
             li.getline_nonempty();
-            if (li.words.size()!=2 || li.words.front()!="CELL_TYPES") {
-                std::cerr << "Error: CELLS section must be followed by CELL_TYPES section" << std::endl;
-                return;
-            }
+            if (li.words.size()!=2 || li.words.front()!="CELL_TYPES")
+                throw std::runtime_error("Error: CELLS section must be followed by CELL_TYPES section");
             int nb_cells = std::stoi(li.words[1]);
-            if (nb_cells+1u!=offset.size()) {
-                std::cerr << "Error: incoherent number of cells in the CELL_TYPES section" << std::endl;
-                return;
-            }
+            if (nb_cells+1u!=offset.size())
+                throw std::runtime_error("Error: incoherent number of cells in the CELL_TYPES section");
 
             int cnt = 0;
             do {
@@ -207,12 +190,12 @@ namespace UM {
                 std::string datatype = li.words[2];
                 int dim = li.words.size()==4 ? std::stoi(li.words.back()) : 1;
                 if (dim!=1)
-                    std::cerr << "Error: multi-component attributes are not supported" << std::endl;
+                    std::cerr << "Warning: multi-component attributes are not supported" << std::endl;
 
                 li.getline_nonempty();
                 if (li.words.size()!=2 || li.words.front()!="LOOKUP_TABLE") continue;
                 if (li.words.back()!="default")
-                    std::cerr << "Error: only default lookup table is supported" << std::endl;
+                    std::cerr << "Warning: only default lookup table is supported" << std::endl;
 
 //                std::cerr << name << std::endl;
                 int nb = place ? offset.size()-1 : verts_.size() ;
@@ -247,7 +230,7 @@ namespace UM {
                     std::transform(data.begin(), data.end(), A.ptr->data.begin(), [](const std::string& str) { return std::stod(str); });
                     P = A.ptr;
                 } else {
-                    std::cerr << "Error: unsupported attribute data type" << std::endl;
+                    std::cerr << "Warning: unsupported attribute data type" << std::endl;
                     continue;
                 }
                 attr[place].emplace_back(name, P);
@@ -280,10 +263,8 @@ namespace UM {
     template <class M, class A> void write_vtk_format(const std::string& filename, const M &m, const A a) {
         std::ofstream out;
         out.open(filename, std::ifstream::out);
-        if (out.fail()) {
-            std::cerr << "Failed to open " << filename << std::endl;
-            return;
-        }
+        if (out.fail())
+            throw std::runtime_error("Failed to open " + filename);
         out << std::setprecision(std::numeric_limits<double>::max_digits10);
         out << "# vtk DataFile Version 3.0" << std::endl;
         out << "Mesh saved with ultimaille: https://github.com/ssloy/ultimaille" << std::endl;
@@ -569,7 +550,7 @@ namespace UM {
             um_assert(B.get()!=nullptr);
             A->data.insert(std::end(A->data), std::begin(B->data), std::end(B->data));
         } else {
-            std::cerr << "Error: unsupported attribute type" << std::endl;
+            std::cerr << "Warning: unsupported attribute type" << std::endl;
         }
     }
 
