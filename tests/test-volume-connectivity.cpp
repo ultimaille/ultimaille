@@ -45,55 +45,57 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
     }
 
     m.delete_isolated_vertices();
-    VolumeConnectivity vec(m);
+    CellsConnectivity conn(m);
 
     CellFacetAttribute<bool> boundary(m);
     int nbrd = 0;
     for (int f : range(m.nfacets())) {
-        boundary[f] = (vec.adjacent[f]<0);
+        boundary[f] = (conn.adjacent[f]<0);
         nbrd += boundary[f];
     }
     REQUIRE( nbrd==136 );
 
-    std::vector<int> cnt_oppf(vec.max_f*vec.max_h*m.ncells(), 0);
-    std::vector<int> cnt_next(vec.max_f*vec.max_h*m.ncells(), 0);
-    std::vector<int> cnt_prev(vec.max_f*vec.max_h*m.ncells(), 0);
+    REQUIRE( m.heh.nhalfedges() == 24*m.ncells() );
+    std::vector<int> cnt_oppf(m.heh.nhalfedges(), 0);
+    std::vector<int> cnt_next(m.heh.nhalfedges(), 0);
+    std::vector<int> cnt_prev(m.heh.nhalfedges(), 0);
 
-    for (int c : cell_iter(m))
+    for (int c : cell_iter(m)) {
         for (int lf : range(6)) {
             for (int lv : range(4)) {
-                int he = vec.halfedge(c, lf, lv);
-                REQUIRE( vec.cell(he)==c );
-                REQUIRE( vec.facet(he)==m.facet(c, lf) );
-                REQUIRE( vec.cell_facet(he)==lf );
-                REQUIRE( vec.facet_halfedge(he)==lv );
-                REQUIRE( vec.facet_size(he)==4 );
-                REQUIRE( vec.from(he) == m.facet_vert(c, lf, lv) );
-                REQUIRE( vec.to(he) == m.facet_vert(c, lf, (lv+1)%4) );
-                int hen = vec.next(he);
+                int he = lv + lf*4 + c*24;
+                REQUIRE( m.heh.cell(he)==c );
+                REQUIRE( m.heh.facet(he)==m.facet(c, lf) );
+                REQUIRE( m.heh.cell_facet(he)==lf );
+                REQUIRE( m.heh.facet_halfedge(he)==lv );
+                REQUIRE( m.facet_size(m.heh.cell_facet(he))==4 );
+                REQUIRE( m.heh.from(he) == m.facet_vert(c, lf, lv) );
+                REQUIRE( m.heh.to(he) == m.facet_vert(c, lf, (lv+1)%4) );
+                int hen = m.heh.next(he);
                 REQUIRE( hen>=0 );
-                REQUIRE( vec.prev(hen)==he );
+                REQUIRE( m.heh.prev(hen)==he );
                 cnt_next[hen]++;
 
-                int hep = vec.prev(he);
+                int hep = m.heh.prev(he);
                 REQUIRE( hep>=0 );
-                REQUIRE( vec.next(hep)==he );
+                REQUIRE( m.heh.next(hep)==he );
                 cnt_prev[hep]++;
 
-                int oppc = vec.opposite_c(he);
+                int oppc = conn.opposite_c(he);
                 REQUIRE((
-                        (oppc>=0 && !boundary[vec.facet(he)])
+                        (oppc>=0 && !boundary[m.heh.facet(he)])
                         ||
-                        (oppc==-1 && boundary[vec.facet(he)])
+                        (oppc==-1 && boundary[m.heh.facet(he)])
                        ));
 
-                int oppf = vec.opposite_f(he);
-                REQUIRE(vec.cell(oppf) == c);
+                int oppf = m.heh.opposite_f(he);
+                REQUIRE(m.heh.cell(oppf) == c);
                 cnt_oppf[oppf]++;
             }
         }
+    }
 
-    for (int i : range(vec.max_f*vec.max_h*m.ncells())) {
+    for (int i : range(24*m.ncells())) {
         REQUIRE( cnt_oppf[i]==1 );
         REQUIRE( cnt_next[i]==1 );
         REQUIRE( cnt_prev[i]==1 );

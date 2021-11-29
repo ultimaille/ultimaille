@@ -47,12 +47,12 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
         }
 
         m.delete_isolated_vertices();
-        VolumeConnectivity vec(m);
+        CellsConnectivity conn(m);
 
         CellFacetAttribute<bool> boundary(m);
         int nbrd = 0;
         for (int f : range(m.nfacets())) {
-            boundary[f] = (vec.adjacent[f]<0);
+            boundary[f] = (conn.adjacent[f]<0);
             nbrd += boundary[f];
         }
 

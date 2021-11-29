@@ -6,6 +6,16 @@
 #include "volume.h"
 
 namespace UM {
+    struct CellsConnectivity { // half-edge-like connectivity interface
+        CellsConnectivity(const Volume &m);
+
+        int opposite_c(const int he) const; // TODO speed-up the implementation
+        const Volume &m;
+        std::vector<int> adjacent; // adjacency between half-facets
+    };
+
+    /*
+
     struct VolumeConnectivity { // half-edge-like connectivity interface
         VolumeConnectivity(const Volume &p_m);
 
@@ -100,6 +110,7 @@ namespace UM {
         if (facet_halfedge(he)<size-1) return he + 1;
         return he - size + 1;
     }
+    */
 }
 
 #endif //__VOLUME_CONNECTIVITY_H__

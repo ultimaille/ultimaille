@@ -11,7 +11,7 @@
 
 namespace UM {
     static std::array<Polygons,4> reference_cells = {};
-    static auto reference_fec = []() -> std::array<SurfaceConnectivity,4> {
+    static auto reference_conn = []() -> std::array<SurfaceConnectivity,4> {
         /**
          *  LOCAL NUMBERING CONVENTION
          *
@@ -164,7 +164,7 @@ namespace UM {
 
         int  nverts_per_cell() const;
         int nfacets_per_cell() const;
-        int facet_size(const int lf) const;
+        int facet_size(const int f) const;
         int facet_vert(const int c, const int lf, const int lv) const;
         int  facet(const int c, const int lf) const;
         int corner(const int c, const int lc) const;
@@ -177,8 +177,8 @@ namespace UM {
             attr_corners = {};
         }
 
-        Volume(CELL_TYPE cell_type) : cell_type(cell_type), util(*this) {}
-        Volume(const Volume& m) : cell_type(m.cell_type), util(*this) { // TODO re-think copying policy
+        Volume(CELL_TYPE cell_type) : cell_type(cell_type), util(*this), heh(*this) {}
+        Volume(const Volume& m) : cell_type(m.cell_type), util(*this), heh(*this) { // TODO re-think copying policy
             um_assert(!m.points.size() && !m.cells.size());
         }
         Volume& operator=(const Volume& m) {
@@ -195,6 +195,26 @@ namespace UM {
             vec3 bary_facet(const int c, const int lf) const;
             const Volume &m;
         } util;
+
+        struct HalfEdgeHelper {
+            HalfEdgeHelper(const Volume &mesh) : m(mesh) {}
+
+            int nhalfedges() const;
+            int nhalfedges_per_cell() const;
+
+            int           cell(const int he) const;
+            int          facet(const int he) const;
+            int     cell_facet(const int he) const;
+            int  cell_halfedge(const int he) const;
+            int facet_halfedge(const int he) const;
+            int           from(const int he) const;
+            int             to(const int he) const;
+            int           prev(const int he) const;
+            int           next(const int he) const;
+
+            int opposite_f(const int he) const;
+            const Volume &m;
+        } heh;
     };
 
     struct Tetrahedra : Volume {
@@ -261,9 +281,9 @@ namespace UM {
         return reference_cells[cell_type].nfacets();
     }
 
-    inline int Volume::facet_size(const int lf) const {
-        assert(lf>=0 && lf<nfacets_per_cell());
-        return reference_cells[cell_type].facet_size(lf);
+    inline int Volume::facet_size(const int f) const {
+        assert(f>=0 && f<nfacets());
+        return reference_cells[cell_type].facet_size(f % nfacets_per_cell());
     }
 
     inline int Volume::facet_vert(const int c, const int lf, const int lv) const {
@@ -279,6 +299,78 @@ namespace UM {
     inline int Volume::corner(const int c, const int lc) const {
         assert(c>=0 && c<ncells() && lc>=0 && lc<nverts_per_cell());
         return c*nverts_per_cell() + lc;
+    }
+
+    inline int Volume::HalfEdgeHelper::nhalfedges_per_cell() const {
+        return reference_conn[m.cell_type].m.ncorners();
+    }
+
+    inline int Volume::HalfEdgeHelper::nhalfedges() const {
+        return m.ncells() * nhalfedges_per_cell();
+    }
+
+    // global cell id
+    inline int Volume::HalfEdgeHelper::cell(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return he / nhalfedges_per_cell();
+    }
+
+    // global facet id
+    inline int Volume::HalfEdgeHelper::facet(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return m.facet(cell(he), cell_facet(he));
+    }
+
+    // local facet id
+    inline int Volume::HalfEdgeHelper::cell_facet(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return reference_conn[m.cell_type].facet(cell_halfedge(he));
+    }
+
+    // local halfedge id
+    inline int Volume::HalfEdgeHelper::cell_halfedge(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return he % nhalfedges_per_cell();
+    }
+
+    // local halfedge id
+    inline int Volume::HalfEdgeHelper::facet_halfedge(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return cell_halfedge(he) - reference_conn[m.cell_type].m.corner(cell_facet(he), 0);
+    }
+
+    // global vertex id
+    inline int Volume::HalfEdgeHelper::from(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return m.facet_vert(cell(he), cell_facet(he), facet_halfedge(he));
+    }
+
+    // global vertex id
+    inline int Volume::HalfEdgeHelper::to(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        const int size = m.facet_size(cell_facet(he));
+        return m.facet_vert(cell(he), cell_facet(he), (facet_halfedge(he)+1) % size);
+    }
+
+    // global cell halfedge id
+    inline int Volume::HalfEdgeHelper::prev(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        if (facet_halfedge(he)>0) return he - 1;
+        const int size = m.facet_size(cell_facet(he));
+        return he + size - 1;
+    }
+
+    // global cell halfedge id
+    inline int Volume::HalfEdgeHelper::next(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        const int size = m.facet_size(cell_facet(he));
+        if (facet_halfedge(he)<size-1) return he + 1;
+        return he - size + 1;
+    }
+
+    inline int Volume::HalfEdgeHelper::opposite_f(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return nhalfedges_per_cell()*cell(he) + reference_conn[m.cell_type].opposite(cell_halfedge(he));
     }
 }
 

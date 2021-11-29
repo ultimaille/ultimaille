@@ -24,6 +24,55 @@ namespace UM {
         return false;
     }
 
+    CellsConnectivity::CellsConnectivity(const Volume &m) : m(m), adjacent(m.nfacets(), -1) {
+        std::vector<int> c2c, v2c;
+        compute_corner_to_corner_map(m, v2c, c2c);
+
+        for (int c1=0; c1<m.ncells(); c1++)
+            for (int lf1=0; lf1<m.nfacets_per_cell(); lf1++) {
+                int f1 = m.facet(c1, lf1);
+                if (adjacent[f1]>=0) continue;
+                int crn1 = v2c[m.facet_vert(c1, lf1, 0)];
+                int crn2 = crn1;
+                do {
+                    int c2 = crn2 / m.nverts_per_cell();
+                    if (c2!=c1) {
+                        for (int lf2=0; lf2<m.nfacets_per_cell(); lf2++) {
+                            if (!are_facets_adjacent(m, c1, c2, lf1, lf2)) continue;
+                            int f2 = m.facet(c2, lf2);
+                            adjacent[f1] = f2;
+                            adjacent[f2] = f1;
+                        }
+                    }
+                    crn2 = c2c[crn2];
+                } while (crn2!=crn1 && adjacent[f1]<0);
+            }
+    }
+
+    int CellsConnectivity::opposite_c(const int he) const {
+        assert(he>=0 && he<m.heh.nhalfedges());
+        int hfacet = m.heh.facet(he);
+        assert((int)adjacent.size()>hfacet);
+        int opp_hfacet = adjacent[hfacet];
+        if (opp_hfacet<0) return -1;
+        int opp_cell = m.cell_from_facet(opp_hfacet);
+
+        int nbv = m.facet_size(opp_cell);
+        int opp_lf = opp_hfacet % m.nfacets_per_cell();
+        for (int cfh=0; cfh<nbv; cfh++) {
+            if (
+                    m.heh.to(he)   == m.facet_vert(opp_cell, opp_lf, cfh)
+                    &&
+                    m.heh.from(he) == m.facet_vert(opp_cell, opp_lf, (cfh+1) % nbv)
+               )
+                return m.heh.nhalfedges_per_cell()*opp_cell + cfh;
+        }
+        um_assert(false);
+        return -1;
+    }
+
+/*
+
     VolumeConnectivity::VolumeConnectivity(const Volume &p_m) : m(p_m), adjacent(m.nfacets(), -1) {
         std::vector<int> c2c, v2c;
         compute_corner_to_corner_map(m, v2c, c2c);
@@ -101,5 +150,6 @@ namespace UM {
         } while (around_e_cir>=0);
         return result;
     }
+    */
 }
 
