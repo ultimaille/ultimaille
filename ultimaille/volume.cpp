@@ -12,11 +12,19 @@ namespace UM {
     }
 
     double Volume::Util::cell_volume(const int c) const {
+        if (m.cell_type==Volume::TETRAHEDRON)
+            return tet_volume(
+                    m.points[m.vert(c, 0)],
+                    m.points[m.vert(c, 1)],
+                    m.points[m.vert(c, 2)],
+                    m.points[m.vert(c, 3)]
+                    );
+
         const int nbf = m.nfacets_per_cell();
         const vec3 bary = m.util.bary_verts(c);
         double vol = 0;
         for (int lf=0; lf<nbf; lf++) {
-            const int nbv = m.facet_size(c, lf);
+            const int nbv = m.facet_size(lf);
             if (3==nbv) {
                 vol += tet_volume(
                         bary,
@@ -50,7 +58,7 @@ namespace UM {
 
     vec3 Volume::Util::bary_facet(const int c, const int lf) const {
         vec3 ave = {0, 0, 0};
-        const int nbv = m.facet_size(c, lf);
+        const int nbv = m.facet_size(lf);
         for (int lv=0; lv<nbv; lv++)
             ave += m.points[m.facet_vert(c, lf, lv)];
         return ave / static_cast<double>(nbv);
@@ -58,33 +66,22 @@ namespace UM {
 
     // unit vector: weighted sum of normal of a triangle fan around the barycenter
     vec3 Volume::Util::facet_normal(const int c, const int lf) const {
+        if (3==m.facet_size(lf)) {
+            const vec3 &A = m.points[m.facet_vert(c, lf, 0)];
+            const vec3 &B = m.points[m.facet_vert(c, lf, 1)];
+            const vec3 &C = m.points[m.facet_vert(c, lf, 2)];
+            return cross(B-A, C-A).normalize();
+        }
+
         vec3 res = {0, 0, 0};
         vec3 bary = m.util.bary_facet(c, lf);
-        const int nbv = m.facet_size(c, lf);
+        const int nbv = m.facet_size(lf);
         for (int lv=0; lv<nbv; lv++)
             res += cross(
                     m.points[m.facet_vert(c, lf,  lv       )]-bary,
                     m.points[m.facet_vert(c, lf, (lv+1)%nbv)]-bary
                     );
         return res.normalize();
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    vec3 Tetrahedra::Util::facet_normal(const int c, const int lf) const {
-        const vec3 &A = m.points[m.facet_vert(c, lf, 0)];
-        const vec3 &B = m.points[m.facet_vert(c, lf, 1)];
-        const vec3 &C = m.points[m.facet_vert(c, lf, 2)];
-        return cross(B-A, C-A).normalize();
-    }
-
-    double Tetrahedra::Util::cell_volume(const int c) const {
-        return tet_volume(
-                m.points[m.vert(c, 0)],
-                m.points[m.vert(c, 1)],
-                m.points[m.vert(c, 2)],
-                m.points[m.vert(c, 3)]
-                );
     }
 
     /////////////////////////////////////////////////////////////////

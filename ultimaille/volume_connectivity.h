@@ -41,7 +41,7 @@ namespace UM {
     inline int VolumeConnectivity::halfedge(const int cell, const int cell_facet, const int facet_he) const {
         assert(cell>=0 && cell<m.ncells());
         assert(cell_facet>=0 && cell_facet<m.nfacets_per_cell());
-        assert(facet_he>=0 && facet_he<=m.facet_size(cell, cell_facet));
+        assert(facet_he>=0 && facet_he<=m.facet_size(cell_facet));
         return max_f*max_h*cell + max_h*cell_facet + facet_he;
     }
 
@@ -71,7 +71,7 @@ namespace UM {
 
     inline int VolumeConnectivity::facet_size(const int he) const {
         assert(he>=0);
-        return m.facet_size(cell(he), cell_facet(he));
+        return m.facet_size(cell_facet(he));
     }
 
     // global vertex id

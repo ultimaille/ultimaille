@@ -333,20 +333,20 @@ namespace UM {
         std::vector<vec3> verts(m.nverts());;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         FOR(v, m.nverts()) verts[v] = m.points[v];
-        if (m.cell_type() == Volume::TETRAHEDRON) {
+        if (m.cell_type == Volume::TETRAHEDRON) {
             tets.resize(4 * m.ncells());
             FOR(t, m.ncells()) FOR(tv, 4) tets[4 * t + tv] = m.vert(t, tv);
-        } else if (m.cell_type() == Volume::HEXAHEDRON) {
+        } else if (m.cell_type == Volume::HEXAHEDRON) {
             hexes.resize(8 * m.ncells());
             FOR(h, m.ncells()) FOR(hv, 8) hexes[8 * h + hv] = m.vert(h, hv);
-        } else if (m.cell_type() == Volume::WEDGE) {
+        } else if (m.cell_type == Volume::WEDGE) {
             wedges.resize(6 * m.ncells());
             FOR(h, m.ncells()) FOR(hv, 6) wedges[6 * h + hv] = m.vert(h, hv);
-        } else if (m.cell_type() == Volume::PYRAMID) {
+        } else if (m.cell_type == Volume::PYRAMID) {
             pyramids.resize(5 * m.ncells());
             FOR(h, m.ncells()) FOR(hv, 5) pyramids[5 * h + hv] = m.vert(h, hv);
         } else {
-            std::cerr << "Warning: Volume type : " << m.cell_type() << "; not supported in our MEDIT writer";
+            std::cerr << "Warning: Volume type : " << m.cell_type << "; not supported in our MEDIT writer";
         }
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
     }

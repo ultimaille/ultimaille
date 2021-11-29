@@ -11,8 +11,8 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     bool are_facets_adjacent(const Volume &m, int c1, int c2, int lf1, int lf2) {
-        int n = m.facet_size(c1, lf1);
-        if (n!=m.facet_size(c2, lf2)) return false;
+        int n = m.facet_size(lf1);
+        if (n!=m.facet_size(lf2)) return false;
 
         for (int i=0; i<n; i++) {
             bool found = true;
@@ -54,7 +54,7 @@ namespace UM {
         assert(c>=0); assert(org>=0); assert(dst>=0);
 
         for (int cf=0; cf<m.nfacets_per_cell(); cf++) {
-            int nbv = m.facet_size(c, cf);
+            int nbv = m.facet_size(cf);
             for (int cfh=0; cfh<nbv; cfh++) {
                 if (
                         org == m.facet_vert(c, cf, cfh)
