@@ -1,6 +1,7 @@
 #ifndef __VOLUME_H__
 #define __VOLUME_H__
 #include <vector>
+#include <array>
 #include <memory>
 #include "syntactic-sugar/assert.h"
 #include "algebra/vec.h"
