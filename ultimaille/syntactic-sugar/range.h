@@ -100,6 +100,17 @@ namespace UM {
         return range(m.ncells());
     }
 
+    inline auto facet_iter(const Volume &m) {
+        return range(m.nfacets());
+    }
+
+    inline auto corner_iter(const Volume &m) {
+        return range(m.ncorners());
+    }
+
+    inline auto halfedge_iter(const Volume &m) {
+        return range(m.heh.nhalfedges());
+    }
 }
 #endif // __RANGE_H__
 

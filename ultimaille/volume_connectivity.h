@@ -9,15 +9,17 @@
 namespace UM {
     struct Volume;
 
-    struct OppositeFacet {
+    struct OppositeFacet { // adjacency between half-facets
         OppositeFacet(const Volume &m);
 
         int & operator[](const int i);
         int   operator[](const int i) const;
 
         int opposite_c(const int he) const;
+        std::vector<int> halfedges_around_edge(const int he) const;
+
         const Volume &m;
-        std::vector<int> adjacent; // adjacency between half-facets
+        std::vector<int> adjacent;
     };
 
     struct HalfEdgeHelper { // half-edge-like connectivity interface

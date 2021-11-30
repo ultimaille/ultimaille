@@ -160,6 +160,26 @@ namespace UM {
         return -1;
     }
 
+    std::vector<int> OppositeFacet::halfedges_around_edge(const int he) const {
+        std::vector<int> result;
+        int around_e_cir = he;
+        do { // rewind if boundary
+            result.push_back(around_e_cir);
+            if (opposite_c(around_e_cir)<0) break;
+            around_e_cir = m.heh.opposite_f(opposite_c(around_e_cir));
+        } while (around_e_cir != he);
+
+        if (opposite_c(around_e_cir)>=0 && around_e_cir == he)
+            return result;
+
+        result.clear(); // iterate forward if the edge is on border
+        do {
+            result.push_back(around_e_cir);
+            around_e_cir = opposite_c(m.heh.opposite_f(around_e_cir));
+        } while (around_e_cir>=0);
+        return result;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //  DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED  //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
