@@ -47,7 +47,7 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
         }
 
         m.delete_isolated_vertices();
-        CellsConnectivity conn(m);
+        CellsAdjacency conn(m);
 
         CellFacetAttribute<bool> boundary(m);
         int nbrd = 0;

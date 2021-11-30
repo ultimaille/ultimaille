@@ -2,10 +2,97 @@
 #include <algorithm>
 #include <cassert>
 
+#include "volume.h"
 #include "volume_connectivity.h"
 #include "attributes.h"
 
 namespace UM {
+    int HalfEdgeHelper::nhalfedges_per_cell() const {
+        return reference_conn[m.cell_type].m.ncorners();
+    }
+
+    int HalfEdgeHelper::nhalfedges() const {
+        return m.ncells() * nhalfedges_per_cell();
+    }
+
+    vec3 HalfEdgeHelper::geom(const int he) const {
+        return m.points[to(he)] - m.points[from(he)];
+    }
+
+    // global cell id
+    int HalfEdgeHelper::cell(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return he / nhalfedges_per_cell();
+    }
+
+    // global facet id
+    int HalfEdgeHelper::facet(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return m.facet(cell(he), cell_facet(he));
+    }
+
+    // global corner id
+    int HalfEdgeHelper::corner(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return cell(he) * m.nverts_per_cell() + reference_conn[m.cell_type].from(cell_halfedge(he));
+    }
+
+    // local facet id
+    int HalfEdgeHelper::cell_facet(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return reference_conn[m.cell_type].facet(cell_halfedge(he));
+    }
+
+    // local halfedge id
+    int HalfEdgeHelper::cell_halfedge(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return he % nhalfedges_per_cell();
+    }
+
+    // local halfedge id
+    int HalfEdgeHelper::facet_halfedge(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return cell_halfedge(he) - reference_conn[m.cell_type].m.corner(cell_facet(he), 0);
+    }
+
+    // global vertex id
+    int HalfEdgeHelper::from(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return m.facet_vert(cell(he), cell_facet(he), facet_halfedge(he));
+    }
+
+    // global vertex id
+    int HalfEdgeHelper::to(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        const int size = m.facet_size(cell_facet(he));
+        return m.facet_vert(cell(he), cell_facet(he), (facet_halfedge(he)+1) % size);
+    }
+
+    // global cell halfedge id
+    int HalfEdgeHelper::prev(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        if (facet_halfedge(he)>0) return he - 1;
+        const int size = m.facet_size(cell_facet(he));
+        return he + size - 1;
+    }
+
+    // global cell halfedge id
+    int HalfEdgeHelper::next(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        const int size = m.facet_size(cell_facet(he));
+        if (facet_halfedge(he)<size-1) return he + 1;
+        return he - size + 1;
+    }
+
+    int HalfEdgeHelper::opposite_f(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return nhalfedges_per_cell()*cell(he) + reference_conn[m.cell_type].opposite(cell_halfedge(he));
+    }
+
+    int HalfEdgeHelper::opposite_c(const CellsAdjacency &adj, const int he) const {
+        return adj.opposite_c(he);
+    }
+
     void compute_corner_to_corner_map(const Volume &m, std::vector<int> &v2c, std::vector<int> &c2c);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,7 +111,7 @@ namespace UM {
         return false;
     }
 
-    CellsConnectivity::CellsConnectivity(const Volume &m) : m(m), adjacent(m.nfacets(), -1) {
+    CellsAdjacency::CellsAdjacency(const Volume &m) : m(m), adjacent(m.nfacets(), -1) {
         std::vector<int> c2c, v2c;
         compute_corner_to_corner_map(m, v2c, c2c);
 
@@ -49,7 +136,7 @@ namespace UM {
             }
     }
 
-    int CellsConnectivity::opposite_c(const int he) const {
+    int CellsAdjacency::opposite_c(const int he) const {
         assert(he>=0 && he<m.heh.nhalfedges());
         int hfacet = m.heh.facet(he);
         assert((int)adjacent.size()>hfacet);
@@ -61,8 +148,7 @@ namespace UM {
         int opp_lf = opp_hfacet % m.nfacets_per_cell();
         for (int cfh=0; cfh<nbv; cfh++) {
             if (
-                    m.heh.to(he)   == m.facet_vert(opp_cell, opp_lf, cfh)
-                    &&
+                    m.heh.to(he)   == m.facet_vert(opp_cell, opp_lf, cfh) &&
                     m.heh.from(he) == m.facet_vert(opp_cell, opp_lf, (cfh+1) % nbv)
                )
                 return m.heh.nhalfedges_per_cell()*opp_cell + cfh;
@@ -71,9 +157,12 @@ namespace UM {
         return -1;
     }
 
-/*
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //  DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED  //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     VolumeConnectivity::VolumeConnectivity(const Volume &p_m) : m(p_m), adjacent(m.nfacets(), -1) {
+        std::cerr << "WARNING: attention, this interface is now deprecated and will be soon removed" << std::endl;
         std::vector<int> c2c, v2c;
         compute_corner_to_corner_map(m, v2c, c2c);
 
@@ -150,6 +239,69 @@ namespace UM {
         } while (around_e_cir>=0);
         return result;
     }
-    */
+
+    // global halfedge id from local id
+    int VolumeConnectivity::halfedge(const int cell, const int cell_facet, const int facet_he) const {
+        assert(cell>=0 && cell<m.ncells());
+        assert(cell_facet>=0 && cell_facet<m.nfacets_per_cell());
+        assert(facet_he>=0 && facet_he<=m.facet_size(cell_facet));
+        return max_f*max_h*cell + max_h*cell_facet + facet_he;
+    }
+
+    // global cell id
+    int VolumeConnectivity::cell(const int he) const {
+        assert(he>=0);
+        return he / (max_f*max_h);
+    }
+
+    // global facet id
+    int VolumeConnectivity::facet(const int he) const {
+        assert(he>=0);
+        return m.facet(cell(he), cell_facet(he));
+    }
+
+    // local facet id
+    int VolumeConnectivity::cell_facet(const int he) const {
+        assert(he>=0);
+        return (he % (max_f*max_h)) / max_h;
+    }
+
+    // local halfedge id
+    int VolumeConnectivity::facet_halfedge(const int he) const {
+        assert(he>=0);
+        return he % max_h;
+    }
+
+    int VolumeConnectivity::facet_size(const int he) const {
+        assert(he>=0);
+        return m.facet_size(cell_facet(he));
+    }
+
+    // global vertex id
+    int VolumeConnectivity::from(const int he) const {
+        assert(he>=0);
+        return m.facet_vert(cell(he), cell_facet(he), facet_halfedge(he));
+    }
+
+    // global vertex id
+    int VolumeConnectivity::to(const int he) const {
+        assert(he>=0);
+        return m.facet_vert(cell(he), cell_facet(he), (facet_halfedge(he)+1)%facet_size(he));
+    }
+
+    // global cell halfedge id
+    int VolumeConnectivity::prev(const int he) const {
+        assert(he>=0);
+        if (facet_halfedge(he)>0) return he - 1;
+        return he + facet_size(he) - 1;
+    }
+
+    // global cell halfedge id
+    int VolumeConnectivity::next(const int he) const {
+        assert(he>=0);
+        const int size = facet_size(he);
+        if (facet_halfedge(he)<size-1) return he + 1;
+        return he - size + 1;
+    }
 }
 

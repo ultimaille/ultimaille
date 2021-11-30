@@ -19,7 +19,7 @@ TEST_CASE("VTK + attributes IO test", "[VTK]") {
         REQUIRE( m[i].nverts()==263 );
         REQUIRE( m[i].ncells()==886 );
         if (i) {
-            CellsConnectivity conn(m[0]);
+            CellsAdjacency conn(m[0]);
             PointAttribute<bool> b1("boundary", attr[1], m[1]);
             PointAttribute<bool> b2(m[1], false);
             for (int f : range(m[0].nfacets())) {

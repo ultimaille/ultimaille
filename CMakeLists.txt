@@ -41,8 +41,6 @@ endif()
 file(GLOB SOURCES ultimaille/*.cpp ultimaille/*.h ultimaille/algebra/*.cpp ultimaille/algebra/*.h ultimaille/helpers/*.cpp ultimaille/helpers/*.h ultimaille/syntactic-sugar/*.cpp ultimaille/syntactic-sugar/*.h ultimaille/io/*.cpp ultimaille/io/*.h)
 add_library(ultimaille ${SOURCES})
 #set_property(TARGET ultimaille PROPERTY CXX_STANDARD 17)
-set (CMAKE_CXX_STANDARD 17)
-set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 target_link_libraries(ultimaille zlib hlbfgs stlbfgs)
 if(OpenMP_CXX_FOUND)

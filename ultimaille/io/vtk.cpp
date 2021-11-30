@@ -239,7 +239,7 @@ namespace UM {
     }
 
     void drop_attributes(const std::vector<NamedContainer> &nc, std::ofstream &out) {
-        for (const auto [name, genptr] : nc) {
+        for (const auto &[name, genptr] : nc) {
 //          std::cerr << "name " << name << std::endl;
             if (auto p = std::dynamic_pointer_cast<AttributeContainer<int> >(genptr); p.get()!=nullptr) {
                 out << "SCALARS " << name << " int 1" << std::endl << "LOOKUP_TABLE default" << std::endl;

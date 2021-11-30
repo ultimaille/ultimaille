@@ -1,143 +1,21 @@
 #ifndef __VOLUME_H__
 #define __VOLUME_H__
 #include <vector>
-#include <array>
 #include <memory>
 #include "syntactic-sugar/assert.h"
 #include "algebra/vec.h"
 #include "pointset.h"
-#include "surface.h"
-#include "surface_connectivity.h"
+#include "volume_reference.h"
+#include "volume_connectivity.h"
 
 namespace UM {
-    static std::array<Polygons,4> reference_cells = {};
-    static auto reference_conn = []() -> std::array<SurfaceConnectivity,4> {
-        /**
-         *  LOCAL NUMBERING CONVENTION
-         *
-         *     Z             3            The vectors (01), (02), (03) form a right-hand basis.
-         *     ^            /.\           The facets are numbered w.r.t the opposite vertex.
-         *     |           / . \          For the reference tetrahedron v0=(0,0,0), v1=(1,0,0), v2=(0,1,0), v3=(0,0,1),
-         *     |          /  .  \         the facets are numbered as follows:
-         *     o         /   .   \        f0:x+y+z=1 f1:x=0 f2:y=0, f3:z=0
-         *    / \       /    .    \
-         *  /     \    /   . 0 .   \        The vertices inside each facet are numbered in a way that the normal vector
-         * X       Y  /  .       .  \       points outside (CCW ordering when viewed from outside).
-         *           / .           . \      The smallest local index is the first facet vertex.
-         *          /_________________\
-         *         1                   2
-         */
-
-        Polygons& tet = reference_cells[0];
-        *tet.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {0,0,1}};
-        tet.facets = {1,2,3, 0,3,2, 0,1,3, 0,2,1};
-        tet.offset = {0,3,6,9,12};
-
-        /**
-         * LOCAL NUMBERING CONVENTION
-         * The numbering of the vertices is derived from the binary         The facets are numbered in the following order:
-         * code corresponding to the coordinates of the unit cube:          f0:x=0  f1:x=1
-         * v0:(0,0,0), v1:(1,0,0), v2:(0,1,0), v3:(1,1,0)                   f2:y=0  f3:y=1
-         * v4:(0,0,1), v5:(1,0,1), v6:(0,1,1), v7:(1,1,1)                   f4:z=0  f5:z=1
-         *
-         *           6-----------7                                                    +-----------+
-         *          /|          /|                                                   /|          /|
-         *         / |         / |                                                  / |   5     / |
-         *        /  |        /  |                                                 /  |     3  /  |
-         *       4-----------5   |                                                +-----------+   |
-         *       |   |       |   |                                                | 0 |       | 1 |
-         *       |   2-------|---3                                                |   +-------|---+
-         *       |  /        |  /                                                 |  /  2     |  /
-         * Z     | /         | /                                            Z     | /     4   | /
-         * ^  Y  |/          |/                                             ^  Y  |/          |/
-         * | /   0-----------1                                              | /   +-----------+
-         * |/                                                               |/
-         * o----> X                                                         o----> X
-         *
-         * The vertices inside each facet are numbered in a way that the normal vector points outside
-         * (CCW ordering when viewed from outside).
-         * The smallest local index is the first facet vertex.
-         */
-
-        Polygons& hex = reference_cells[1];
-        *hex.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {1,1,0}, {0,0,1}, {1,0,1}, {0,1,1}, {1,1,1}};
-        hex.facets = {0,4,6,2, 1,3,7,5, 0,1,5,4, 2,6,7,3, 0,2,3,1, 4,5,7,6};
-        hex.offset = {0,4,8,12,16,20,24};
-
-        /**
-         * LOCAL NUMBERING CONVENTION
-         *
-         *            5                                         ^
-         *           /. \                                      /. \
-         *          / .   \                                   / .   \
-         *         /  .     \                                /  .1    \
-         *        /   .       \                             /   .       \
-         *       3-------------4                           +-------------+
-         *       |    .        |                           |  3 .   4    |
-         *       |    .        |                           |    .        |
-         *       |    2        |                           |    +        |
-         *       |   .  .      |                           |   .  2      |
-         *       |  .     .    |                           |  .     .    |
-         * Z     | .        .  |                     Z     | .   0    .  |
-         * ^  Y  |.           .|                     ^  Y  |.           .|
-         * | /   0-------------1                     | /   +-------------+
-         * |/                                        |/
-         * o----> X                                  o----> X
-         *
-         * The vertices inside each facet are numbered in a way that the normal vector points outside
-         * (CCW ordering when viewed from outside).
-         * The smallest local index is the first facet vertex.
-         */
-
-        Polygons& wedge = reference_cells[2];
-        *wedge.points.data = {{0,0,0}, {1,0,0}, {0,1,0}, {0,0,1}, {1,0,1}, {0,1,1}};
-        wedge.facets = {0,2,1, 3,4,5, 0,1,4,3, 0,3,5,2, 1,2,5,4};
-        wedge.offset = {0,3,6,10,14,18};
-
-        /**
-         * LOCAL NUMBERING CONVENTION
-         *
-         *                   4                                                      .
-         *                 .::'.                                                  .::'.
-         *                : : : '.                                               : : : '.
-         *              .' :  :  '.                                            .' :  :  '.
-         *             .'  :  :    '.                                         .'  :  :    '.
-         *            :   :   :     '.                                       :   :   :     '.
-         *          .:    :    :      :                                    .:    :    :      :
-         *         .'    :     :       '.                                 .'    :3    :       '.
-         *        .'     :     :         :                               .'     :     :    4    :
-         *       :      :      :          '.                            :      :      :          '.
-         *     .'       :       :          '.                         .'   2   :      :1          '.
-         *    .'       :     .. 2            '.                      .'       :     ..'.            '.
-         *   :  ......':'''''     '''...      '.                    :  ......':'''''     '''...      '.
-         *  3.'''     :                 '''...  '                  ..'''     :                 '''...  '
-         *   '.       :                       ''' 1                 '.       :      0                ''':
-         *    '.     :                     ...'''           Z        '.     :                     ...'''
-         *     '.    :               ...'''          Y     :          '.    :               ...'''
-         *      '.  :         ...''''                 '.  :            '.  :         ...''''
-         *       '. :   ...'''                         '. :   ..>X      '. :   ...'''
-         *         `0.''                                 'o.''            `..''
-         *
-         *
-         * The vertices inside each facet are numbered in a way that the normal vector points outside
-         * (CCW ordering when viewed from outside).
-         * The smallest local index is the first facet vertex.
-         */
-
-        Polygons& pyramid = reference_cells[3];
-        *pyramid.points.data = {{0,0,0}, {1,0,0}, {1,1,0}, {0,1,0}, {.5,.5,.5}};
-        pyramid.facets = {0,3,2,1, 0,1,4, 0,4,3, 2,3,4, 1,2,4};
-        pyramid.offset = {0,4,7,10,13,16};
-
-        return { tet, hex, wedge, pyramid };
-    }();
-
     struct GenericAttributeContainer;
 
     struct Volume {
         enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };
 
         const CELL_TYPE cell_type;
+        HalfEdgeHelper heh;
         PointSet points{};
         std::vector<int> cells{};
 
@@ -177,8 +55,8 @@ namespace UM {
             attr_corners = {};
         }
 
-        Volume(CELL_TYPE cell_type) : cell_type(cell_type), util(*this), heh(*this) {}
-        Volume(const Volume& m) : cell_type(m.cell_type), util(*this), heh(*this) { // TODO re-think copying policy
+        Volume(CELL_TYPE cell_type) : cell_type(cell_type), heh(*this), util(*this) {}
+        Volume(const Volume& m) : cell_type(m.cell_type), heh(*this), util(*this) { // TODO re-think copying policy
             um_assert(!m.points.size() && !m.cells.size());
         }
         Volume& operator=(const Volume& m) {
@@ -195,27 +73,9 @@ namespace UM {
             vec3 bary_facet(const int c, const int lf) const;
             const Volume &m;
         } util;
-
-        struct HalfEdgeHelper {
-            HalfEdgeHelper(const Volume &mesh) : m(mesh) {}
-
-            int nhalfedges() const;
-            int nhalfedges_per_cell() const;
-
-            int           cell(const int he) const;
-            int          facet(const int he) const;
-            int     cell_facet(const int he) const;
-            int  cell_halfedge(const int he) const;
-            int facet_halfedge(const int he) const;
-            int           from(const int he) const;
-            int             to(const int he) const;
-            int           prev(const int he) const;
-            int           next(const int he) const;
-
-            int opposite_f(const int he) const;
-            const Volume &m;
-        } heh;
     };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Tetrahedra : Volume {
         Tetrahedra() : Volume(Volume::TETRAHEDRON) {}
@@ -299,78 +159,6 @@ namespace UM {
     inline int Volume::corner(const int c, const int lc) const {
         assert(c>=0 && c<ncells() && lc>=0 && lc<nverts_per_cell());
         return c*nverts_per_cell() + lc;
-    }
-
-    inline int Volume::HalfEdgeHelper::nhalfedges_per_cell() const {
-        return reference_conn[m.cell_type].m.ncorners();
-    }
-
-    inline int Volume::HalfEdgeHelper::nhalfedges() const {
-        return m.ncells() * nhalfedges_per_cell();
-    }
-
-    // global cell id
-    inline int Volume::HalfEdgeHelper::cell(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        return he / nhalfedges_per_cell();
-    }
-
-    // global facet id
-    inline int Volume::HalfEdgeHelper::facet(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        return m.facet(cell(he), cell_facet(he));
-    }
-
-    // local facet id
-    inline int Volume::HalfEdgeHelper::cell_facet(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        return reference_conn[m.cell_type].facet(cell_halfedge(he));
-    }
-
-    // local halfedge id
-    inline int Volume::HalfEdgeHelper::cell_halfedge(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        return he % nhalfedges_per_cell();
-    }
-
-    // local halfedge id
-    inline int Volume::HalfEdgeHelper::facet_halfedge(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        return cell_halfedge(he) - reference_conn[m.cell_type].m.corner(cell_facet(he), 0);
-    }
-
-    // global vertex id
-    inline int Volume::HalfEdgeHelper::from(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        return m.facet_vert(cell(he), cell_facet(he), facet_halfedge(he));
-    }
-
-    // global vertex id
-    inline int Volume::HalfEdgeHelper::to(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        const int size = m.facet_size(cell_facet(he));
-        return m.facet_vert(cell(he), cell_facet(he), (facet_halfedge(he)+1) % size);
-    }
-
-    // global cell halfedge id
-    inline int Volume::HalfEdgeHelper::prev(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        if (facet_halfedge(he)>0) return he - 1;
-        const int size = m.facet_size(cell_facet(he));
-        return he + size - 1;
-    }
-
-    // global cell halfedge id
-    inline int Volume::HalfEdgeHelper::next(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        const int size = m.facet_size(cell_facet(he));
-        if (facet_halfedge(he)<size-1) return he + 1;
-        return he - size + 1;
-    }
-
-    inline int Volume::HalfEdgeHelper::opposite_f(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        return nhalfedges_per_cell()*cell(he) + reference_conn[m.cell_type].opposite(cell_halfedge(he));
     }
 }
 
