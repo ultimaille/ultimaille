@@ -48,6 +48,38 @@ namespace UM {
         const Volume &m;
     };
 
+    struct he_around_edge_iter {
+        const OppositeFacet  &of;
+        const HalfEdgeHelper &heh;
+        int start  = -1;
+        int finish = -1;
+
+        he_around_edge_iter(const OppositeFacet &of, const int he);
+
+        struct iterator {
+            const OppositeFacet  &of;
+            const HalfEdgeHelper &heh;
+            int value;
+            bool circ;
+
+            void operator++() {
+                value = of.opposite_c(heh.opposite_f(value));
+                circ = false;
+            }
+
+            int operator*() const {
+                return value;
+            }
+
+            bool operator!=(const iterator& rhs) const {
+                return circ || value != rhs.value;
+            }
+        };
+
+        iterator begin() const { return {of, heh, start, start==finish}; }
+        iterator end()   const { return {of, heh, finish, false}; }
+    };
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //  DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED  //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

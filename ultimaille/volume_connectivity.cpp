@@ -207,6 +207,20 @@ namespace UM {
         return result;
     }
 
+    he_around_edge_iter::he_around_edge_iter(const OppositeFacet &of, const int he) : of(of), heh(of.m.heh) {
+        assert(he>=0 && he<heh.nhalfedges());
+        int cur = he;
+        do {
+            int oppc = of.opposite_c(cur);
+            if (oppc<0) {
+                start = cur;
+                return;
+            }
+            cur = heh.opposite_f(oppc);
+        } while (cur != he);
+        start = finish = he;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //  DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED  //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
