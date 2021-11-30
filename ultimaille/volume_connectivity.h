@@ -44,7 +44,7 @@ namespace UM {
     //  DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED  //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    struct VolumeConnectivity { // half-edge-like connectivity interface
+    struct [[deprecated]] VolumeConnectivity { // half-edge-like connectivity interface
         VolumeConnectivity(const Volume &p_m);
 
         int halfedge(const int cell, const int cell_facet, const int facet_he) const;
