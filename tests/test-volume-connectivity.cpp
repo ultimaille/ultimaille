@@ -45,12 +45,12 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
     }
 
     m.delete_isolated_vertices();
-    CellsAdjacency conn(m);
+    OppositeFacet conn(m);
 
     CellFacetAttribute<bool> boundary(m);
     int nbrd = 0;
     for (int f : range(m.nfacets())) {
-        boundary[f] = (conn.adjacent[f]<0);
+        boundary[f] = conn[f]<0;
         nbrd += boundary[f];
     }
     REQUIRE( nbrd==136 );

@@ -89,7 +89,7 @@ namespace UM {
         return nhalfedges_per_cell()*cell(he) + reference_conn[m.cell_type].opposite(cell_halfedge(he));
     }
 
-    int HalfEdgeHelper::opposite_c(const CellsAdjacency &adj, const int he) const {
+    int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
         return adj.opposite_c(he);
     }
 
@@ -111,7 +111,7 @@ namespace UM {
         return false;
     }
 
-    CellsAdjacency::CellsAdjacency(const Volume &m) : m(m), adjacent(m.nfacets(), -1) {
+    OppositeFacet::OppositeFacet(const Volume &m) : m(m), adjacent(m.nfacets(), -1) {
         std::vector<int> c2c, v2c;
         compute_corner_to_corner_map(m, v2c, c2c);
 
@@ -136,7 +136,10 @@ namespace UM {
             }
     }
 
-    int CellsAdjacency::opposite_c(const int he) const {
+    int & OppositeFacet::operator[](const int i)       { assert(i>=0 && i<m.nfacets()); return adjacent[i]; }
+    int   OppositeFacet::operator[](const int i) const { assert(i>=0 && i<m.nfacets()); return adjacent[i]; }
+
+    int OppositeFacet::opposite_c(const int he) const {
         assert(he>=0 && he<m.heh.nhalfedges());
         int hfacet = m.heh.facet(he);
         assert((int)adjacent.size()>hfacet);

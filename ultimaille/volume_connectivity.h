@@ -9,8 +9,11 @@
 namespace UM {
     struct Volume;
 
-    struct CellsAdjacency {
-        CellsAdjacency(const Volume &m);
+    struct OppositeFacet {
+        OppositeFacet(const Volume &m);
+
+        int & operator[](const int i);
+        int   operator[](const int i) const;
 
         int opposite_c(const int he) const;
         const Volume &m;
@@ -36,7 +39,7 @@ namespace UM {
         int           next(const int he) const;
 
         int opposite_f(const int he) const;
-        int opposite_c(const CellsAdjacency &adj, const int he) const;
+        int opposite_c(const OppositeFacet &adj, const int he) const;
         const Volume &m;
     };
 
