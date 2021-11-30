@@ -25,6 +25,9 @@ namespace UM {
     struct HalfEdgeHelper { // half-edge-like connectivity interface
         HalfEdgeHelper(const Volume &mesh) : m(mesh) {}
 
+        int halfedge(const int cell, const int cell_facet, const int facet_he) const;
+        int halfedge_from_verts(const int c, const int org, const int dst) const;
+
         int nhalfedges() const;
         int nhalfedges_per_cell() const;
 

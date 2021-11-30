@@ -7,6 +7,33 @@
 #include "attributes.h"
 
 namespace UM {
+    // global halfedge id from local id
+    int HalfEdgeHelper::halfedge(const int cell, const int cell_facet, const int facet_he) const {
+        assert(cell>=0 && cell<m.ncells());
+        assert(cell_facet>=0 && cell_facet<m.nfacets_per_cell());
+        assert(facet_he>=0 && facet_he<=m.facet_size(cell_facet));
+        return cell*nhalfedges_per_cell() + reference_cells[m.cell_type].corner(cell_facet, facet_he);
+    }
+
+    // c, org and dst are global indices
+    int HalfEdgeHelper::halfedge_from_verts(const int c, const int org, const int dst) const {
+        assert(c>=0 && c<m.ncells());
+        assert(org>=0 && org<m.nverts());
+        assert(dst>=0 && dst<m.nverts());
+
+        for (int cf=0; cf<m.nfacets_per_cell(); cf++) {
+            int nbv = m.facet_size(cf);
+            for (int cfh=0; cfh<nbv; cfh++) {
+                if (
+                        org == m.facet_vert(c, cf, cfh) &&
+                        dst == m.facet_vert(c, cf, (cfh+1) % nbv)
+                   )
+                    return halfedge(c, cf, cfh);
+            }
+        }
+        return -1;
+    }
+
     int HalfEdgeHelper::nhalfedges_per_cell() const {
         return reference_conn[m.cell_type].m.ncorners();
     }
@@ -218,8 +245,7 @@ namespace UM {
             int nbv = m.facet_size(cf);
             for (int cfh=0; cfh<nbv; cfh++) {
                 if (
-                        org == m.facet_vert(c, cf, cfh)
-                        &&
+                        org == m.facet_vert(c, cf, cfh) &&
                         dst == m.facet_vert(c, cf, (cfh+1) % nbv)
                    )
                     return halfedge(c, cf, cfh);
