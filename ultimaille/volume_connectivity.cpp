@@ -173,18 +173,7 @@ namespace UM {
         int opp_hfacet = adjacent[hfacet];
         if (opp_hfacet<0) return -1;
         int opp_cell = m.cell_from_facet(opp_hfacet);
-
-        int nbv = m.facet_size(opp_cell);
-        int opp_lf = opp_hfacet % m.nfacets_per_cell();
-        for (int cfh=0; cfh<nbv; cfh++) {
-            if (
-                    m.heh.to(he)   == m.facet_vert(opp_cell, opp_lf, cfh) &&
-                    m.heh.from(he) == m.facet_vert(opp_cell, opp_lf, (cfh+1) % nbv)
-               )
-                return m.heh.nhalfedges_per_cell()*opp_cell + cfh;
-        }
-        um_assert(false);
-        return -1;
+        return m.heh.halfedge_from_verts(opp_cell, m.heh.to(he), m.heh.from(he));
     }
 
     std::vector<int> OppositeFacet::halfedges_around_edge(const int he) const {

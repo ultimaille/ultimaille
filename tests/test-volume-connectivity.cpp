@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cstdint>
+#include <numeric>
 
 #include <ultimaille/all.h>
 
@@ -46,7 +47,6 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
 
     m.delete_isolated_vertices();
     OppositeFacet conn(m);
-
     CellFacetAttribute<bool> boundary(m);
     int nbrd = 0;
     for (int f : range(m.nfacets())) {
@@ -100,6 +100,48 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
         REQUIRE( cnt_next[i]==1 );
         REQUIRE( cnt_prev[i]==1 );
     }
+
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    DisjointSet ds(m.heh.nhalfedges());
+
+    for (int he : halfedge_iter(m)) {
+        int opp = conn.opposite_c(he);
+        if (opp<0) continue;
+        CHECK((m.heh.to(he) == m.heh.from(opp) && m.heh.from(he)==m.heh.to(opp)));
+        ds.merge(he, m.heh.opposite_f(opp));
+    }
+
+    std::vector<int> id2setid;
+    std::vector<int> encounter(m.heh.nhalfedges(), 0);
+    for (int h1 : halfedge_iter(m)) {
+        for (int h2 : he_around_edge_iter(conn, h1)) {
+            encounter[h2]++;
+            CHECK(ds.root(h1) == ds.root(h2));
+        }
+    }
+
+    int nsets = ds.get_sets_id(id2setid);
+    std::vector<int> setsize(nsets, 0);
+    for (int s : id2setid) {
+        setsize[s]++;
+    }
+
+    for (int h1 : halfedge_iter(m)) {
+        CHECK(setsize[id2setid[h1]] == encounter[h1]);
+    }
+
+//sum_of_elems = std::accumulate(vector.begin(), vector.end(), 0);
+
+
+/*
+    for (int h1 : range(m.ncells()*24)) {
+         for (int h2 : vec.halfedges_around_edge(h1)) {
+                std::cerr << vec.from(h1) << "-" << vec.to(h1) << " : " << vec.from(h2) << "-" << vec.to(h2) << std::endl;
+         }
+    }
+*/
 
 //  write_geogram("bunny.geogram", m, {{}, {}, {{"boundary", boundary.ptr}}, {}});
 

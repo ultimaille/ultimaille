@@ -16,7 +16,7 @@ namespace UM {
         int   operator[](const int i) const;
 
         int opposite_c(const int he) const;
-        std::vector<int> halfedges_around_edge(const int he) const;
+        [[deprecated]] std::vector<int> halfedges_around_edge(const int he) const;
 
         const Volume &m;
         std::vector<int> adjacent;
