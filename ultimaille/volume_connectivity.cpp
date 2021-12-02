@@ -196,7 +196,7 @@ namespace UM {
         return result;
     }
 
-    he_around_edge_iter::he_around_edge_iter(const OppositeFacet &of, const int he) : of(of), heh(of.m.heh) {
+    halfedge_around_edge_iter::halfedge_around_edge_iter(const OppositeFacet &of, const int he) : of(of), heh(of.m.heh) {
         assert(he>=0 && he<heh.nhalfedges());
         int cur = he;
         do {

@@ -48,13 +48,13 @@ namespace UM {
         const Volume &m;
     };
 
-    struct he_around_edge_iter {
+    struct halfedge_around_edge_iter {
         const OppositeFacet  &of;
         const HalfEdgeHelper &heh;
         int start  = -1;
         int finish = -1;
 
-        he_around_edge_iter(const OppositeFacet &of, const int he);
+        halfedge_around_edge_iter(const OppositeFacet &of, const int he);
 
         struct iterator {
             const OppositeFacet  &of;
