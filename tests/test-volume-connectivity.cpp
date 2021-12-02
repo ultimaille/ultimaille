@@ -116,7 +116,7 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
     std::vector<int> id2setid;
     std::vector<int> encounter(m.heh.nhalfedges(), 0);
     for (int h1 : halfedge_iter(m)) {
-        for (int h2 : he_around_edge_iter(conn, h1)) {
+        for (int h2 : halfedge_around_edge_iter(conn, h1)) {
             encounter[h2]++;
             CHECK(ds.root(h1) == ds.root(h2));
         }
