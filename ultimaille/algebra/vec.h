@@ -90,7 +90,7 @@ namespace UM {
 
     /////////////////////////////////////////////////////////////////////////////////
 
-    struct vec<3>;
+    template<> struct vec<3>;
 
     template<> struct vec<2> {
         vec() =  default;
