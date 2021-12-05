@@ -104,6 +104,12 @@ namespace UM {
         return result;
     }
 
+    template<int nrows,int ncols>mat<nrows,ncols> operator*(const double& val, const mat<nrows,ncols>& lhs) {
+        mat<nrows,ncols> result;
+        for (int i=nrows; i--; result[i] = lhs[i]*val);
+        return result;
+    }
+
     template<int nrows,int ncols>mat<nrows,ncols> operator/(const mat<nrows,ncols>& lhs, const double& val) {
         mat<nrows,ncols> result;
         for (int i=nrows; i--; result[i] = lhs[i]/val);
