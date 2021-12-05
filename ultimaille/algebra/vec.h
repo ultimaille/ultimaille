@@ -7,7 +7,7 @@
 #include <iostream>
 
 #if WIN32
-// disable int to size_t warning 
+// disable int to size_t warning
 #pragma warning(disable: 4267)
 #endif
 
@@ -90,6 +90,8 @@ namespace UM {
 
     /////////////////////////////////////////////////////////////////////////////////
 
+    struct vec<3>;
+
     template<> struct vec<2> {
         vec() =  default;
         vec(double X, double Y) : x(X), y(Y) {}
@@ -97,7 +99,9 @@ namespace UM {
         double  operator[](const int i) const { assert(i>=0 && i<2); return i==0 ? x : y; }
         double norm2() const { return (*this)*(*this) ; }
         double norm()  const { return std::sqrt(norm2()); }
-        vec & normalize() { *this = (*this)/norm(); return *this; }
+        void normalize() { *this = *this/norm(); }
+        vec<2> normalized() { return *this/norm(); }
+        vec<3> xy0();
 
         double x{}, y{};
     };
@@ -111,12 +115,18 @@ namespace UM {
         double  operator[](const int i) const { assert(i>=0 && i<3); return i==0 ? x : (1==i ? y : z); }
         double norm2() const { return (*this)*(*this) ; }
         double norm()  const { return std::sqrt(norm2()); }
-        vec & normalize() { *this = (*this)/norm(); return *this; }
+        void normalize() { *this = *this/norm(); }
+        vec<3> normalized() { return *this/norm(); }
+        vec<2> xy() { return {x, y}; }
 
         double x{}, y{}, z{};
     };
 
     /////////////////////////////////////////////////////////////////////////////////
+
+    inline vec<3> vec<2>::xy0() {
+        return {x, y, 0};
+    }
 
     /* TODO: unsure about performance of the operator[]
     template<> struct vec<4> {

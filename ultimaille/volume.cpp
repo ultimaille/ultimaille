@@ -70,7 +70,7 @@ namespace UM {
             const vec3 &A = m.points[m.facet_vert(c, lf, 0)];
             const vec3 &B = m.points[m.facet_vert(c, lf, 1)];
             const vec3 &C = m.points[m.facet_vert(c, lf, 2)];
-            return cross(B-A, C-A).normalize();
+            return cross(B-A, C-A).normalized();
         }
 
         vec3 res = {0, 0, 0};
@@ -81,7 +81,7 @@ namespace UM {
                     m.points[m.facet_vert(c, lf,  lv       )]-bary,
                     m.points[m.facet_vert(c, lf, (lv+1)%nbv)]-bary
                     );
-        return res.normalize();
+        return res.normalized();
     }
 
     /////////////////////////////////////////////////////////////////

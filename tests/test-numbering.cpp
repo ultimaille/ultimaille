@@ -30,7 +30,7 @@ TEST_CASE("Tetrahedra numbering convention test", "[numbering convention]") {
     CHECK( std::abs(m.util.cell_volume(1)-1./3.)<ftol );
 
     // normals pointing outside + facet i is opposite to vertex i
-    const vec3 ref_nrm[] = {vec3{1,1,1}.normalize(), {-1,0,0}, {0,-1,0}, {0,0,-1}};
+    const vec3 ref_nrm[] = {vec3{1,1,1}.normalized(), {-1,0,0}, {0,-1,0}, {0,0,-1}};
     for (int f : range(4)) {
         vec3 n = m.util.facet_normal(0, f);
         CHECK( (n-ref_nrm[f]).norm()<ftol );
@@ -99,7 +99,7 @@ TEST_CASE("Pyramids numbering convention test", "[numbering convention]") {
     CHECK( std::abs(m.util.cell_volume(0)-1./6.)<ftol );
 
     // normals pointing outside
-    const vec3 ref_nrm[] = {{0,0,-1}, vec3{0,-1,1}.normalize(), vec3{-1,0,1}.normalize(), vec3{0,1,1}.normalize(), vec3{1,0,1}.normalize()};
+    const vec3 ref_nrm[] = {{0,0,-1}, vec3{0,-1,1}.normalized(), vec3{-1,0,1}.normalized(), vec3{0,1,1}.normalized(), vec3{1,0,1}.normalized()};
     for (int f : range(5)) {
         vec3 n = m.util.facet_normal(0, f);
         REQUIRE( (n-ref_nrm[f]).norm()<ftol );

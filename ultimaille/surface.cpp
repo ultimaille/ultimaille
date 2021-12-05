@@ -39,8 +39,8 @@ namespace UM {
         const vec3 &B = m.points[m.vert(f, 1)];
         const vec3 &C = m.points[m.vert(f, 2)];
 
-        vec3 X = (B - A).normalize(); // construct an orthonormal 3d basis
-        vec3 Z = cross(X, C - A).normalize();
+        vec3 X = (B - A).normalized(); // construct an orthonormal 3d basis
+        vec3 Z = cross(X, C - A).normalized();
         vec3 Y = cross(Z, X);
 
         z0 = vec2(0,0); // project the triangle to the 2d basis (X,Y)
@@ -52,7 +52,7 @@ namespace UM {
         const vec3 &A = m.points[m.vert(f, 0)];
         const vec3 &B = m.points[m.vert(f, 1)];
         const vec3 &C = m.points[m.vert(f, 2)];
-        return cross(B-A, C-A).normalize();
+        return cross(B-A, C-A).normalized();
     }
 
     double Quads::Util::unsigned_area(const int f) const {
@@ -74,7 +74,7 @@ namespace UM {
                     m.points[m.vert(f,  lv     )]-bary,
                     m.points[m.vert(f, (lv+1)%4)]-bary
                     );
-        return res.normalize();
+        return res.normalized();
     }
 
     void Surface::resize_attrs() {
