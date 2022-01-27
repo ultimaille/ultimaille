@@ -74,12 +74,15 @@ namespace UM {
             return ret;
         }
 
-        double norm() {
-            double n = 0.;
+        double sumsqr() {
+            double v = 0.;
             for (int i=0; i<nrows; i++)
-                for (int j=0; j<ncols; j++)
-                    n += rows[i][j]*rows[i][j];
-            return std::sqrt(n);
+                v += rows[i]*rows[i];
+            return v;
+        }
+
+        double norm() {
+            return std::sqrt(sumsqr());
         }
     };
 
