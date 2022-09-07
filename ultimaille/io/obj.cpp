@@ -7,10 +7,46 @@
 #include "ultimaille/io/obj.h"
 
 namespace UM {
+
+    PolyLineAttributes read_wavefront_obj(const std::string &filename, PolyLine &m) {
+        m = PolyLine();
+        std::ifstream in;
+        in.open (filename, std::ifstream::in);
+        if (in.fail())
+            throw std::runtime_error("Failed to open " + filename);
+        std::string line;
+        while (!in.eof()) {
+            std::getline(in, line);
+            std::istringstream iss(line.c_str());
+            std::string type_token;
+            iss >> type_token;
+
+            if (type_token=="v") {
+                vec3 v;
+                for (int i=0;i<3;i++) iss >> v[i];
+                m.points.data->push_back(v);
+            } else if (type_token=="l") {
+                int prev = -1, tmp;
+                while (1) { // in wavefront obj all indices start at 1, not zero
+                    while (!iss.eof() && !std::isdigit(iss.peek())) iss.get(); // skip (esp. trailing) white space
+                    if (iss.eof()) break;
+                    iss >> tmp;
+                    if (prev != -1) {
+                        m.segments.push_back(prev);
+                        m.segments.push_back(tmp-1);
+                    }
+                    prev = tmp-1;
+                }
+            }
+        }
+        in.close();
+        return {};
+    }
+
     // supposes .obj file to have "f " entries without slashes
     // TODO: improve the parser
     // TODO: export vn (corner and point) and vt (corner) attributes
-    SurfaceAttributes read_wavefront_obj(const std::string filename, Polygons &m) {
+    SurfaceAttributes read_wavefront_obj(const std::string &filename, Polygons &m) {
         SurfaceAttributes sa;
         std::vector<vec3> VN;
         std::vector<vec2> VT;
@@ -112,7 +148,7 @@ namespace UM {
         return sa;
     }
 
-    SurfaceAttributes read_wavefront_obj(const std::string filename, Triangles &m) {
+    SurfaceAttributes read_wavefront_obj(const std::string &filename, Triangles &m) {
         Polygons mpoly;
         SurfaceAttributes sa = read_wavefront_obj(filename, mpoly);
 
@@ -126,7 +162,7 @@ namespace UM {
         return sa;
     }
 
-    SurfaceAttributes read_wavefront_obj(const std::string filename, Quads &m) {
+    SurfaceAttributes read_wavefront_obj(const std::string &filename, Quads &m) {
         Polygons mpoly;
         SurfaceAttributes sa = read_wavefront_obj(filename, mpoly);
 
@@ -140,7 +176,7 @@ namespace UM {
         return sa;
     }
 
-    void write_wavefront_obj(const std::string filename, const Surface &m, const SurfaceAttributes attr) {
+    void write_wavefront_obj(const std::string &filename, const Surface &m, const SurfaceAttributes &attr) {
         std::fstream out;
         out.open(filename, std::ios_base::out);
         if (out.fail())

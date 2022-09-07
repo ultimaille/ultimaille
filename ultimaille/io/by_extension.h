@@ -52,7 +52,8 @@ namespace UM {
                 if (ext == ".xyz")
                     return read_xyz(path, m);
             }
-            if constexpr (std::is_same_v<decltype(empty_attr(m)), SurfaceAttributes>) {
+            if constexpr (std::is_same_v<decltype(empty_attr(m)), SurfaceAttributes>
+                        || std::is_same_v<decltype(empty_attr(m)), PolyLineAttributes>) {
                 if (ext == ".obj")
                     return read_wavefront_obj(path, m);
             }
