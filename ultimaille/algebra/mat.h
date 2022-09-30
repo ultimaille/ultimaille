@@ -74,14 +74,14 @@ namespace UM {
             return ret;
         }
 
-        double sumsqr() {
+        double sumsqr() const {
             double v = 0.;
             for (int i=0; i<nrows; i++)
                 v += rows[i]*rows[i];
             return v;
         }
 
-        double norm() {
+        double norm() const {
             return std::sqrt(sumsqr());
         }
     };
