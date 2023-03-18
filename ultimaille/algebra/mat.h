@@ -14,7 +14,7 @@ namespace UM {
     template<int nrows,int ncols> struct mat {
         vec<ncols> rows[nrows] = {};
 
-        mat() = default;
+//      mat() = default;
         vec<ncols>& operator[] (const int idx)       { assert(idx>=0 && idx<nrows); return rows[idx]; }
         const vec<ncols>& operator[] (const int idx) const { assert(idx>=0 && idx<nrows); return rows[idx]; }
 

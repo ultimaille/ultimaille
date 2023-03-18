@@ -2,6 +2,7 @@
 #include <ultimaille/algebra/mat.h>
 #include <ultimaille/algebra/quaternion.h>
 #include <ultimaille/algebra/eigen.h>
+#include <ultimaille/algebra/svd.h>
 
 #include <ultimaille/helpers/colocate.h>
 #include <ultimaille/helpers/constraints.h>
