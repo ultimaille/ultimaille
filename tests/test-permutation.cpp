@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include<bits/stdc++.h>
+#include <random>
 #include <iostream>
 #include <fstream>
 #include <cstring>
