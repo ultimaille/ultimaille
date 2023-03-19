@@ -13,15 +13,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-2022]
         config: [Release, Debug, RelWithDebInfo]
-#        include:
-#          - os: macos-latest
-#            name: macOS
-#          - os: ubuntu-latest
-#            name: Linux
-#          - os: windows-latest
-#            name: Windows
+        include:
+          - os: macos-latest
+            name: macOS
+          - os: ubuntu-latest
+            name: Linux
+          - os: windows-latest
+            name: Windows
     steps:
     - uses: actions/checkout@v3
       with:
