@@ -20,7 +20,7 @@ jobs:
             name: macOS
           - os: ubuntu-latest
             name: Linux
-          - os: windows-latest
+          - os: windows-2022
             name: Windows
     steps:
     - uses: actions/checkout@v3
