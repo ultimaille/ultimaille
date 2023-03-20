@@ -12,17 +12,16 @@ namespace UM {
 #endif
 
     struct SpinLock {
-        SpinLock() : flag{ATOMIC_FLAG_INIT} {}
-
         void lock() {
-            while (flag.test_and_set(std::memory_order_acquire));
+            while (flag.test_and_set(std::memory_order_acquire))
+                while (flag.test(std::memory_order_relaxed));
         }
 
         void unlock() {
             flag.clear();
         }
         private:
-        std::atomic_flag flag;
+        std::atomic_flag flag = {};
     };
 
 }
