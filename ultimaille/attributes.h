@@ -2,10 +2,11 @@
 #define __ATTRIBUTES_H__
 #include <vector>
 #include <memory>
+#include <cassert>
 #include "polyline.h"
+#include "pointset.h"
 #include "surface.h"
 #include "volume.h"
-#include "pointset.h"
 
 namespace UM {
     struct GenericAttributeContainer {
@@ -53,6 +54,9 @@ namespace UM {
         GenericAttribute<bool>& operator=(const GenericAttribute<T>& rhs) = delete;
               T& operator[](const int i)       { return ptr->data[i]; }
         const T& operator[](const int i) const { return ptr->data[i]; }
+        void fill(T value) {
+            if (ptr) std::fill(ptr->data.begin(), ptr->data.end(), value);
+        }
         std::shared_ptr<AttributeContainer<T> > ptr;
     };
 
@@ -111,129 +115,64 @@ namespace UM {
             return ConstBoolAttributeAccessor(*this, i);
         }
 
+        void fill(bool value) {
+            if (ptr) std::fill(ptr->data.begin(), ptr->data.end(), value);
+        }
+
         std::shared_ptr<AttributeContainer<bool> > ptr;
     };
 
-    template <typename T> void bind_attribute(GenericAttribute<T> *A, const std::string name, const int size, std::vector<NamedContainer> &containers, std::vector<std::weak_ptr<GenericAttributeContainer> > &callbacks, const T def = T()) {
-        for (auto &pair : containers) {
-            if (pair.first!=name) continue;
-            A->ptr = std::dynamic_pointer_cast<AttributeContainer<T> >(pair.second);
-            assert(A->ptr.get());
-            A->ptr->default_value = def;
-            //   callbacks.push_back(ptr); // TODO architectural choice: to bind or not to bind? At the moment the binding is done in mesh_io.cpp
-            return;
-        }
-        A->ptr = std::make_shared<AttributeContainer<T> >(size, def);
-        callbacks.push_back(A->ptr);
-        containers.emplace_back(name, A->ptr);
-    }
-
     template <typename T> struct PointAttribute : GenericAttribute<T> {
-        PointAttribute(PointSet &pts, const T def = T()) : GenericAttribute<T>(pts.size(), def) {
-            pts.attr.push_back(this->ptr);
-        }
+        PointAttribute(PointSet &pts, const T def = T());
+        PointAttribute(const PointSet &pts, const T def = T());
 
-        PointAttribute(const PointSet &pts, const T def = T()) : GenericAttribute<T>(pts.size(), def) {
-        }
+        PointAttribute(PolyLine &m, const T def = T());
+        PointAttribute(const PolyLine &m, const T def = T());
+        PointAttribute(Surface &m, const T def = T());
+        PointAttribute(const Surface &m, const T def = T());
+        PointAttribute(Volume  &m, const T def = T());
+        PointAttribute(const Volume  &m, const T def = T());
 
-        PointAttribute(Surface &m, const T def = T()) : PointAttribute(m.points, def) {}
-        PointAttribute(const Surface &m, const T def = T()) : PointAttribute(m.points, def) {}
-        PointAttribute(Volume  &m, const T def = T()) : PointAttribute(m.points, def) {}
-        PointAttribute(const Volume  &m, const T def = T()) : PointAttribute(m.points, def) {}
-
-        PointAttribute(std::string name, PointSetAttributes &attributes, PointSet &ps, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, ps.size(), attributes.points, ps.attr, def);
-        }
-
-        PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, seg.nverts(), attributes.points, seg.points.attr, def);
-        }
-
-        PointAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr, def);
-        }
-
-        PointAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr, def);
-        }
+        PointAttribute(std::string name, PointSetAttributes &attributes, PointSet &ps, const T def = T());
+        PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def = T());
+        PointAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T());
+        PointAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
     };
 
     template <typename T> struct SegmentAttribute : GenericAttribute<T> {
-        SegmentAttribute(PolyLine &seg, const T def = T()) : GenericAttribute<T>(seg.nsegments(), def) {
-            seg.attr.push_back(this->ptr);
-        }
-
-        SegmentAttribute(const PolyLine &seg, const T def = T()) : GenericAttribute<T>(seg.nsegments(), def) {
-        }
-
-        SegmentAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, seg.nsegments(), attributes.segments, seg.attr, def);
-        }
+        SegmentAttribute(PolyLine &seg, const T def = T());
+        SegmentAttribute(const PolyLine &seg, const T def = T());
+        SegmentAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def = T());
     };
 
     template <typename T> struct FacetAttribute : GenericAttribute<T> {
-        FacetAttribute(Surface &m, const T def = T()) : GenericAttribute<T>(m.nfacets(), def) {
-            m.attr_facets.push_back(this->ptr);
-        }
-
-        FacetAttribute(const Surface &m, const T def = T()) : GenericAttribute<T>(m.nfacets(), def) {
-        }
-
-        FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.nfacets(), attributes.facets, m.attr_facets, def);
-        }
+        FacetAttribute(Surface &m, const T def = T());
+        FacetAttribute(const Surface &m, const T def = T());
+        FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T());
     };
 
     template <typename T> struct CornerAttribute : GenericAttribute<T> {
-        CornerAttribute(Surface &m, const T def = T()) : GenericAttribute<T>(m.ncorners(), def) {
-            m.attr_corners.push_back(this->ptr);
-        }
-
-        CornerAttribute(const Surface &m, const T def = T()) : GenericAttribute<T>(m.ncorners(), def) {
-        }
-
-        CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.ncorners(), attributes.corners, m.attr_corners, def);
-        }
+        CornerAttribute(Surface &m, const T def = T());
+        CornerAttribute(const Surface &m, const T def = T());
+        CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T());
     };
 
     template <typename T> struct CellAttribute : GenericAttribute<T> {
-        CellAttribute(Volume &m, const T def = T()) : GenericAttribute<T>(m.ncells(), def) {
-            m.attr_cells.push_back(this->ptr);
-        }
-
-        CellAttribute(const Volume &m, const T def = T()) : GenericAttribute<T>(m.ncells(), def) {
-        }
-
-        CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.ncells(), attributes.cells, m.attr_cells, def);
-        }
+        CellAttribute(Volume &m, const T def = T());
+        CellAttribute(const Volume &m, const T def = T());
+        CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
     };
 
     template <typename T> struct CellFacetAttribute : GenericAttribute<T> {
-        CellFacetAttribute(Volume &m, const T def = T()) : GenericAttribute<T>(m.nfacets(), def) {
-            m.attr_facets.push_back(this->ptr);
-        }
-
-        CellFacetAttribute(const Volume &m, const T def = T()) : GenericAttribute<T>(m.nfacets(), def) {
-        }
-
-        CellFacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.nfacets(), attributes.cell_facets, m.attr_facets, def);
-        }
+        CellFacetAttribute(Volume &m, const T def = T());
+        CellFacetAttribute(const Volume &m, const T def = T());
+        CellFacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
     };
 
     template <typename T> struct CellCornerAttribute : GenericAttribute<T> {
-        CellCornerAttribute(Volume &m, const T def = T()) : GenericAttribute<T>(m.ncorners(), def) {
-            m.attr_corners.push_back(this->ptr);
-        }
-
-        CellCornerAttribute(const Volume &m, const T def = T()) : GenericAttribute<T>(m.ncorners(), def) {
-        }
-
-        CellCornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T()) : GenericAttribute<T>() {
-            bind_attribute(this, name, m.ncorners(), attributes.cell_corners, m.attr_corners, def);
-        }
+        CellCornerAttribute(Volume &m, const T def = T());
+        CellCornerAttribute(const Volume &m, const T def = T());
+        CellCornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
     };
 }
 

@@ -5,6 +5,7 @@
 #include <type_traits>
 
 #include "ultimaille/attributes.h"
+#include "ultimaille/attr_binding.h"
 #include "ultimaille/io/geogram.h"
 #include "ultimaille/io/medit.h"
 #include "ultimaille/io/vtk.h"

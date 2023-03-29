@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include "ultimaille/attributes.h"
+#include "ultimaille/attr_binding.h"
 #include "ultimaille/volume.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/polyline.h"
