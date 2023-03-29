@@ -1,11 +1,55 @@
 #include <iostream>
 #include <algorithm>
 #include <cassert>
-#include "surface.h"
 #include "attributes.h"
+#include "surface.h"
+#include "volume.h"
+#include "attr_binding.h"
 #include "surface_connectivity.h"
 
 namespace UM {
+
+    Surface::Connectivity::Connectivity(Surface &m) : v2c(m, -1), c2f(m, -1), c2c(m, -1), selection(m, true) {
+    }
+
+    void Surface::connect() {
+        if (!conn) conn = std::make_unique<Connectivity>(*this);
+        conn->selection.fill(true);
+        conn->c2f.fill(-1);
+        conn->c2c.fill(-1);
+        conn->v2c.fill(-1);
+
+        for (int f = 0; f < nfacets(); f++)
+            for (int fc = 0; fc < facet_size(f); fc++) {
+                int c = corner(f, fc);
+                int v = vert(f, fc);
+                conn->c2f[c] = f;
+                conn->v2c[v] = c;
+            }
+        for (int f = 0; f < nfacets(); f++) // if it ain't broken, don't fix it
+            for (int fc = 0; fc < facet_size(f); fc++) {
+                int c = corner(f, fc);
+                int v = vert(f, fc);
+                conn->c2c[c] = conn->v2c[v];
+                conn->v2c[v] = c;
+            }
+    }
+
+    void Surface::disconnect() {
+        conn.reset();
+    }
+
+    void Surface::compact(bool delete_isolated_vertices) {
+        if (!conn) return;
+        um_assert(conn->selection.ptr!=nullptr);
+        std::vector<bool> to_kill = conn->selection.ptr->data;
+        to_kill.flip();
+        delete_facets(to_kill);
+        if (delete_isolated_vertices)
+            Surface::delete_isolated_vertices();
+        connect();
+    }
+
     // unsigned area for a 3D triangle
     inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
         return 0.5*cross(B-A, C-A).norm();

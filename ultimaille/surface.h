@@ -33,7 +33,7 @@ namespace UM {
             points = {};
             attr_facets  = {};
             attr_corners = {};
-//          disconnect();
+            disconnect();
         }
 
         Surface() = default;
@@ -50,6 +50,43 @@ namespace UM {
             const Surface &m;
             vec3 bary_verts(const int f) const;
         } util = {*this};
+
+        struct Connectivity {
+            Connectivity(Surface &mesh);
+            PointAttribute<int>  v2c; // vertex to corner
+            CornerAttribute<int> c2f; // corner to facet
+            CornerAttribute<int> c2c; // corner to next corner sharing the same vertex (unordered)
+            FacetAttribute<bool> selection; // facets to keep after compacting
+        };
+
+        std::unique_ptr<Connectivity> conn = {};
+        inline bool connected() { return conn!=nullptr; }
+
+        void connect();
+        void disconnect();
+        void compact(bool delete_isolated_vertices = true);
+
+/*
+        struct Vertex;
+        struct Halfedge;
+        struct Facet;
+
+        struct Primitive {
+            Primitive(Surface &m, int id);
+            Primitive(Primitive &p) = default;
+
+            Primitive& operator=(Primitive &p);
+            Primitive& operator=(int i);
+
+            operator int  () const;
+            operator int& ();
+
+            protected:
+
+            const Surface &m;
+            int id;
+        };
+*/
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
