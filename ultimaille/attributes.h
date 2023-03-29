@@ -5,10 +5,13 @@
 #include <cassert>
 #include "polyline.h"
 #include "pointset.h"
-#include "surface.h"
-#include "volume.h"
+//#include "surface.h"
+//#include "volume.h"
 
 namespace UM {
+    struct Surface;
+    struct Volume;
+
     struct GenericAttributeContainer {
         virtual void resize(const int n) = 0;
         virtual void compress(const std::vector<int> &old2new) = 0;

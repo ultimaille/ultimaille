@@ -3,10 +3,10 @@
 
 #include <cstring>
 #include "ultimaille/attributes.h"
-#include "ultimaille/attr_binding.h"
 #include "ultimaille/volume.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/polyline.h"
+#include "ultimaille/attr_binding.h"
 
 // TODO: colors and scalar fields are yet to be implemented
 

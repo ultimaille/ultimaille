@@ -3,11 +3,12 @@
 #include <vector>
 #include <memory>
 #include "algebra/vec.h"
+#include "attributes.h"
 #include "pointset.h"
 #include "syntactic-sugar/assert.h"
 
 namespace UM {
-    struct GenericAttributeContainer;
+//  struct GenericAttributeContainer;
 
     struct Surface { // polygonal mesh interface
         PointSet points{};

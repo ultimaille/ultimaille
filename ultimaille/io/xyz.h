@@ -3,9 +3,11 @@
 
 #include <cstring>
 #include "ultimaille/attributes.h"
-#include "ultimaille/attr_binding.h"
 #include "ultimaille/pointset.h"
-
+#include "ultimaille/polyline.h"
+#include "ultimaille/surface.h"
+#include "ultimaille/volume.h"
+#include "ultimaille/attr_binding.h"
 
 namespace UM {
     void write_xyz(const std::string filename, const PointSet &ps);

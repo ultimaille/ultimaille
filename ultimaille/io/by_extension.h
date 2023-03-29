@@ -5,12 +5,12 @@
 #include <type_traits>
 
 #include "ultimaille/attributes.h"
-#include "ultimaille/attr_binding.h"
 #include "ultimaille/io/geogram.h"
 #include "ultimaille/io/medit.h"
 #include "ultimaille/io/vtk.h"
 #include "ultimaille/io/xyz.h"
 #include "ultimaille/io/obj.h"
+#include "ultimaille/attr_binding.h"
 
 namespace UM {
     inline PointSetAttributes empty_attr([[maybe_unused]] const PointSet &m) { return {}; }

@@ -4,12 +4,13 @@
 #include <memory>
 #include "syntactic-sugar/assert.h"
 #include "algebra/vec.h"
+#include "attributes.h"
 #include "pointset.h"
 #include "volume_reference.h"
 #include "volume_connectivity.h"
 
 namespace UM {
-    struct GenericAttributeContainer;
+//  struct GenericAttributeContainer;
 
     struct Volume {
         enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };

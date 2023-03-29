@@ -1,9 +1,8 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <algorithm>
-#include <ultimaille/all.h>
 
-using namespace UM;
+#include "svd.h"
 
 namespace UM {
 
