@@ -47,9 +47,8 @@ namespace UM {
         }
 
         struct Util {
-            Util(const Surface &m) : m(m) {}
-            vec3 bary_verts(const int f) const;
             const Surface &m;
+            vec3 bary_verts(const int f) const;
         } util = {*this};
     };
 
@@ -72,7 +71,6 @@ namespace UM {
         }
 
         struct Util : Surface::Util {
-            Util(const Triangles &mesh) : Surface::Util(mesh) {}
             double unsigned_area(const int f) const;
             void project(const int t, vec2& z0, vec2& z1, vec2& z2) const;
             vec3 normal(const int f) const;
@@ -98,7 +96,6 @@ namespace UM {
         }
 
         struct Util : Surface::Util {
-            Util(const Quads &mesh) : Surface::Util(mesh) {}
             double unsigned_area(const int f) const;
             vec3 normal(const int f) const;
         } util = {*this};
@@ -131,7 +128,6 @@ namespace UM {
         int &vert(const int fi, const int lv);
 
         struct Util : Surface::Util {
-            Util(const Polygons &mesh) : Surface::Util(mesh) {}
         } util = {*this};
     };
 
