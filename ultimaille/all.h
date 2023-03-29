@@ -21,7 +21,6 @@
 
 #include <ultimaille/syntactic-sugar/range.h>
 #include <ultimaille/syntactic-sugar/parallel.h>
-#include <ultimaille/syntactic-sugar/HLBFGS_wrapper.h>
 #include <ultimaille/syntactic-sugar/assert.h>
 
 #include <ultimaille/attributes.h>
@@ -33,4 +32,6 @@
 #include <ultimaille/volume.h>
 #include <ultimaille/volume_connectivity.h>
 #include <ultimaille/attr_binding.h>
+
+#include <ext/stlbfgs/stlbfgs.h>
 

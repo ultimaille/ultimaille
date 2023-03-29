@@ -8,8 +8,6 @@
 #include "syntactic-sugar/assert.h"
 
 namespace UM {
-//  struct GenericAttributeContainer;
-
     struct Surface { // polygonal mesh interface
         PointSet points{};
         std::vector<int> facets{};
@@ -35,10 +33,11 @@ namespace UM {
             points = {};
             attr_facets  = {};
             attr_corners = {};
+//          disconnect();
         }
 
-        Surface() : util(*this) {}
-        Surface(const Surface& m) : util(*this) {
+        Surface() = default;
+        Surface(const Surface& m) {
             um_assert(!m.points.size() && !m.facets.size());
         }
         Surface& operator=(const Surface& m) {
@@ -48,10 +47,10 @@ namespace UM {
         }
 
         struct Util {
-            Util(const Surface &mesh) : m(mesh) {}
+            Util(const Surface &m) : m(m) {}
             vec3 bary_verts(const int f) const;
             const Surface &m;
-        } util;
+        } util = {*this};
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,8 +64,8 @@ namespace UM {
         int  vert(const int fi, const int lv) const;
         int &vert(const int fi, const int lv);
 
-        Triangles() : Surface(), util(*this) {}
-        Triangles(const Triangles& m) : Surface(m), util(*this) {}
+        Triangles() = default;
+        Triangles(const Triangles& m) = default;
         Triangles& operator=(const Triangles& m) {
             Surface::operator=(m);
             return *this;
@@ -77,7 +76,7 @@ namespace UM {
             double unsigned_area(const int f) const;
             void project(const int t, vec2& z0, vec2& z1, vec2& z2) const;
             vec3 normal(const int f) const;
-        } util;
+        } util = {*this};
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,8 +90,8 @@ namespace UM {
         int  vert(const int fi, const int lv) const;
         int &vert(const int fi, const int lv);
 
-        Quads() : Surface(), util(*this) {}
-        Quads(const Quads& m) : Surface(m), util(*this) {}
+        Quads() = default;
+        Quads(const Quads& m) = default;
         Quads& operator=(const Quads& m) {
             Surface::operator=(m);
             return *this;
@@ -102,15 +101,15 @@ namespace UM {
             Util(const Quads &mesh) : Surface::Util(mesh) {}
             double unsigned_area(const int f) const;
             vec3 normal(const int f) const;
-        } util;
+        } util = {*this};
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Polygons : Surface { // polygonal mesh implementation
-        std::vector<int> offset = {};
-        Polygons() : Surface(), offset(1, 0), util(*this)  {}
-        Polygons(const Polygons& m) : Surface(m), offset(1,0), util(*this) {}
+        std::vector<int> offset = {0};
+        Polygons() = default;
+        Polygons(const Polygons& m) = default;
         Polygons& operator=(const Polygons& m) {
             clear();
             um_assert(!m.points.size() && !m.facets.size() && 1==m.offset.size());
@@ -133,7 +132,7 @@ namespace UM {
 
         struct Util : Surface::Util {
             Util(const Polygons &mesh) : Surface::Util(mesh) {}
-        } util;
+        } util = {*this};
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
