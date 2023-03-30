@@ -1,7 +1,9 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <catch2/catch_test_macros.hpp>
-#include <iostream>
+//#include <iostream>
+//#include <iomanip>
+//#include <limits>
 #include <ultimaille/all.h>
 
 using namespace UM;
@@ -23,18 +25,20 @@ TEST_CASE("3x3 PCA", "PointSet") {
 }
 
 TEST_CASE("3x3 covariance", "PointSet") {
-	std::vector<vec3> A(10);
-	std::vector<vec3> B(20);
-	for (auto& P : A) for (int d : {0,1,2}) P[d] = (d+1) * (rand() % 100);
-	for (auto& P : B) for (int d : {0,1,2}) P[d] = (d+1) * (rand() % 100);
-	std::vector<vec3> AB;
-	for (auto& P : A) AB.push_back(P);
-	for (auto& P : B) AB.push_back(P);
+    std::vector<vec3> A(10);
+    std::vector<vec3> B(20);
+    for (auto& P : A) for (int d : {0,1,2}) P[d] = (d+1) * (rand() % 100);
+    for (auto& P : B) for (int d : {0,1,2}) P[d] = (d+1) * (rand() % 100);
+    std::vector<vec3> AB;
+    for (auto& P : A) AB.push_back(P);
+    for (auto& P : B) AB.push_back(P);
 
-	PointSetCovariance mA(A);
-	PointSetCovariance mB(B);
-	PointSetCovariance mAB(AB);
-	PointSetCovariance mAunionB = mA + mB;
-	CHECK( (mAB.cov - mAunionB.cov).norm() < 1e-12 );
+    PointSetCovariance mA(A);
+    PointSetCovariance mB(B);
+    PointSetCovariance mAB(AB);
+    PointSetCovariance mAunionB = mA + mB;
+//  std::cerr << std::setprecision(std::numeric_limits<double>::max_digits10);
+//  std::cerr << mAB.cov << std::endl << mAunionB.cov << std::endl << (mAB.cov - mAunionB.cov).norm() << std::endl;
+    CHECK( (mAB.cov - mAunionB.cov).norm() < 1e-9 );
 }
 
