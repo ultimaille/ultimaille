@@ -3,6 +3,7 @@
 #include <ultimaille/algebra/quaternion.h>
 #include <ultimaille/algebra/eigen.h>
 #include <ultimaille/algebra/svd.h>
+#include <ultimaille/algebra/covariance.h>
 
 #include <ultimaille/helpers/colocate.h>
 #include <ultimaille/helpers/constraints.h>

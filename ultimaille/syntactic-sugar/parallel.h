@@ -14,7 +14,7 @@ namespace UM {
     struct SpinLock {
         void lock() {
             while (flag.test_and_set(std::memory_order_acquire))
-                while (flag.test(std::memory_order_relaxed));
+                /*while (flag.test(std::memory_order_relaxed))*/; // TODO:C++20 needed
         }
 
         void unlock() {

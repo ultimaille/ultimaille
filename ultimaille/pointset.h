@@ -1,8 +1,10 @@
 #ifndef __POINTSET_H__
 #define __POINTSET_H__
 #include <vector>
+#include <tuple>
 #include <memory>
 #include "algebra/vec.h"
+#include "algebra/mat.h"
 #include "helpers/hboxes.h"
 
 namespace UM {
@@ -47,7 +49,7 @@ namespace UM {
         struct Util {
             Util(const PointSet &ps_) : ps(ps_) {}
             BBox3 bbox() const;
-            void principal_axes(vec3 &center, vec3 axes[3], double eigen_values[3]) const;
+            std::tuple<mat3x3,vec3,vec3> principal_axes() const; // axes matrix (column vectors) ; corresponding eigenvalues (sorted in decreasing order) ; center
             vec3 barycenter() const;
             const PointSet &ps;
         } util;

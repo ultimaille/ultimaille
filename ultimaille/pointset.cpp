@@ -3,6 +3,7 @@
 #include "attributes.h"
 #include "syntactic-sugar/assert.h"
 #include "algebra/eigen.h"
+#include "algebra/covariance.h"
 
 namespace UM {
     BBox3 PointSet::Util::bbox() const {
@@ -19,29 +20,13 @@ namespace UM {
         return ave / static_cast<double>(ps.size());
     }
 
-    void PointSet::Util::principal_axes(vec3 &center, vec3 axes[3], double eigen_values[3]) const {
-        axes[0] = {1,0,0}; // If the system is under-determined, return the trivial basis
-        axes[1] = {0,1,0};
-        axes[2] = {0,0,1};
-        eigen_values[2] = eigen_values[1] = eigen_values[0] = 1;
-        center = barycenter();
-        if (ps.size()<4) return;
-
-        mat3x3 M = {}; // covariance matrix
-        for (const vec3 &p : ps)
-            for (int i=0; i<3; i++)
-                for (int j=0; j<3; j++)
-                    M[i][j] += (p-center)[i]*(p-center)[j];
-        M /= static_cast<double>(ps.size());
-
+    std::tuple<mat3x3,vec3,vec3> PointSet::Util::principal_axes() const {
+        PointSetCovariance cov(*ps.data);
         vec3 eval;
         mat3x3 evec;
-        eigendecompose_symmetric(M, eval, evec);
-
-        for (int i=0; i<3; i++) {
-            eigen_values[i] = eval[i];
-            axes[i] = evec.col(i);
-        }
+        eigendecompose_symmetric(cov.cov, eval, evec);
+        if (ps.size()<4) return {mat3x3::identity(), {1.,1.,1.}, cov.center}; // If the system is under-determined, return the trivial basis
+        return { evec, eval, cov.center };
     }
 
     void PointSet::resize(const int n) {
