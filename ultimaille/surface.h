@@ -548,7 +548,7 @@ namespace UM {
     inline auto Surface::Halfedge::iter_sector_halfedges() {
         struct iterator {
             Surface::Halfedge h, seed;
-            iterator(Surface::Halfedge seed) : h(seed), seed(seed) {}
+//          iterator(Surface::Halfedge seed) : h(seed), seed(seed) {}
             void operator++() {
                 h = h.prev().opposite();
                 if (h == seed) h = -1;
@@ -569,9 +569,10 @@ namespace UM {
                     } while (cir != h);
                     return h;
                 };
-                return rewind_CCW(h);
+                Surface::Halfedge rwd = rewind_CCW(h);
+                return {rwd, rwd};
             }
-            iterator end() { return {{h.m, -1}}; }
+            iterator end() { return {{h.m, -1}, {h.m, -1}}; }
         };
         return wrapper{ *this };
     }
