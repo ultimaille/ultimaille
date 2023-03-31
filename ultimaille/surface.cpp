@@ -9,12 +9,12 @@
 
 namespace UM {
 
-    Surface::Connectivity::Connectivity(Surface &m) : v2c(m, -1), c2f(m, -1), c2c(m, -1), selection(m, true) {
+    Surface::Connectivity::Connectivity(Surface &m) : v2c(m, -1), c2f(m, -1), c2c(m, -1), active(m, true) {
     }
 
     void Surface::connect() {
         if (!conn) conn = std::make_unique<Connectivity>(*this);
-        conn->selection.fill(true);
+        conn->active.fill(true);
         conn->c2f.fill(-1);
         conn->c2c.fill(-1);
         conn->v2c.fill(-1);
@@ -41,8 +41,8 @@ namespace UM {
 
     void Surface::compact(bool delete_isolated_vertices) {
         if (!conn) return;
-        um_assert(conn->selection.ptr!=nullptr);
-        std::vector<bool> to_kill = conn->selection.ptr->data;
+        um_assert(conn->active.ptr!=nullptr);
+        std::vector<bool> to_kill = conn->active.ptr->data;
         to_kill.flip();
         delete_facets(to_kill);
         if (delete_isolated_vertices)
@@ -143,7 +143,7 @@ namespace UM {
             facets_old2new[f] = new_nb_facets++;
         }
 //      std::cerr << "compressing facet attributes\n";
-        for (auto &wp : attr_facets)  if (auto spt = wp.lock())
+        for (auto &wp : attr_facets)  if (auto spt = wp.lock()) // TODO remove dead attributes
             spt->compress(facets_old2new);
 //      std::cerr << "compressing corner attributes\n";
         for (auto &wp : attr_corners) if (auto spt = wp.lock())
@@ -152,27 +152,16 @@ namespace UM {
 
     void Surface::delete_vertices(const std::vector<bool> &to_kill) {
         assert(to_kill.size()==(size_t)nverts());
-        std::vector<bool> facets_to_kill(nfacets(), false);
-        SurfaceConnectivity fec(*this);
-
-        for (int v=0; v<nverts(); v++) {
-            if (!to_kill[v]) continue;
-            int cir = fec.v2c[v];
-            if (cir<0) continue; // isolated vertex
-            do {
-                facets_to_kill[fec.c2f[cir]] = true;
-                cir = fec.c2c[cir];
-            } while (cir != fec.v2c[v]);
-        }
-        delete_facets(facets_to_kill);
-
         std::vector<int> old2new;
-        points.delete_points(to_kill, old2new);
-        for (int &v : facets)
+        points.delete_points(to_kill, old2new); // conn.v2c is a PointAttribute, it is automatically updated here
+        for (int &v : facets) {
+            assert(old2new[v]>=0);
             v = old2new[v];
+        }
     }
 
     void Surface::delete_facets(const std::vector<bool> &to_kill) {
+        // TODO: assert(conn==nullptr)
         assert(to_kill.size()==(size_t)nfacets());
         compress_attrs(to_kill);
 
@@ -188,6 +177,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     int Triangles::create_facets(const int n) {
+        assert(conn==nullptr);
         facets.resize(facets.size()+n*3);
         resize_attrs();
         return nfacets()-n;
@@ -196,6 +186,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     int Quads::create_facets(const int n) {
+        assert(conn==nullptr);
         facets.resize(facets.size()+n*4);
         resize_attrs();
         return nfacets()-n;
@@ -205,6 +196,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     int Polygons::create_facets(const int n, const int size) {
+        assert(conn==nullptr);
         for (int i=0; i<n*size; i++)
             facets.push_back(0);
         for (int i=0; i<n; i++)

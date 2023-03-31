@@ -11,7 +11,7 @@ namespace UM {
     struct Surface { // polygonal mesh interface
         PointSet points{};
         std::vector<int> facets{};
-        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
+        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};  // TODO: compact attributes?
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
 
         void delete_vertices(const std::vector<bool> &to_kill);
@@ -56,7 +56,7 @@ namespace UM {
             PointAttribute<int>  v2c; // vertex to corner
             CornerAttribute<int> c2f; // corner to facet
             CornerAttribute<int> c2c; // corner to next corner sharing the same vertex (unordered)
-            FacetAttribute<bool> selection; // facets to keep after compacting
+            FacetAttribute<bool> active; // facets to keep after compacting
         };
 
         std::unique_ptr<Connectivity> conn = {};
@@ -202,6 +202,7 @@ namespace UM {
     }
 
     inline int &Triangles::vert(const int fi, const int lv) {
+        assert(conn==nullptr);
         assert(fi>=0 && fi<nfacets() && lv>=0 && lv<3);
         return facets[fi*3 + lv];
     }
@@ -228,6 +229,7 @@ namespace UM {
     }
 
     inline int &Quads::vert(const int fi, const int lv) {
+        assert(conn==nullptr);
         assert(fi>=0 && fi<nfacets() && lv>=0 && lv<4);
         return facets[fi*4 + lv];
     }
@@ -255,6 +257,7 @@ namespace UM {
     }
 
     inline int &Polygons::vert(const int fi, const int lv) {
+        assert(conn==nullptr);
         assert(fi>=0 && fi<nfacets());
         assert(lv>=0 && lv<facet_size(fi));
         return facets[offset[fi]+lv];
