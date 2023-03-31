@@ -142,12 +142,19 @@ namespace UM {
                 corners_old2new[corner(f, lv)] = new_nb_corners++;
             facets_old2new[f] = new_nb_facets++;
         }
-//      std::cerr << "compressing facet attributes\n";
-        for (auto &wp : attr_facets)  if (auto spt = wp.lock()) // TODO remove dead attributes
+
+        std::erase_if(attr_facets,  [](std::weak_ptr<GenericAttributeContainer> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
+        std::erase_if(attr_corners, [](std::weak_ptr<GenericAttributeContainer> ptr) { return ptr.lock()==nullptr; });
+        for (auto &wp : attr_facets) { // compress attributes
+            auto spt = wp.lock();
+            assert(spt!=nullptr);
             spt->compress(facets_old2new);
-//      std::cerr << "compressing corner attributes\n";
-        for (auto &wp : attr_corners) if (auto spt = wp.lock())
+        }
+        for (auto &wp : attr_corners) {
+            auto spt = wp.lock();
+            assert(spt!=nullptr);
             spt->compress(corners_old2new);
+        }
     }
 
     void Surface::delete_vertices(const std::vector<bool> &to_kill) {
@@ -161,10 +168,9 @@ namespace UM {
     }
 
     void Surface::delete_facets(const std::vector<bool> &to_kill) {
-        // TODO: assert(conn==nullptr)
+        // TODO: assert(conn==nullptr) cannot do it directly because conn->compact calls the function :(
         assert(to_kill.size()==(size_t)nfacets());
-        compress_attrs(to_kill);
-
+        compress_attrs(to_kill);  // TODO: if to_kill comes from an attribute, compressing the attribute compromises the code below
         int new_nb_corners = 0;
         for (int f=0; f<nfacets(); f++) {
             if (to_kill[f]) continue;
@@ -206,7 +212,7 @@ namespace UM {
     }
 
     void Polygons::delete_facets(const std::vector<bool> &to_kill) {
-        Surface::delete_facets(to_kill);
+        Surface::delete_facets(to_kill); // TODO: if to_kill comes from an attribute, Surface::delete_facets compacts it, thus compromising the code below
         int new_nb_facets = 0;
         for (int f=0; f<nfacets(); f++) {
             if (to_kill[f]) continue;

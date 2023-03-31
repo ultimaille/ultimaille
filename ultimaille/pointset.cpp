@@ -84,8 +84,12 @@ namespace UM {
 
     void PointSet::compress_attrs(const std::vector<int> &old2new) {
         um_assert(1==data.use_count());
-        for (auto &wp : attr)  if (auto spt = wp.lock())
+        std::erase_if(attr, [](std::weak_ptr<GenericAttributeContainer> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
+        for (auto &wp : attr) { // compress attributes
+            auto spt = wp.lock();
+            assert(spt!=nullptr);
             spt->compress(old2new);
+        }
     }
 }
 
