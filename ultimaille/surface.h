@@ -94,6 +94,7 @@ namespace UM {
             vec3 &pos();
             Halfedge halfedge();
             bool on_boundary();
+            bool active();
 
             auto iter_halfedges();
         };
@@ -360,6 +361,10 @@ namespace UM {
         return res;
     }
 
+    inline bool Surface::Vertex::active() {
+        return id>=0;
+    }
+
     inline bool Surface::Vertex::on_boundary() {
         assert(m.connected());
         Surface::Halfedge cir = halfedge();
@@ -379,7 +384,7 @@ namespace UM {
     }
 
     inline bool Surface::Halfedge::active() {
-        return facet().active();
+        return id>=0 && facet().active();
     }
 
     inline Surface::Facet Surface::Halfedge::facet() {
@@ -454,7 +459,7 @@ namespace UM {
     }
 
     inline bool Surface::Facet::active() {
-        return !m.connected() || m.conn->active[id];
+        return id>=0 && (!m.connected() || m.conn->active[id]);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
