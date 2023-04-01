@@ -35,7 +35,7 @@ namespace UM {
     }
 
     int HalfEdgeHelper::nhalfedges_per_cell() const {
-        return reference_conn[m.cell_type].m.ncorners();
+        return reference_cells[m.cell_type].ncorners();
     }
 
     int HalfEdgeHelper::nhalfedges() const {
@@ -61,13 +61,13 @@ namespace UM {
     // global corner id
     int HalfEdgeHelper::corner(const int he) const {
         assert(he>=0 && he<nhalfedges());
-        return cell(he) * m.nverts_per_cell() + reference_conn[m.cell_type].from(cell_halfedge(he));
+        return cell(he) * m.nverts_per_cell() + reference_cells[m.cell_type].from(cell_halfedge(he));
     }
 
     // local facet id
     int HalfEdgeHelper::cell_facet(const int he) const {
         assert(he>=0 && he<nhalfedges());
-        return reference_conn[m.cell_type].facet(cell_halfedge(he));
+        return reference_cells[m.cell_type].facet(cell_halfedge(he));
     }
 
     // local halfedge id
@@ -79,7 +79,7 @@ namespace UM {
     // local halfedge id
     int HalfEdgeHelper::facet_halfedge(const int he) const {
         assert(he>=0 && he<nhalfedges());
-        return cell_halfedge(he) - reference_conn[m.cell_type].m.corner(cell_facet(he), 0);
+        return cell_halfedge(he) - reference_cells[m.cell_type].corner(cell_facet(he), 0);
     }
 
     // global vertex id
@@ -113,7 +113,7 @@ namespace UM {
 
     int HalfEdgeHelper::opposite_f(const int he) const {
         assert(he>=0 && he<nhalfedges());
-        return nhalfedges_per_cell()*cell(he) + reference_conn[m.cell_type].opposite(cell_halfedge(he));
+        return nhalfedges_per_cell()*cell(he) + reference_cells[m.cell_type].opposite(cell_halfedge(he));
     }
 
     int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
