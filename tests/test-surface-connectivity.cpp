@@ -75,51 +75,57 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
     q.delete_facets(to_kill);
     REQUIRE( q.nfacets()==135 );
 
+    using Vertex = typename Surface::Vertex;
+    using Halfedge = typename Surface::Halfedge;
+    using Facet = typename Surface::Facet;
+
+
     std::vector<int> cnt_opp(q.ncorners(), 0);
     std::vector<int> cnt_next(q.ncorners(), 0);
     std::vector<int> cnt_prev(q.ncorners(), 0);
     std::vector<int> cnt_facet(q.nfacets(), 0);
 
     CornerAttribute<int> val(q);
-    SurfaceConnectivity fec(q);
-    for (int c : range(q.ncorners())) {
-        int next = fec.next(c);
-        int prev = fec.prev(c);
-        int opp  = fec.opposite(c);
-        int f = fec.facet(c);
+    q.connect();
 
-        REQUIRE( fec.next(prev) == c );
-        REQUIRE( fec.prev(next) == c );
+    for (Halfedge he : q.iter_halfedges()) {
+        Halfedge next = he.next();
+        Halfedge prev = he.prev();
+        Halfedge opp  = he.opposite();
+        Facet f = he.facet();
+
+        REQUIRE( prev.next() == he );
+        REQUIRE( next.prev() == he );
         if (opp>=0) {
-            REQUIRE(fec.opposite(opp)==c);
+            REQUIRE(opp.opposite()==he);
             cnt_opp[opp]++;
         }
+
         cnt_next[next]++;
         cnt_prev[prev]++;
         cnt_facet[f]++;
 
-        int cur = c;
-        do {
-            val[c]++;
-            cur = fec.c2c[cur];
-        } while (c!=cur);
-        REQUIRE((val[c]>=1 && val[c]<=5));
+        for (Halfedge cur : he.iter_sector_halfedges()) {
+            val[he]++;
+        }
+        REQUIRE((val[he]>=1 && val[he]<=5));
+
     }
 
     int brd = 0;
-    for (int c : range(q.ncorners())) {
-        REQUIRE(cnt_next[c]==1);
-        REQUIRE(cnt_prev[c]==1);
-        REQUIRE(cnt_opp[c]<=1);
-        if (cnt_opp[c]==0) {
-            REQUIRE(fec.is_boundary_vert(fec.from(c)));
-            REQUIRE(fec.is_boundary_vert(fec.to(c)));
+    for (Halfedge he : q.iter_halfedges()) {
+        REQUIRE(cnt_next[he]==1);
+        REQUIRE(cnt_prev[he]==1);
+        REQUIRE(cnt_opp[he]<=1);
+        if (cnt_opp[he]==0) {
+            REQUIRE(he.from().on_boundary());
+            REQUIRE(he.to().on_boundary());
             brd++;
         }
     }
     REQUIRE(brd==4);
 
-    for (int f : facet_iter(q)) {
+    for (Facet f : q.iter_facets()) {
         REQUIRE(cnt_facet[f]==4);
     }
 

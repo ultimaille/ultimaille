@@ -6,7 +6,7 @@
 #include "syntactic-sugar/assert.h"
 
 namespace UM {
-    struct SurfaceConnectivity { // half-edge-like connectivity interface
+    struct [[deprecated]] SurfaceConnectivity { // half-edge-like connectivity interface
         SurfaceConnectivity(const Surface &p_m);
 
         vec3 geom(const int halfedge) const;

@@ -14,7 +14,7 @@ static const double ftol = 1e-13;
 TEST_CASE("Polygons Attributes", "[Attributes]") {
     static const std::string filename = "ultimaille-test-attributes-polygons.geogram";
     Polygons m;
-    *m.points.data = {{ 1 , 0 ,0}, { 0.309017, 0.951057,0}, {-0.809017, 0.587785,0}, {-0.809017,-0.587785,0}, { 0.309017,-0.951057,0}};
+    *m.points.data = {{ 1 , 0 ,0}, { 0.309017, 0.951057,0}, {-0.809017, 0.587785,0}, {-0.809017,-0.587785,0}, { 0.309017,-0.951057,0}, {0,0,0}};
     m.facets = {0,1,2,3,4,0,2};
     m.offset = {0,3,7};
 
@@ -31,7 +31,7 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
     for (int c : range(m.ncorners()))
         cint[c] = rand();
 
-    REQUIRE(vbool.ptr->data.size() == 5);
+    REQUIRE(vbool.ptr->data.size() == 6);
     REQUIRE(fvec3.ptr->data.size() == 2);
     REQUIRE(cint.ptr->data.size() == 7);
 
@@ -40,7 +40,7 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
 
     int off = m.create_facets(1, 4);
 
-    REQUIRE(vbool.ptr->data.size() == 7);
+    REQUIRE(vbool.ptr->data.size() == 8);
     REQUIRE(fvec3.ptr->data.size() == 3);
     REQUIRE(cint.ptr->data.size() == 11);
 
@@ -56,13 +56,22 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
     REQUIRE(vbool[m.nverts()-2] == true);
     REQUIRE(vbool[m.nverts()-1] == true);
 
-    std::vector<bool> to_kill(m.nverts(), false);
-    to_kill[4] = true;
-    m.delete_vertices(to_kill);
+    {
+        PointAttribute<int> dead_attribute(m);
+        dead_attribute[3] = 14;
+    }
 
-    REQUIRE(vbool.ptr->data.size() == 6);
-    REQUIRE(fvec3.ptr->data.size() == 2);
-    REQUIRE(cint.ptr->data.size() == 7);
+    PointAttribute<bool> to_kill(m, false);
+    to_kill[5] = true;
+
+    REQUIRE( m.points.attr.size()==3 );
+    m.delete_vertices(to_kill.ptr->data);
+    REQUIRE( m.points.attr.size()==2 );
+
+
+    REQUIRE(vbool.ptr->data.size() == 7);
+    REQUIRE(fvec3.ptr->data.size() == 3);
+    REQUIRE(cint.ptr->data.size() == 11);
 
     // TODO compress test
 

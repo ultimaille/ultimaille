@@ -29,7 +29,7 @@ namespace UM {
 
         void resize(const int n);
         int push_back(const vec3 &p);
-        void delete_points(const std::vector<bool> &to_kill, std::vector<int> &old2new);
+        void delete_points(const std::vector<bool> &to_kill, std::vector<int> &old2new); // TODO: remove old2new
         int create_points(const int n);
 
         using       iterator = std::vector<vec3>::iterator;
