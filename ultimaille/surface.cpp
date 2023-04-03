@@ -9,7 +9,7 @@
 
 namespace UM {
 
-    Surface::Connectivity::Connectivity(Surface &m) : v2c(m, -1), c2f(m, -1), c2c(m, -1), active(m, true) {
+    Surface::Connectivity::Connectivity(Surface &m) : m(m), v2c(m, -1), c2f(m, -1), c2c(m, -1), active(m, true) {
     }
 
     void Surface::connect() {
@@ -49,6 +49,37 @@ namespace UM {
         if (delete_isolated_vertices)
             Surface::delete_isolated_vertices();
         connect();
+    }
+
+    Surface::Facet Surface::Connectivity::create_facet(int *verts, int size) {
+        int off = -1;
+        auto tmp_conn = std::move(m.conn); // happy assert(conn==nullptr)!
+        if (auto *mesh = dynamic_cast<Triangles*>(&m)) {
+            assert(size==3);
+            off = mesh->create_facets(1);
+        } else if (auto *mesh = dynamic_cast<Quads*>(&m)){
+            assert(size==4);
+            off = mesh->create_facets(1);
+        } else if (auto *mesh = dynamic_cast<Polygons*>(&m)){
+            off = mesh->create_facets(1, size);
+        }
+        m.conn = std::move(tmp_conn);
+        assert(off>=0);
+        Facet f(m, off);
+        for (int lv = 0; lv < size; lv++)
+            m.vert(f, lv) = verts[lv];
+        for (auto he : f.iter_halfedges()) c2f[he] = f;
+        for (int lv = 0; lv < size; lv++) {
+            int h = m.corner(f, lv);
+            if (v2c[verts[lv]] < 0) {
+                c2c[h] = h;
+                v2c[verts[lv]] = h;
+            } else {
+                c2c[h] = c2c[v2c[verts[lv]]];
+                c2c[v2c[verts[lv]]] = h;
+            }
+        }
+        return f;
     }
 
     // unsigned area for a 3D triangle

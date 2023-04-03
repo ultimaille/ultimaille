@@ -51,12 +51,19 @@ namespace UM {
             vec3 bary_verts(const int f) const;
         } util = {*this};
 
+        struct Vertex;
+        struct Halfedge;
+        struct Facet;
+
         struct Connectivity {
-            Connectivity(Surface &mesh);
+            Connectivity(Surface &m);
+            Surface &m;
             PointAttribute<int>  v2c; // vertex to corner
             CornerAttribute<int> c2f; // corner to facet
             CornerAttribute<int> c2c; // corner to next corner sharing the same vertex (unordered)
             FacetAttribute<bool> active; // facets to keep after compacting
+
+            Surface::Facet create_facet(int *verts, int size);
         };
 
         std::unique_ptr<Connectivity> conn = {};
@@ -83,7 +90,6 @@ namespace UM {
             int id;
         };
 
-        struct Halfedge;
         struct Vertex : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
@@ -99,7 +105,6 @@ namespace UM {
             auto iter_halfedges();
         };
 
-        struct Facet;
         struct Halfedge : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
