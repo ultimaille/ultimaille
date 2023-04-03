@@ -62,15 +62,16 @@ namespace UM {
             off = mesh->create_facets(1);
         } else if (auto *mesh = dynamic_cast<Polygons*>(&m)){
             off = mesh->create_facets(1, size);
-        }
+        } else
+            um_assert(false);
+
         m.conn = std::move(tmp_conn);
-        assert(off>=0);
         Facet f(m, off);
-        for (int lv = 0; lv < size; lv++)
-            m.vert(f, lv) = verts[lv];
-        for (auto he : f.iter_halfedges()) c2f[he] = f;
+        assert(f.active());
         for (int lv = 0; lv < size; lv++) {
+            m.vert(f, lv) = verts[lv];
             int h = m.corner(f, lv);
+            c2f[h] = f;
             if (v2c[verts[lv]] < 0) {
                 c2c[h] = h;
                 v2c[verts[lv]] = h;
