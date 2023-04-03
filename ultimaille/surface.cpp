@@ -44,6 +44,7 @@ namespace UM {
         um_assert(conn->active.ptr!=nullptr);
         std::vector<bool> to_kill = conn->active.ptr->data;
         to_kill.flip();
+        disconnect(); // happy assert(conn==nullptr)!
         delete_facets(to_kill);
         if (delete_isolated_vertices)
             Surface::delete_isolated_vertices();
@@ -168,7 +169,7 @@ namespace UM {
     }
 
     void Surface::delete_facets(const std::vector<bool> &to_kill) {
-        // TODO: assert(conn==nullptr) cannot do it directly because conn->compact calls the function :(
+        assert(!connected());
         assert(to_kill.size()==(size_t)nfacets());
         compress_attrs(to_kill);  // TODO: if to_kill comes from an attribute, compressing the attribute compromises the code below
         int new_nb_corners = 0;
@@ -183,7 +184,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     int Triangles::create_facets(const int n) {
-        assert(conn==nullptr);
+        assert(!connected());
         facets.resize(facets.size()+n*3);
         resize_attrs();
         return nfacets()-n;
@@ -192,7 +193,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     int Quads::create_facets(const int n) {
-        assert(conn==nullptr);
+        assert(!connected());
         facets.resize(facets.size()+n*4);
         resize_attrs();
         return nfacets()-n;
@@ -201,7 +202,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     int Polygons::create_facets(const int n, const int size) {
-        assert(conn==nullptr);
+        assert(!connected());
         for (int i=0; i<n*size; i++)
             facets.push_back(0);
         for (int i=0; i<n; i++)
@@ -211,6 +212,7 @@ namespace UM {
     }
 
     void Polygons::delete_facets(const std::vector<bool> &to_kill) {
+        assert(!connected());
         Surface::delete_facets(to_kill); // TODO: if to_kill comes from an attribute, Surface::delete_facets compacts it, thus compromising the code below
         int new_nb_facets = 0;
         for (int f=0; f<nfacets(); f++) {
