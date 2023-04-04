@@ -125,6 +125,8 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
     }
     REQUIRE(brd==4);
 
+//    for (auto f : q.iter_facets()) for (const auto &h : { f.halfedge(0),f.halfedge(1) }) std::cerr << h << std::endl;
+
     for (Facet f : q.iter_facets()) {
         REQUIRE(cnt_facet[f]==4);
     }

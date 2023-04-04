@@ -101,6 +101,7 @@ namespace UM {
             Halfedge halfedge();
             bool on_boundary();
             bool active();
+            int id_in_facet(Facet f);
 
             auto iter_halfedges();
         };
@@ -117,6 +118,8 @@ namespace UM {
             Halfedge next();
             Halfedge prev();
             Halfedge opposite();
+
+            int id_in_facet();
 
             friend struct Vertex;
             Vertex from();
@@ -381,6 +384,13 @@ namespace UM {
         return false;
     }
 
+    inline int Surface::Vertex::id_in_facet(Facet f) {
+        for (int lv=0; lv<f.size(); lv++)
+            if (m.vert(f, lv)==id) return lv;
+        assert(false);
+        return -1;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline Surface::Halfedge& Surface::Halfedge::operator=(const Surface::Halfedge& he) {
@@ -442,6 +452,10 @@ namespace UM {
         int lh = id - f.halfedge();
         int n = f.size();
         return { m, m.vert(f, (lh+1)%n) };
+    }
+
+    inline int Surface::Halfedge::id_in_facet() {
+        return id - m.corner(id, 0);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
