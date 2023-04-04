@@ -29,7 +29,6 @@
 #include <ultimaille/polyline.h>
 #include <ultimaille/surface.h>
 #include <ultimaille/surface_connectivity.h>
-#include <ultimaille/volume_reference.h>
 #include <ultimaille/volume.h>
 #include <ultimaille/volume_connectivity.h>
 #include <ultimaille/attr_binding.h>
