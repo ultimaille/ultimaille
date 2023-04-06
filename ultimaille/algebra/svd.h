@@ -1,6 +1,7 @@
 #ifndef __SVD_H__
 #define __SVD_H__
 
+#include <tuple>
 #include "mat.h"
 
 namespace UM {

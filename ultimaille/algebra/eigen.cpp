@@ -16,7 +16,7 @@ namespace UM {
     // Write down D = R^T A R, and impose the diagonality constraint on it (equate to zero the off-diagonal element).
     // It allows us to compute (cos 2t, sin 2t). Then deduce (cos t, sin t).
 
-    void eigendecompose_symmetric(const double a11, const double a12, const double a22, vec2 &eval, mat2x2 &evec) {
+    std::tuple<vec2,mat2x2> eigendecompose_symmetric(const double a11, const double a12, const double a22) {
         double cos2t = .5*(a11 - a22), sin2t = a12;  // (cos 2t, sin 2t) vector, needs normalization to be actual sine and cosine
         // (cos 2t, sin 2t) is defined up to a sign: choose the sign in a way that cos(2t)<=0, it helps numerical stability for computing sin(t)
         double maxabs = std::max(std::abs(cos2t), std::abs(sin2t));
@@ -39,20 +39,22 @@ namespace UM {
         double sint = std::sqrt(.5*(1. - cos2t));  // cos(2t)<=0, therefore sin(t) >= 1/sqrt(2)
         double cost = .5*sin2t/sint;                 // no division by zero here
 
-        eval[0] = cost*cost*a11 + sin2t*a12 + sint*sint*a22;
-        eval[1] = cost*cost*a22 - sin2t*a12 + sint*sint*a11;
+        vec2 eval = {
+            cost*cost*a11 + sin2t*a12 + sint*sint*a22,
+            cost*cost*a22 - sin2t*a12 + sint*sint*a11
+        };
 
         if (std::abs(eval[0])>std::abs(eval[1])) {
-            evec = { {{cost, -sint}, {sint, cost}} }; // vectors are the columns
+            return { eval, { {{cost, -sint}, {sint, cost}} } }; // vectors are the columns
         } else {
             std::swap(eval[0], eval[1]);
-            evec = { {{sint, cost}, {-cost, sint}} }; // permute the vectors and negate one of them to keep the basis right-handed
+            return { eval, { {{sint, cost}, {-cost, sint}} } }; // permute the vectors and negate one of them to keep the basis right-handed
         }
     }
 
-    void eigendecompose_symmetric(const mat2x2 &A, vec2 &eval, mat2x2 &evec) {
+    std::tuple<vec2,mat2x2> eigendecompose_symmetric(const mat2x2 &A) {
         assert(std::abs(A[0][1]-A[1][0])<1e-13);
-        eigendecompose_symmetric(A[0][0], A[0][1], A[1][1], eval, evec);
+        return eigendecompose_symmetric(A[0][0], A[0][1], A[1][1]);
     }
 
 
@@ -98,11 +100,11 @@ namespace UM {
         return Q.normalize();
     }
 
-    void eigendecompose_symmetric(const mat3x3 &A, vec3 &eval, mat3x3 &evec) {
+    std::tuple<vec3,mat3x3> eigendecompose_symmetric(const mat3x3 &A) {
         Quaternion Q = eigenvectors_symmetric(A);
         mat3x3 M = (Q.rotation_matrix()).transpose(); // to ease access to the eigenvectors
         mat3x3 D = M * A * M.transpose();
-        eval = { D[0][0], D[1][1], D[2][2] };
+        vec3 eval = { D[0][0], D[1][1], D[2][2] };
 
         if (std::abs(eval[0])<std::abs(eval[1])) { // sort the eigevnalues by the magnitude
             std::swap(eval[0], eval[1]);
@@ -119,7 +121,7 @@ namespace UM {
         if (cross(M[0], M[1])*M[2]<0) { // be sure that the eigenvectors form a right-hand basis
             M[2] = -M[2];
         }
-        evec = M.transpose();
+        return {eval, M.transpose()};
     }
 
 }

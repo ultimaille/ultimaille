@@ -25,9 +25,7 @@ static double rand11() {
 
 TEST_CASE("2x2", "[eigen decomposition]") {
     mat2x2 A = {{{4.,1.}, {1.,2.}}};
-    mat2x2 evec;
-    vec2 eval;
-    eigendecompose_symmetric(A, eval, evec);
+    auto [eval,evec] = eigendecompose_symmetric(A);
 
     vec2 eval_test = {3.+std::sqrt(2.), 3.-std::sqrt(2.)};
     mat2x2 evec_test = mat2x2{{{1./std::sqrt(4.-2.*std::sqrt(2.)), -1./std::sqrt(4.+2.*std::sqrt(2.))},{(std::sqrt(2.)-1.)/std::sqrt(4.-2.*std::sqrt(2.)), (std::sqrt(2.)+1.)/std::sqrt(4.+2.*std::sqrt(2.))}}};
@@ -38,9 +36,7 @@ TEST_CASE("2x2", "[eigen decomposition]") {
 
 TEST_CASE("3x3", "[eigen decomposition]") {
     mat3x3 A = {{{1.,std::sqrt(2.),2.}, {std::sqrt(2.),3.,std::sqrt(2.)},{2.,std::sqrt(2.),1.}}};
-    mat3x3 evec;
-    vec3 eval;
-    eigendecompose_symmetric(A, eval, evec);
+    auto [eval,evec] = eigendecompose_symmetric(A);
     CHECK( std::abs(eval[0]-5.)<1e-13 );
     CHECK((
             (std::abs(eval[1]-1.)<1e-13 && std::abs(eval[2]+1.)<1e-13) ||
@@ -60,9 +56,7 @@ TEST_CASE("3x3b", "[eigen decomposition]") {
         mat3x3 R = Rz(2.*M_PI*rand11()) * Ry(2.*M_PI*rand11()) * Rx(2.*M_PI*rand11());
         mat3x3 A = R*mat3x3{{{eval_test[0], 0., 0.}, {0., eval_test[1], 0.}, {0., 0., eval_test[2]} }}*R.transpose();
 
-        mat3x3 evec;
-        vec3 eval;
-        eigendecompose_symmetric(A, eval, evec);
+        auto [eval, evec] = eigendecompose_symmetric(A);
 
         for (int i=0; i<3; i++) {
             CHECK( std::abs(eval[i]-eval_test[i])<1e-12 );

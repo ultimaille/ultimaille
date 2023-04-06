@@ -22,9 +22,7 @@ namespace UM {
 
     std::tuple<mat3x3,vec3,vec3> PointSet::Util::principal_axes() const {
         PointSetCovariance cov(*ps.data);
-        vec3 eval;
-        mat3x3 evec;
-        eigendecompose_symmetric(cov.cov, eval, evec);
+        auto [eval, evec] = eigendecompose_symmetric(cov.cov);
         if (ps.size()<4) return {mat3x3::identity(), {1.,1.,1.}, cov.center}; // If the system is under-determined, return the trivial basis
         return { evec, eval, cov.center };
     }
