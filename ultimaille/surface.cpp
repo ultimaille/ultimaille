@@ -51,6 +51,14 @@ namespace UM {
         connect();
     }
 
+    bool Surface::Vertex::on_boundary() {
+        assert(m.connected());
+        for (Halfedge &he : iter_halfedges())
+            if (!he.opposite().active()) return true;
+        return false;
+    }
+
+
     Surface::Facet Surface::Connectivity::create_facet(int *verts, int size) {
         int off = -1;
         auto tmp_conn = std::move(m.conn); // happy assert(conn==nullptr)!

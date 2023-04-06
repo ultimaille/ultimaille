@@ -373,17 +373,6 @@ namespace UM {
         return id>=0;
     }
 
-    inline bool Surface::Vertex::on_boundary() {
-        assert(m.connected());
-        Surface::Halfedge cir = halfedge();
-        if (cir<0) return false;
-        do {
-            if (cir.opposite() == -1) return true;
-            cir = m.conn->c2c[cir];
-        } while (cir != m.conn->v2c[id]);
-        return false;
-    }
-
     inline int Surface::Vertex::id_in_facet(Facet f) {
         for (int lv=0; lv<f.size(); lv++)
             if (m.vert(f, lv)==id) return lv;
