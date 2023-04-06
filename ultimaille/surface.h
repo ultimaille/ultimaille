@@ -167,6 +167,16 @@ namespace UM {
             return *this;
         }
 
+        struct Connectivity : Surface::Connectivity {
+            Connectivity(Triangles &m) : Surface::Connectivity(m) {}
+            Surface::Facet create_facet(int a, int b, int c) { // TODO move it outside
+                int tmp[3] = {a,b,c};
+                return Surface::Connectivity::create_facet(tmp, 3);
+            }
+        };
+
+        std::unique_ptr<Connectivity> conn = {};
+
         struct Util : Surface::Util {
             double unsigned_area(const int f) const;
             void project(const int t, vec2& z0, vec2& z1, vec2& z2) const;
