@@ -9,30 +9,9 @@
 
 namespace UM {
 
-    Surface::Connectivity::Connectivity(Surface &m) : m(m), v2c(m, -1), c2f(m, -1), c2c(m, -1), active(m, true) {
-    }
-
     void Surface::connect() {
         if (!conn) conn = std::make_unique<Connectivity>(*this);
-        conn->active.fill(true);
-        conn->c2f.fill(-1);
-        conn->c2c.fill(-1);
-        conn->v2c.fill(-1);
-
-        for (int f = 0; f < nfacets(); f++)
-            for (int fc = 0; fc < facet_size(f); fc++) {
-                int c = corner(f, fc);
-                int v = vert(f, fc);
-                conn->c2f[c] = f;
-                conn->v2c[v] = c;
-            }
-        for (int f = 0; f < nfacets(); f++) // if it ain't broken, don't fix it
-            for (int fc = 0; fc < facet_size(f); fc++) {
-                int c = corner(f, fc);
-                int v = vert(f, fc);
-                conn->c2c[c] = conn->v2c[v];
-                conn->v2c[v] = c;
-            }
+        conn->init();
     }
 
     void Surface::disconnect() {
@@ -58,6 +37,31 @@ namespace UM {
         return false;
     }
 
+    Surface::Connectivity::Connectivity(Surface &m) : m(m), v2c(m, -1), c2f(m, -1), c2c(m, -1), active(m, true) {
+        init();
+    }
+
+    void Surface::Connectivity::init() {
+        active.fill(true);
+        c2f.fill(-1);
+        c2c.fill(-1);
+        v2c.fill(-1);
+
+        for (int f = 0; f < m.nfacets(); f++)
+            for (int fc = 0; fc < m.facet_size(f); fc++) {
+                int c = m.corner(f, fc);
+                int v = m.vert(f, fc);
+                c2f[c] = f;
+                v2c[v] = c;
+            }
+        for (int f = 0; f < m.nfacets(); f++) // if it ain't broken, don't fix it
+            for (int fc = 0; fc < m.facet_size(f); fc++) {
+                int c = m.corner(f, fc);
+                int v = m.vert(f, fc);
+                c2c[c] = v2c[v];
+                v2c[v] = c;
+            }
+    }
 
     Surface::Facet Surface::Connectivity::create_facet(int *verts, int size) {
         int off = -1;
@@ -91,16 +95,10 @@ namespace UM {
         return f;
     }
 
-    Surface::Facet Triangles::Connectivity::create_facet(int a, int b, int c) {
-        int tmp[3] = {a,b,c};
-        return Surface::Connectivity::create_facet(tmp, 3);
+    Surface::Facet Surface::Connectivity::create_facet(std::initializer_list<int> verts) {
+        std::vector<int> tmp = verts; // verts.begin() isn't necessarily a pointer to a contiguous memory chunk
+        return create_facet(tmp.data(), tmp.size());
     }
-
-    Surface::Facet Quads::Connectivity::create_facet(int a, int b, int c, int d) {
-        int tmp[4] = {a,b,c,d};
-        return Surface::Connectivity::create_facet(tmp, 4);
-    }
-
 
     // unsigned area for a 3D triangle
     inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {

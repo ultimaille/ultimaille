@@ -1,5 +1,6 @@
 #ifndef __SURFACE_H__
 #define __SURFACE_H__
+#include <initializer_list>
 #include <vector>
 #include <memory>
 #include "algebra/vec.h"
@@ -56,13 +57,15 @@ namespace UM {
         struct Facet;
 
         struct Connectivity {
-            Connectivity(Surface &m);
             Surface &m;
             PointAttribute<int>  v2c; // vertex to corner
             CornerAttribute<int> c2f; // corner to facet
             CornerAttribute<int> c2c; // corner to next corner sharing the same vertex (unordered)
             FacetAttribute<bool> active; // facets to keep after compacting
 
+            Connectivity(Surface &m);
+            void init();
+            Surface::Facet create_facet(std::initializer_list<int> verts);
             Surface::Facet create_facet(int *verts, int size);
         };
 
@@ -167,13 +170,6 @@ namespace UM {
             return *this;
         }
 
-        struct Connectivity : Surface::Connectivity {
-            Connectivity(Triangles &m) : Surface::Connectivity(m) {}
-            Surface::Facet create_facet(int a, int b, int c);
-        };
-
-        std::unique_ptr<Connectivity> conn = {};
-
         struct Util : Surface::Util {
             double unsigned_area(const int f) const;
             void project(const int t, vec2& z0, vec2& z1, vec2& z2) const;
@@ -198,13 +194,6 @@ namespace UM {
             Surface::operator=(m);
             return *this;
         }
-
-        struct Connectivity : Surface::Connectivity {
-            Connectivity(Quads &m) : Surface::Connectivity(m) {}
-            Surface::Facet create_facet(int a, int b, int c, int d);
-        };
-
-        std::unique_ptr<Connectivity> conn = {};
 
         struct Util : Surface::Util {
             double unsigned_area(const int f) const;

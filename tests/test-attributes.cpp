@@ -38,16 +38,21 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
     m.points.push_back({1,1,1});
     m.points.push_back({3,2,1});
 
+#if 0
+    m.connect();
+    int off = m.conn->create_facet({3,2,m.nverts()-2, m.nverts()-1});
+#else
     int off = m.create_facets(1, 4);
+    m.vert(off, 0) = 3;
+    m.vert(off, 1) = 2;
+    m.vert(off, 2) = m.nverts()-2;
+    m.vert(off, 3) = m.nverts()-1;
+#endif
 
     REQUIRE(vbool.ptr->data.size() == 8);
     REQUIRE(fvec3.ptr->data.size() == 3);
     REQUIRE(cint.ptr->data.size() == 11);
 
-    m.vert(off, 0) = 3;
-    m.vert(off, 1) = 2;
-    m.vert(off, 2) = m.nverts()-2;
-    m.vert(off, 3) = m.nverts()-1;
 
     REQUIRE((fvec3[off]-vec3(3,14,15)).norm2()==0);
     for (int i : range(4)) {
