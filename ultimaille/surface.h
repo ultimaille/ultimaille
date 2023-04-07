@@ -169,10 +169,7 @@ namespace UM {
 
         struct Connectivity : Surface::Connectivity {
             Connectivity(Triangles &m) : Surface::Connectivity(m) {}
-            Surface::Facet create_facet(int a, int b, int c) { // TODO move it outside
-                int tmp[3] = {a,b,c};
-                return Surface::Connectivity::create_facet(tmp, 3);
-            }
+            Surface::Facet create_facet(int a, int b, int c);
         };
 
         std::unique_ptr<Connectivity> conn = {};
@@ -201,6 +198,13 @@ namespace UM {
             Surface::operator=(m);
             return *this;
         }
+
+        struct Connectivity : Surface::Connectivity {
+            Connectivity(Quads &m) : Surface::Connectivity(m) {}
+            Surface::Facet create_facet(int a, int b, int c, int d);
+        };
+
+        std::unique_ptr<Connectivity> conn = {};
 
         struct Util : Surface::Util {
             double unsigned_area(const int f) const;

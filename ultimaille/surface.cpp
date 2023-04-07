@@ -91,6 +91,17 @@ namespace UM {
         return f;
     }
 
+    Surface::Facet Triangles::Connectivity::create_facet(int a, int b, int c) {
+        int tmp[3] = {a,b,c};
+        return Surface::Connectivity::create_facet(tmp, 3);
+    }
+
+    Surface::Facet Quads::Connectivity::create_facet(int a, int b, int c, int d) {
+        int tmp[4] = {a,b,c,d};
+        return Surface::Connectivity::create_facet(tmp, 4);
+    }
+
+
     // unsigned area for a 3D triangle
     inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
         return 0.5*cross(B-A, C-A).norm();
