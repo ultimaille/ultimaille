@@ -79,6 +79,7 @@ namespace UM {
         struct Primitive {
             Primitive(Surface &m, int id);
             Primitive(Primitive &p) = default;
+            Primitive(Primitive &&p) = default;
 
             Primitive& operator=(Primitive &p);
             Primitive& operator=(int i);
@@ -97,7 +98,8 @@ namespace UM {
             using Primitive::Primitive;
             using Primitive::operator=;
             Vertex(Vertex &v) = default;
-            Vertex& operator=(const Vertex& v);
+            Vertex(Vertex &&v) = default;
+            Vertex& operator=(Vertex& v);
 
             vec3  pos() const;
             vec3 &pos();
@@ -113,7 +115,8 @@ namespace UM {
             using Primitive::Primitive;
             using Primitive::operator=;
             Halfedge(Halfedge &v) = default;
-            Halfedge& operator=(const Halfedge& he);
+            Halfedge(Halfedge &&v) = default;
+            Halfedge& operator=(Halfedge& he);
 
             bool active();
             Facet facet();
@@ -135,7 +138,8 @@ namespace UM {
             using Primitive::Primitive;
             using Primitive::operator=;
             Facet(Facet &v) = default;
-            Facet& operator=(const Facet& f);
+            Facet(Facet &&v) = default;
+            Facet& operator=(Facet& f);
 
             Vertex vertex(int lv);
             Halfedge halfedge(int lh = 0);
@@ -338,7 +342,7 @@ namespace UM {
     inline Surface::Primitive::Primitive(Surface &m, int id) : m(m), id(id) {}
 
     inline Surface::Primitive& Surface::Primitive::operator=(Surface::Primitive &p) {
-        assert(this == &p);
+        assert(&m == &p.m);
         id = p.id;
         return *this;
     }
@@ -353,7 +357,7 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Surface::Vertex& Surface::Vertex::operator=(const Surface::Vertex& v) {
+    inline Surface::Vertex& Surface::Vertex::operator=(Surface::Vertex& v) {
         Primitive::operator=(v);
         return *this;
     }
@@ -385,7 +389,7 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Surface::Halfedge& Surface::Halfedge::operator=(const Surface::Halfedge& he) {
+    inline Surface::Halfedge& Surface::Halfedge::operator=(Surface::Halfedge& he) {
         Primitive::operator=(he);
         return *this;
     }
@@ -452,7 +456,7 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Surface::Facet& Surface::Facet::operator=(const Surface::Facet& f) {
+    inline Surface::Facet& Surface::Facet::operator=(Surface::Facet& f) {
         Primitive::operator=(f);
         return *this;
     }
