@@ -13,6 +13,8 @@ namespace UM {
             max = {-std::numeric_limits<double>::max(), -std::numeric_limits<double>::max(), -std::numeric_limits<double>::max()};
         }
 
+        BBox3(vec3 min, vec3 max) : min(min), max(max) {}
+
         void add(const BBox3 &b) {
             if (b.empty()) return;
             add(b.min);
