@@ -15,11 +15,11 @@ namespace UM {
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
 
-        void delete_vertices(const std::vector<bool> &to_kill);
-        virtual void delete_facets(const std::vector<bool> &to_kill);
+        void delete_vertices(const std::vector<bool>& to_kill);
+        virtual void delete_facets(const std::vector<bool>& to_kill);
         void delete_isolated_vertices();
         void resize_attrs();
-        void compress_attrs(const std::vector<bool> &facets_to_kill);
+        void compress_attrs(const std::vector<bool>& facets_to_kill);
 
         int nverts() const;
         int ncorners() const;
@@ -28,11 +28,11 @@ namespace UM {
         virtual int facet_size(const int fi) const = 0;
         virtual int corner(const int fi, const int ci) const = 0;
         virtual int   vert(const int fi, const int lv) const = 0;
-        virtual int  &vert(const int fi, const int lv)       = 0;
+        virtual int& vert(const int fi, const int lv) = 0;
 
         virtual void clear() {
             points = {};
-            attr_facets  = {};
+            attr_facets = {};
             attr_corners = {};
             disconnect();
         }
@@ -48,61 +48,61 @@ namespace UM {
         }
 
         struct Util {
-            const Surface &m;
+            const Surface& m;
             vec3 bary_verts(const int f) const;
-        } util = {*this};
+        } util = { *this };
 
         struct Vertex;
         struct Halfedge;
         struct Facet;
 
         struct Connectivity {
-            Surface &m;
+            Surface& m;
             PointAttribute<int>  v2c; // vertex to corner
             CornerAttribute<int> c2f; // corner to facet
             CornerAttribute<int> c2c; // corner to next corner sharing the same vertex (unordered)
             FacetAttribute<bool> active; // facets to keep after compacting
 
-            Connectivity(Surface &m);
+            Connectivity(Surface& m);
             void init();
             Surface::Facet create_facet(std::initializer_list<int> verts);
-            Surface::Facet create_facet(int *verts, int size);
+            Surface::Facet create_facet(int* verts, int size);
         };
 
         std::unique_ptr<Connectivity> conn = {};
-        inline bool connected() const { return conn!=nullptr; }
+        inline bool connected() const { return conn != nullptr; }
 
         void connect();
         void disconnect();
         void compact(bool delete_isolated_vertices = true);
 
         struct Primitive {
-            Primitive(Surface &m, int id);
-            Primitive(Primitive &p) = default;
-            Primitive(Primitive &&p) = default;
+            Primitive(Surface& m, int id);
+            Primitive(Primitive& p) = default;
+            Primitive(Primitive&& p) = default;
 
-            Primitive& operator=(Primitive &p);
+            Primitive& operator=(Primitive& p);
             Primitive& operator=(int i);
 
-            operator int  () const;
+            operator int() const;
             operator int& ();
 
-            protected:
+        protected:
             friend struct Surface;
 
-            Surface &m;
+            Surface& m;
             int id;
         };
 
         struct Vertex : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Vertex(Vertex &v) = default;
-            Vertex(Vertex &&v) = default;
+            Vertex(Vertex& v) = default;
+            Vertex(Vertex&& v) = default;
             Vertex& operator=(Vertex& v);
 
             vec3  pos() const;
-            vec3 &pos();
+            vec3& pos();
             Halfedge halfedge();
             bool on_boundary();
             bool active();
@@ -114,8 +114,8 @@ namespace UM {
         struct Halfedge : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Halfedge(Halfedge &v) = default;
-            Halfedge(Halfedge &&v) = default;
+            Halfedge(Halfedge& he) = default;
+            Halfedge(Halfedge&& he) = default;
             Halfedge& operator=(Halfedge& he);
 
             bool active();
@@ -129,7 +129,9 @@ namespace UM {
 
             friend struct Vertex;
             Vertex from();
+            void change_from(int new_vertex_id);
             Vertex to();
+
 
             auto iter_sector_halfedges();
         };
@@ -137,8 +139,8 @@ namespace UM {
         struct Facet : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Facet(Facet &v) = default;
-            Facet(Facet &&v) = default;
+            Facet(Facet& f) = default;
+            Facet(Facet&& f) = default;
             Facet& operator=(Facet& f);
 
             Vertex vertex(int lv);
@@ -165,7 +167,7 @@ namespace UM {
         int facet_size(const int) const;
         int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
-        int &vert(const int fi, const int lv);
+        int& vert(const int fi, const int lv);
 
         Triangles() = default;
         Triangles(const Triangles& m) = default;
@@ -178,7 +180,7 @@ namespace UM {
             double unsigned_area(const int f) const;
             void project(const int t, vec2& z0, vec2& z1, vec2& z2) const;
             vec3 normal(const int f) const;
-        } util = {*this};
+        } util = { *this };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,7 +192,7 @@ namespace UM {
         int facet_size(const int) const;
         int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
-        int &vert(const int fi, const int lv);
+        int& vert(const int fi, const int lv);
 
         Quads() = default;
         Quads(const Quads& m) = default;
@@ -202,37 +204,37 @@ namespace UM {
         struct Util : Surface::Util {
             double unsigned_area(const int f) const;
             vec3 normal(const int f) const;
-        } util = {*this};
+        } util = { *this };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Polygons : Surface { // polygonal mesh implementation
-        std::vector<int> offset = {0};
+        std::vector<int> offset = { 0 };
         Polygons() = default;
         Polygons(const Polygons& m) = default;
         Polygons& operator=(const Polygons& m) {
             clear();
-            um_assert(!m.points.size() && !m.facets.size() && 1==m.offset.size());
+            um_assert(!m.points.size() && !m.facets.size() && 1 == m.offset.size());
             return *this;
         }
 
         int create_facets(const int n, const int size);
-        void delete_facets(const std::vector<bool> &to_kill);
+        void delete_facets(const std::vector<bool>& to_kill);
 
         virtual void clear() {
             Surface::clear();
-            offset = {0};
+            offset = { 0 };
         }
 
         int nfacets()  const;
         int facet_size(const int fi) const;
         int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
-        int &vert(const int fi, const int lv);
+        int& vert(const int fi, const int lv);
 
         struct Util : Surface::Util {
-        } util = {*this};
+        } util = { *this };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -248,8 +250,8 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Triangles::nfacets() const {
-        assert(0==facets.size()%3);
-        return facets.size()/3;
+        assert(0 == facets.size() % 3);
+        return facets.size() / 3;
     }
 
     inline int Triangles::facet_size(const int) const {
@@ -257,26 +259,26 @@ namespace UM {
     }
 
     inline int Triangles::corner(const int fi, const int ci) const {
-        assert(ci>=0 && ci<3 && fi>=0 && fi<nfacets());
-        return fi*3 + ci;
+        assert(ci >= 0 && ci < 3 && fi >= 0 && fi < nfacets());
+        return fi * 3 + ci;
     }
 
     inline int Triangles::vert(const int fi, const int lv) const {
-        assert(fi>=0 && fi<nfacets() && lv>=0 && lv<3);
-        return facets[fi*3 + lv];
+        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 3);
+        return facets[fi * 3 + lv];
     }
 
-    inline int &Triangles::vert(const int fi, const int lv) {
-//      assert(conn==nullptr);
-        assert(fi>=0 && fi<nfacets() && lv>=0 && lv<3);
-        return facets[fi*3 + lv];
+    inline int& Triangles::vert(const int fi, const int lv) {
+        //      assert(conn==nullptr);
+        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 3);
+        return facets[fi * 3 + lv];
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Quads::nfacets() const {
-        assert(0==facets.size()%4);
-        return facets.size()/4;
+        assert(0 == facets.size() % 4);
+        return facets.size() / 4;
     }
 
     inline int Quads::facet_size(const int) const {
@@ -284,48 +286,48 @@ namespace UM {
     }
 
     inline int Quads::corner(const int fi, const int ci) const {
-        assert(ci>=0 && ci<4 && fi>=0 && fi<nfacets());
-        return fi*4 + ci;
+        assert(ci >= 0 && ci < 4 && fi >= 0 && fi < nfacets());
+        return fi * 4 + ci;
     }
 
     inline int Quads::vert(const int fi, const int lv) const {
-        assert(fi>=0 && fi<nfacets() && lv>=0 && lv<4);
-        return facets[fi*4 + lv];
+        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 4);
+        return facets[fi * 4 + lv];
     }
 
-    inline int &Quads::vert(const int fi, const int lv) {
-//      assert(conn==nullptr);
-        assert(fi>=0 && fi<nfacets() && lv>=0 && lv<4);
-        return facets[fi*4 + lv];
+    inline int& Quads::vert(const int fi, const int lv) {
+        //      assert(conn==nullptr);
+        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 4);
+        return facets[fi * 4 + lv];
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Polygons::nfacets() const {
-        return static_cast<int>(offset.size())-1;
+        return static_cast<int>(offset.size()) - 1;
     }
 
     inline int Polygons::facet_size(const int fi) const {
-        assert(fi>=0 && fi<nfacets());
-        return offset[fi+1]-offset[fi];
+        assert(fi >= 0 && fi < nfacets());
+        return offset[fi + 1] - offset[fi];
     }
 
     inline int Polygons::corner(const int fi, const int ci) const {
-        assert(fi>=0 && fi<nfacets());
-        return offset[fi]+ci;
+        assert(fi >= 0 && fi < nfacets());
+        return offset[fi] + ci;
     }
 
     inline int Polygons::vert(const int fi, const int lv) const {
-        assert(fi>=0 && fi<nfacets());
-        assert(lv>=0 && lv<facet_size(fi));
-        return facets[offset[fi]+lv];
+        assert(fi >= 0 && fi < nfacets());
+        assert(lv >= 0 && lv < facet_size(fi));
+        return facets[offset[fi] + lv];
     }
 
-    inline int &Polygons::vert(const int fi, const int lv) {
-//      assert(conn==nullptr);
-        assert(fi>=0 && fi<nfacets());
-        assert(lv>=0 && lv<facet_size(fi));
-        return facets[offset[fi]+lv];
+    inline int& Polygons::vert(const int fi, const int lv) {
+        //      assert(conn==nullptr);
+        assert(fi >= 0 && fi < nfacets());
+        assert(lv >= 0 && lv < facet_size(fi));
+        return facets[offset[fi] + lv];
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -339,9 +341,9 @@ namespace UM {
     //                                                         |___/      //
     ////////////////////////////////////////////////////////////////////////
 
-    inline Surface::Primitive::Primitive(Surface &m, int id) : m(m), id(id) {}
+    inline Surface::Primitive::Primitive(Surface& m, int id) : m(m), id(id) {}
 
-    inline Surface::Primitive& Surface::Primitive::operator=(Surface::Primitive &p) {
+    inline Surface::Primitive& Surface::Primitive::operator=(Surface::Primitive& p) {
         assert(&m == &p.m);
         id = p.id;
         return *this;
@@ -352,8 +354,8 @@ namespace UM {
         return *this;
     }
 
-    inline Surface::Primitive::operator int  () const { return id; }
-    inline Surface::Primitive::operator int& ()       { return id; }
+    inline Surface::Primitive::operator int() const { return id; }
+    inline Surface::Primitive::operator int& () { return id; }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -363,26 +365,24 @@ namespace UM {
     }
 
     inline vec3  Surface::Vertex::pos() const { return m.points[id]; }
-    inline vec3 &Surface::Vertex::pos()       { return m.points[id]; }
+    inline vec3& Surface::Vertex::pos() { return m.points[id]; }
 
     inline Surface::Halfedge Surface::Vertex::halfedge() {
         assert(m.connected());
         Surface::Halfedge res{m, m.conn->v2c[id]};
-        while (res>=0 && !res.active()) {
+        while (res >= 0 && !res.active()) {
             res = m.conn->c2c[res];
-            if (res == m.conn->v2c[id])
-                return {m, -1};
         }
         return res;
     }
 
     inline bool Surface::Vertex::active() {
-        return id>=0;
+        return id >= 0;
     }
 
     inline int Surface::Vertex::id_in_facet(Facet f) {
-        for (int lv=0; lv<f.size(); lv++)
-            if (m.vert(f, lv)==id) return lv;
+        for (int lv = 0; lv < f.size(); lv++)
+            if (m.vert(f, lv) == id) return lv;
         assert(false);
         return -1;
     }
@@ -395,7 +395,7 @@ namespace UM {
     }
 
     inline bool Surface::Halfedge::active() {
-        return id>=0 && facet().active();
+        return id >= 0 && facet().active();
     }
 
     inline Surface::Facet Surface::Halfedge::facet() {
@@ -407,34 +407,38 @@ namespace UM {
         auto f = facet();
         int lh = id - f.halfedge();
         int n = f.size();
-        return { m, f.halfedge((lh+1)%n) };
+        return { m, f.halfedge((lh + 1) % n) };
     }
 
     inline Surface::Halfedge Surface::Halfedge::prev() {
         auto f = facet();
         int lh = id - f.halfedge();
         int n = f.size();
-        return { m, f.halfedge((lh-1+n)%n) };
+        return { m, f.halfedge((lh - 1 + n) % n) };
     }
 
     inline Surface::Halfedge Surface::Halfedge::opposite() {
         assert(m.connected());
         assert(active());
-        Halfedge cir = *this;
-        Halfedge result = {m, -1}; // not found
-        do {
+        Halfedge result = { m, -1 }; // not found        
+        Halfedge cir = from().halfedge();
+        while (true) {
             Halfedge candidate = cir.prev();
             if (cir.active()) {
                 if (candidate.from() == to() && candidate.to() == from()) {
                     if (result == -1) result = candidate;
-                    else return {m, -1}; // found more than one
+                    else return { m, -1 }; // found more than one
                 }
                 if (cir != *this && to() == cir.to())
-                    return {m, -1}; // the edge is non manifold
+                    return { m, -1 }; // the edge is non manifold
             }
-            cir = cir.m.conn->c2c[cir];
-        } while (cir != *this);
-        return result;
+            do {
+                cir = m.conn->c2c[cir];
+                if (cir == -1) return result;
+            } while (!cir.active());
+
+        }
+
     }
 
     inline Surface::Vertex Surface::Halfedge::from() {
@@ -442,6 +446,35 @@ namespace UM {
         int lh = id - f.halfedge();
         return { m, m.vert(f, lh) };
     }
+
+    inline void Surface::Halfedge::change_from(int new_vertex_id) {
+        //Surface::Halfedge h(m, hid);
+        auto& v2c = m.conn->v2c;
+        auto& c2c = m.conn->c2c;
+        int old_v = from();
+
+        // A) edit the surface
+        auto f = facet();
+        int lh = id - f.halfedge();
+        m.vert(f, lh) = new_vertex_id;
+
+        // B) edit the connectivity
+        {// B-1 detach h from old_v
+            if (v2c[old_v] == id)
+                v2c[old_v] = c2c[id];
+            else {
+                int it = v2c[old_v];
+                while (c2c[it] != id)
+                    it = c2c[it];
+                c2c[it] = c2c[id];
+            }
+        }
+        {// B-2 attach h to new_v
+            c2c[id] = v2c[new_vertex_id];
+            v2c[new_vertex_id] = id;
+        }
+        }
+
 
     inline Surface::Vertex Surface::Halfedge::to() {
         auto f = facet();
@@ -550,9 +583,10 @@ namespace UM {
             Surface::Halfedge he;
             void operator++() {
                 const auto &c2c = he.m.conn->c2c;
-                he = c2c[he];
-                while (!he.active()) he = c2c[he];
-                if (he == he.from().halfedge()) he = -1;
+                do {
+                    he = c2c[he];
+                    if (he == -1) return;
+                } while (!he.active());
             }
             bool operator!=(const iterator& rhs) const { return he != rhs.he; }
             Surface::Halfedge& operator*() { return he; }
