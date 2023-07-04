@@ -44,7 +44,6 @@ namespace UM {
     void Surface::Connectivity::init() {
         active.fill(true);
         c2f.fill(-1);
-        c2c.fill(-1);
         v2c.fill(-1);
 
         for (int f = 0; f < m.nfacets(); f++)
@@ -52,12 +51,6 @@ namespace UM {
                 int c = m.corner(f, fc);
                 int v = m.vert(f, fc);
                 c2f[c] = f;
-                v2c[v] = c;
-            }
-        for (int f = 0; f < m.nfacets(); f++) // if it ain't broken, don't fix it
-            for (int fc = 0; fc < m.facet_size(f); fc++) {
-                int c = m.corner(f, fc);
-                int v = m.vert(f, fc);
                 c2c[c] = v2c[v];
                 v2c[v] = c;
             }
@@ -84,13 +77,8 @@ namespace UM {
             m.vert(f, lv) = verts[lv];
             int h = m.corner(f, lv);
             c2f[h] = f;
-            if (v2c[verts[lv]] < 0) {
-                c2c[h] = h;
-                v2c[verts[lv]] = h;
-            } else {
-                c2c[h] = c2c[v2c[verts[lv]]];
-                c2c[v2c[verts[lv]]] = h;
-            }
+            c2c[h] = v2c[verts[lv]];
+            v2c[verts[lv]] = h;
         }
         return f;
     }
