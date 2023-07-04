@@ -67,6 +67,8 @@ namespace UM {
             void init();
             Surface::Facet create_facet(std::initializer_list<int> verts);
             Surface::Facet create_facet(int* verts, int size);
+
+            void change_from(Surface::Halfedge he, int new_vertex_id);
         };
 
         std::unique_ptr<Connectivity> conn = {};
@@ -129,9 +131,7 @@ namespace UM {
 
             friend struct Vertex;
             Vertex from();
-            void change_from(int new_vertex_id);
             Vertex to();
-
 
             auto iter_sector_halfedges();
         };
@@ -420,7 +420,7 @@ namespace UM {
     inline Surface::Halfedge Surface::Halfedge::opposite() {
         assert(m.connected());
         assert(active());
-        Halfedge result = { m, -1 }; // not found        
+        Halfedge result = { m, -1 }; // not found
         Halfedge cir = from().halfedge();
         while (true) {
             Halfedge candidate = cir.prev();
@@ -446,35 +446,6 @@ namespace UM {
         int lh = id - f.halfedge();
         return { m, m.vert(f, lh) };
     }
-
-    inline void Surface::Halfedge::change_from(int new_vertex_id) {
-        //Surface::Halfedge h(m, hid);
-        auto& v2c = m.conn->v2c;
-        auto& c2c = m.conn->c2c;
-        int old_v = from();
-
-        // A) edit the surface
-        auto f = facet();
-        int lh = id - f.halfedge();
-        m.vert(f, lh) = new_vertex_id;
-
-        // B) edit the connectivity
-        {// B-1 detach h from old_v
-            if (v2c[old_v] == id)
-                v2c[old_v] = c2c[id];
-            else {
-                int it = v2c[old_v];
-                while (c2c[it] != id)
-                    it = c2c[it];
-                c2c[it] = c2c[id];
-            }
-        }
-        {// B-2 attach h to new_v
-            c2c[id] = v2c[new_vertex_id];
-            v2c[new_vertex_id] = id;
-        }
-        }
-
 
     inline Surface::Vertex Surface::Halfedge::to() {
         auto f = facet();

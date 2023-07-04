@@ -88,6 +88,27 @@ namespace UM {
         return create_facet(tmp.data(), tmp.size());
     }
 
+    void Surface::Connectivity::change_from(Surface::Halfedge he, int new_vertex_id) {
+        // edit the surface
+        auto old_v = he.from();
+        auto f = he.facet();
+        int lh = he.id_in_facet();
+        m.vert(f, lh) = new_vertex_id;
+
+        // update the connectivity:
+        // first detach he from old_v
+        if (v2c[old_v] == he)
+            v2c[old_v] = c2c[he];
+        else {
+            int it = v2c[old_v];
+            while (c2c[it] != he) it = c2c[it];
+            c2c[it] = c2c[he];
+        }
+        // then attach he to new_v
+        c2c[he] = v2c[new_vertex_id];
+        v2c[new_vertex_id] = he;
+    }
+
     // unsigned area for a 3D triangle
     inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
         return 0.5*cross(B-A, C-A).norm();
