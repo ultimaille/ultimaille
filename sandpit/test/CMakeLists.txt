@@ -1,7 +1,4 @@
 
-add_executable(helloworld helloworld.cpp)
-target_link_libraries(helloworld  ${CMAKE_DL_LIBS} ultimaille)
-
 add_executable(test-disjoint-set test-disjoint-set.cpp)
 target_link_libraries(test-disjoint-set  ${CMAKE_DL_LIBS} ultimaille)
 
