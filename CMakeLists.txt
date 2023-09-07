@@ -46,7 +46,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(OpenNL_psm)
 
-target_link_libraries(ultimaille zlib stlbfgs OpenNL_psm $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
+target_link_libraries(ultimaille PUBLIC zlib stlbfgs OpenNL_psm $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
 set_target_properties(ultimaille PROPERTIES SOVERSION 1.0)
 
 add_subdirectory(sandpit)
