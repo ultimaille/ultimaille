@@ -2,6 +2,7 @@
 #include <cmath>
 #include <algorithm>
 
+#include "eigen.h"
 #include "svd.h"
 
 namespace UM {
@@ -79,4 +80,17 @@ namespace UM {
         return {U, D, V}; // M = U * D * V.transpose()
     }
 
+
+
+
+    std::tuple<mat3x3,mat3x3,mat3x3> svd3x3(const mat3x3 &M) {
+	    mat3x3 MtM = M.transpose() * M;
+	    auto [S2,V] = eigendecompose_symmetric(MtM);
+	    mat3x3 S = {};
+	    for (int i : {0,1,2}) S[i][i] = std::sqrt(S2[i]);
+	    mat3x3 U = M * V;
+	    for (int i : {0,1,2})
+	    for (int j : {0,1,2}) U[i][j] /= S[j][j];
+	    return {U, S, V};
+    }
 }

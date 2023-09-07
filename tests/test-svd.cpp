@@ -22,3 +22,29 @@ TEST_CASE("2x2", "[svd]") {
 }
 
 
+TEST_CASE("3x3", "[svd]") {
+    mat3x3 M = {{{3,1,0}, {1,2,2}, {0,1,1}}};
+    auto [U, D, V] = svd3x3(M);
+//    std::cerr << U << std::endl << std::endl << D  << std::endl << std::endl << V << std::endl;
+    CHECK( std::abs(D[0][0]-3.9282)<1e-4 );
+    CHECK( std::abs(D[1][1]-2.3573)<1e-4 );
+    CHECK( std::abs(D[2][2]-0.1079)<1e-4 );
+
+    CHECK( std::abs(D[0][1])<1e-14 );
+    CHECK( std::abs(D[0][2])<1e-14 );
+    CHECK( std::abs(D[1][0])<1e-14 );
+    CHECK( std::abs(D[1][2])<1e-14 );
+    CHECK( std::abs(D[2][0])<1e-14 );
+    CHECK( std::abs(D[2][1])<1e-14 );
+
+    CHECK( (M - U*D*V.transpose()).norm()<1e-12 );
+
+    CHECK( std::abs(U[0]*U[1]) < 1e-9 );
+    CHECK( std::abs(V[0]*V[1]) < 1e-9 );
+    CHECK( std::abs(U[0].norm()-1.) < 1e-9 );
+    CHECK( std::abs(U[1].norm()-1.) < 1e-9 );
+    CHECK( std::abs(V[0].norm()-1.) < 1e-9 );
+    CHECK( std::abs(V[1].norm()-1.) < 1e-9 );
+}
+
+
