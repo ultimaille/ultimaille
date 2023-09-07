@@ -38,7 +38,15 @@ endif()
 file(GLOB SOURCES ultimaille/*.cpp ultimaille/*.h ultimaille/algebra/*.cpp ultimaille/algebra/*.h ultimaille/helpers/*.cpp ultimaille/helpers/*.h ultimaille/syntactic-sugar/*.cpp ultimaille/syntactic-sugar/*.h ultimaille/io/*.cpp ultimaille/io/*.h)
 add_library(ultimaille ${SOURCES})
 
-target_link_libraries(ultimaille zlib stlbfgs $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
+include(FetchContent)
+FetchContent_Declare(
+  OpenNL_psm
+  GIT_REPOSITORY https://github.com/fprotais/geogram.psm.OpenNL
+  GIT_TAG        main
+)
+FetchContent_MakeAvailable(OpenNL_psm)
+
+target_link_libraries(ultimaille zlib stlbfgs OpenNL_psm $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
 set_target_properties(ultimaille PROPERTIES SOVERSION 1.0)
 
 add_subdirectory(sandpit)
