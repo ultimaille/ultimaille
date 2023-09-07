@@ -100,8 +100,9 @@ namespace UM {
         double norm2() const { return (*this)*(*this) ; }
         double norm()  const { return std::sqrt(norm2()); }
         void normalize() { *this = *this/norm(); }
-        vec<2> normalized() { return *this/norm(); }
-        vec<3> xy0();
+        vec<2> normalized() const { return *this/norm(); }
+        vec<3> xy0() const;
+        vec<3> xy1() const;
 
         double x{}, y{};
     };
@@ -116,16 +117,20 @@ namespace UM {
         double norm2() const { return (*this)*(*this) ; }
         double norm()  const { return std::sqrt(norm2()); }
         void normalize() { *this = *this/norm(); }
-        vec<3> normalized() { return *this/norm(); }
-        vec<2> xy() { return {x, y}; }
+        vec<3> normalized() const { return *this/norm(); }
+        vec<2> xy() const { return {x, y}; }
 
         double x{}, y{}, z{};
     };
 
     /////////////////////////////////////////////////////////////////////////////////
 
-    inline vec<3> vec<2>::xy0() {
+    inline vec<3> vec<2>::xy0() const {
         return {x, y, 0};
+    }
+
+    inline vec<3> vec<2>::xy1() const {
+        return {x, y, 1};
     }
 
     /* TODO: unsure about performance of the operator[]
