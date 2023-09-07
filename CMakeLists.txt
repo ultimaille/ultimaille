@@ -15,11 +15,11 @@ set(RELATIVE_BIN_DIR bin/)
 set(RELATIVE_LIB_DIR lib/)
 
 # Allow the developer to select if Dynamic or Static libraries are built
-#if (WIN32)
-#    OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
-    #else()
+if (WIN32)
+    OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+else()
     OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
-    #endif()
+endif()
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${RELATIVE_LIB_DIR}/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${RELATIVE_BIN_DIR}/)
@@ -41,7 +41,7 @@ add_library(ultimaille ${SOURCES})
 include(FetchContent)
 FetchContent_Declare(
   OpenNL_psm
-  GIT_REPOSITORY https://github.com/fprotais/geogram.psm.OpenNL
+  GIT_REPOSITORY https://github.com/ssloy/geogram.psm.OpenNL
   GIT_TAG        main
 )
 FetchContent_MakeAvailable(OpenNL_psm)
