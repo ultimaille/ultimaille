@@ -33,5 +33,6 @@
 #include <ultimaille/volume_connectivity.h>
 #include <ultimaille/attr_binding.h>
 
-#include <ext/stlbfgs/stlbfgs.h>
+#include <stlbfgs.h>
+#include <OpenNL_psm/OpenNL_psm.h>
 

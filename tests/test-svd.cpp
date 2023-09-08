@@ -40,11 +40,19 @@ TEST_CASE("3x3", "[svd]") {
     CHECK( (M - U*D*V.transpose()).norm()<1e-12 );
 
     CHECK( std::abs(U[0]*U[1]) < 1e-9 );
+    CHECK( std::abs(U[0]*U[2]) < 1e-9 );
+    CHECK( std::abs(U[1]*U[2]) < 1e-9 );
+
     CHECK( std::abs(V[0]*V[1]) < 1e-9 );
+    CHECK( std::abs(V[0]*V[2]) < 1e-9 );
+    CHECK( std::abs(V[1]*V[2]) < 1e-9 );
+
     CHECK( std::abs(U[0].norm()-1.) < 1e-9 );
     CHECK( std::abs(U[1].norm()-1.) < 1e-9 );
+    CHECK( std::abs(U[2].norm()-1.) < 1e-9 );
     CHECK( std::abs(V[0].norm()-1.) < 1e-9 );
     CHECK( std::abs(V[1].norm()-1.) < 1e-9 );
+    CHECK( std::abs(V[2].norm()-1.) < 1e-9 );
 }
 
 

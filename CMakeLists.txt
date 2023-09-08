@@ -45,6 +45,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(OpenNL_psm)
 
+FetchContent_Declare(
+  stlbfgs
+  GIT_REPOSITORY https://github.com/ssloy/stlbfgs
+  GIT_TAG        main
+)
+FetchContent_MakeAvailable(stlbfgs)
+
 target_link_libraries(ultimaille PUBLIC zlib stlbfgs OpenNL_psm $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
 set_target_properties(ultimaille PROPERTIES SOVERSION 1.0)
 

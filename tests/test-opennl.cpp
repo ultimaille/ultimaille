@@ -1,6 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>
-#include <OpenNL_psm/OpenNL_psm.h>
 #include <ultimaille/all.h>
 
 using namespace UM;
