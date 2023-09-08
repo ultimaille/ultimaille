@@ -14,10 +14,8 @@ find_package(OpenMP COMPONENTS CXX)
 set(RELATIVE_BIN_DIR bin/)
 set(RELATIVE_LIB_DIR lib/)
 
-# Allow the developer to select if Dynamic or Static libraries are built
 if (WIN32)
     OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
-#    add_definitions(-DGEO_STATIC_LIBS)
 else()
     OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 endif()
@@ -60,3 +58,4 @@ if (UM_UNIT_TESTS)
 endif()
 
 file(GENERATE OUTPUT .gitignore CONTENT "*")
+
