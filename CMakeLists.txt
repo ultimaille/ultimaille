@@ -17,6 +17,7 @@ set(RELATIVE_LIB_DIR lib/)
 # Allow the developer to select if Dynamic or Static libraries are built
 if (WIN32)
     OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+    add_definitions(-DGEO_STATIC_LIBS)
 else()
     OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 endif()
@@ -41,7 +42,7 @@ add_library(ultimaille ${SOURCES})
 include(FetchContent)
 FetchContent_Declare(
   OpenNL_psm
-  GIT_REPOSITORY https://github.com/ssloy/geogram.psm.OpenNL
+  GIT_REPOSITORY https://github.com/fprotais/geogram.psm.OpenNL
   GIT_TAG        main
 )
 FetchContent_MakeAvailable(OpenNL_psm)
