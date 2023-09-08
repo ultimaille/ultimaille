@@ -19,6 +19,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+          with:
+        submodules: recursive
+
 
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DUM_UNIT_TESTS=ON
@@ -35,6 +38,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+          with:
+        submodules: recursive
 
     - name: Configure CMake
       run: cmake -B build -DUM_UNIT_TESTS=ON
