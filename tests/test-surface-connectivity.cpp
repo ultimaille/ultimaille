@@ -75,7 +75,7 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
     q.delete_facets(to_kill);
     REQUIRE( q.nfacets()==135 );
 
-    using Vertex = typename Surface::Vertex;
+//    using Vertex = typename Surface::Vertex;
     using Halfedge = typename Surface::Halfedge;
     using Facet = typename Surface::Facet;
 
@@ -105,7 +105,7 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
         cnt_prev[prev]++;
         cnt_facet[f]++;
 
-        for (Halfedge cur : he.iter_sector_halfedges()) {
+        for (Halfedge [[maybe_unused]] cur : he.iter_sector_halfedges()) {
             val[he]++;
         }
         REQUIRE((val[he]>=1 && val[he]<=5));

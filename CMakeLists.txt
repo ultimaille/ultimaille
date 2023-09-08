@@ -17,7 +17,7 @@ set(RELATIVE_LIB_DIR lib/)
 # Allow the developer to select if Dynamic or Static libraries are built
 if (WIN32)
     OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
-    add_definitions(-DGEO_STATIC_LIBS)
+#    add_definitions(-DGEO_STATIC_LIBS)
 else()
     OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 endif()

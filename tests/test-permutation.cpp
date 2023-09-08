@@ -9,32 +9,33 @@
 using namespace UM;
 
 TEST_CASE("Permutation", "[permutation]") {
-    int n = 1775;
-    Permutation perm(n);
-    CHECK( perm.is_valid() );
+    {
+        int n = 1775;
+        Permutation perm(n);
+        CHECK( perm.is_valid() );
 
-    std::shuffle(perm.begin(), perm.end(), std::mt19937{std::random_device{}()});
-    CHECK( perm.is_valid() );
+        std::shuffle(perm.begin(), perm.end(), std::mt19937{std::random_device{}()});
+        CHECK( perm.is_valid() );
 
-    std::vector<int> data(n);
-    std::iota(data.begin(), data.end(), 0);
+        std::vector<int> data(n);
+        std::iota(data.begin(), data.end(), 0);
 
-    perm.apply(data);
-    for (int i=0; i<n; i++)
-        CHECK( perm[i]==data[i] );
+        perm.apply(data);
+        for (int i=0; i<n; i++)
+            CHECK( perm[i]==data[i] );
 
-    perm.apply_reverse_lin(data);
-    for (int i=0; i<n; i++)
-        CHECK( data[i]==i );
+        perm.apply_reverse_lin(data);
+        for (int i=0; i<n; i++)
+            CHECK( data[i]==i );
 
-    perm.apply_lin(data);
-    for (int i=0; i<n; i++)
-        CHECK( perm[i]==data[i] );
+        perm.apply_lin(data);
+        for (int i=0; i<n; i++)
+            CHECK( perm[i]==data[i] );
 
-    perm.apply_reverse(data);
-    for (int i=0; i<n; i++)
-        CHECK( data[i]==i );
-
+        perm.apply_reverse(data);
+        for (int i=0; i<n; i++)
+            CHECK( data[i]==i );
+    }
 
     {
         std::vector<char> A = {'a', 'b', 'c', 'd', 'e'};
