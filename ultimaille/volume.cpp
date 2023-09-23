@@ -12,7 +12,7 @@ namespace UM {
     }
 
     double Volume::Util::cell_volume(const int c) const {
-        if (m.cell_type==Volume::TETRAHEDRON)
+        if (m.cell_type()==Volume::TETRAHEDRON)
             return tet_volume(
                     m.points[m.vert(c, 0)],
                     m.points[m.vert(c, 1)],

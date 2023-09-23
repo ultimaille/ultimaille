@@ -8,41 +8,15 @@
 #include "algebra/vec.h"
 #include "attributes.h"
 #include "pointset.h"
+#include "volume_reference.h"
 #include "volume_connectivity.h"
 
 namespace UM {
-    struct ReferenceCell {     // There are 4 types of volume meshes: Tetrahedra, Hexahedra, Wedges, Prisms.
-        const int nv, nf, nc;  // Each one has a reference cell (a polygonal surface) that encodes the numbering convention.
-        const vec3 points[8];  // See comments below about the conevntion.
-        const int facets[24];  // This struct is a minimal polygonal surface interface needed to encode connectivity between cells.
-        const int offset[7];
-        const int c2f[24];
-        const int opp[24];
-
-        constexpr int nverts()   const { return nv; }
-        constexpr int nfacets()  const { return nf; }
-        constexpr int ncorners() const { return nc; }
-        constexpr int facet_size(const int f) const { return offset[f+1]-offset[f]; }
-
-        constexpr int corner(const int f, const int lc) const { return offset[f]+lc; }
-        constexpr int vert(const int f, const int lv)   const { return facets[offset[f]+lv]; }
-
-        constexpr int facet(const int he)    const { return c2f[he]; }
-        constexpr int opposite(const int he) const { return opp[he]; }
-        constexpr int from(const int he)     const { return vert(c2f[he], he - offset[c2f[he]]); }
-    };
-
-    constexpr std::array<ReferenceCell,4> reference_cells = {{
-        {4,4,12,{{0,0,0},{1,0,0},{0,1,0},{0,0,1}},{1,2,3,0,3,2,0,1,3,0,2,1},{0,3,6,9,12},{0,0,0,1,1,1,2,2,2,3,3,3},{10,4,7,8,1,9,11,2,3,5,0,6}},
-        {8,6,24,{{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}},{0,4,6,2,1,3,7,5,0,1,5,4,2,6,7,3,0,2,3,1,4,5,7,6},{0,4,8,12,16,20,24},{0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5},{11,23,12,16,18,14,21,9,19,7,20,0,2,22,5,17,3,15,4,8,10,6,13,1}},
-        {6,5,18,{{0,0,0},{1,0,0},{0,1,0},{0,0,1},{1,0,1},{0,1,1}},{0,2,1,3,4,5,0,1,4,3,0,3,5,2,1,2,5,4},{0,3,6,10,14,18},{0,0,0,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4},{13,14,6,8,16,11,2,17,3,10,9,5,15,0,1,12,4,7}},
-        {5,5,16,{{0,0,0},{1,0,0},{1,1,0},{0,1,0},{0.5,0.5,0.5}},{0,3,2,1,0,1,4,0,4,3,2,3,4,1,2,4},{0,4,7,10,13,16},{0,0,0,0,1,1,1,2,2,2,3,3,3,4,4,4},{9,10,13,4,3,15,7,6,11,0,1,8,14,2,12,5}}
-    }};
 
     struct Volume {
         enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };
+        constexpr virtual CELL_TYPE cell_type() const noexcept = 0;
 
-        const CELL_TYPE cell_type;
         HalfEdgeHelper heh;
         PointSet points{};
         std::vector<int> cells{};
@@ -63,17 +37,17 @@ namespace UM {
         int ncells()   const;
         int nfacets()  const;
         int ncorners() const;
-        int cell_from_facet (const int f) const;
-        int cell_from_corner(const int c) const;
+        constexpr int cell_from_facet (const int f) const;
+        constexpr int cell_from_corner(const int c) const;
         int  vert(const int c, const int lv) const;
         int &vert(const int c, const int lv);
 
-        int  nverts_per_cell() const;
-        int nfacets_per_cell() const;
-        int facet_size(const int f) const;
+        constexpr int  nverts_per_cell() const;
+        constexpr int nfacets_per_cell() const;
+        constexpr int facet_size(const int f) const;
         int facet_vert(const int c, const int lf, const int lv) const;
-        int  facet(const int c, const int lf) const;
-        int corner(const int c, const int lc) const;
+        constexpr int  facet(const int c, const int lf) const;
+        constexpr int corner(const int c, const int lc) const;
 
         void clear() {
             points = {};
@@ -83,8 +57,8 @@ namespace UM {
             attr_corners = {};
         }
 
-        Volume(CELL_TYPE cell_type) : cell_type(cell_type), heh(*this), util(*this) {}
-        Volume(const Volume& m) : cell_type(m.cell_type), heh(*this), util(*this) { // TODO re-think copying policy
+        Volume() : heh(*this), util(*this) {}
+        Volume(const Volume& m) : heh(*this), util(*this) { // TODO re-think copying policy
             um_assert(!m.points.size() && !m.cells.size());
         }
         Volume& operator=(const Volume& m) {
@@ -122,7 +96,9 @@ namespace UM {
      */
 
     struct Tetrahedra : Volume {
-        Tetrahedra() : Volume(Volume::TETRAHEDRON) {}
+        constexpr CELL_TYPE cell_type() const noexcept override {
+            return Volume::TETRAHEDRON;
+        }
     };
 
     /**
@@ -152,7 +128,9 @@ namespace UM {
      */
 
     struct Hexahedra : Volume {
-        Hexahedra() : Volume(Volume::HEXAHEDRON) {}
+        constexpr CELL_TYPE cell_type() const noexcept override {
+            return Volume::HEXAHEDRON;
+        }
     };
 
     /**
@@ -181,7 +159,9 @@ namespace UM {
      */
 
     struct Wedges : Volume {
-        Wedges() : Volume(Volume::WEDGE) {}
+        constexpr CELL_TYPE cell_type() const noexcept override {
+            return Volume::WEDGE;
+        }
     };
 
     /**
@@ -215,7 +195,9 @@ namespace UM {
      */
 
     struct Pyramids : Volume {
-        Pyramids() : Volume(Volume::PYRAMID) {}
+        constexpr CELL_TYPE cell_type() const noexcept override {
+            return Volume::PYRAMID;
+        }
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,12 +220,12 @@ namespace UM {
         return ncells()*nfacets_per_cell();
     }
 
-    inline int Volume::cell_from_facet(const int f) const {
+    inline constexpr int Volume::cell_from_facet(const int f) const {
         assert(f>=0 && f<nfacets());
         return f/nfacets_per_cell();
     }
 
-    inline int Volume::cell_from_corner(const int c) const {
+    inline constexpr int Volume::cell_from_corner(const int c) const {
         assert(c>=0 && c<ncorners());
         return c/nverts_per_cell();
     }
@@ -258,30 +240,30 @@ namespace UM {
         return cells[corner(c, lv)];
     }
 
-    inline int Volume::nverts_per_cell() const {
-        return reference_cells[cell_type].nverts();
+    inline constexpr int Volume::nverts_per_cell() const {
+        return reference_cells[cell_type()].nverts();
     }
 
-    inline int Volume::nfacets_per_cell() const {
-        return reference_cells[cell_type].nfacets();
+    inline constexpr int Volume::nfacets_per_cell() const {
+        return reference_cells[cell_type()].nfacets();
     }
 
-    inline int Volume::facet_size(const int f) const {
+    inline constexpr int Volume::facet_size(const int f) const {
         assert(f>=0 && f<nfacets());
-        return reference_cells[cell_type].facet_size(f % nfacets_per_cell());
+        return reference_cells[cell_type()].facet_size(f % nfacets_per_cell());
     }
 
     inline int Volume::facet_vert(const int c, const int lf, const int lv) const {
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell() && lv>=0 && lv<facet_size(lf));
-        return vert(c, reference_cells[cell_type].vert(lf, lv));
+        return vert(c, reference_cells[cell_type()].vert(lf, lv));
     }
 
-    inline int Volume::facet(const int c, const int lf) const {
+    inline constexpr int Volume::facet(const int c, const int lf) const {
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell());
         return c*nfacets_per_cell() + lf;
     }
 
-    inline int Volume::corner(const int c, const int lc) const {
+    inline constexpr int Volume::corner(const int c, const int lc) const {
         assert(c>=0 && c<ncells() && lc>=0 && lc<nverts_per_cell());
         return c*nverts_per_cell() + lc;
     }

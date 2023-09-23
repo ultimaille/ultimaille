@@ -373,7 +373,7 @@ namespace UM {
             out << std::endl;
         } else if constexpr (std::is_base_of_v<Volume, M>) {
             for (int c=0; c<m.ncells(); c++)
-                switch (m.cell_type) {
+                switch (m.cell_type()) {
                     case Volume::CELL_TYPE::TETRAHEDRON:
                         out << "10 "; break;
 // for the CELL_TYPE 12 here is the permutation:
