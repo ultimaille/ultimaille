@@ -11,6 +11,7 @@ namespace UM {
 
     struct OppositeFacet { // adjacency between half-facets
         OppositeFacet(const Volume &m);
+        void reset();
 
         int & operator[](const int i);
         int   operator[](const int i) const;

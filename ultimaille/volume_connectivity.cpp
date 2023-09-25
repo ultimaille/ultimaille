@@ -25,7 +25,13 @@ namespace UM {
         return false;
     }
 
-    OppositeFacet::OppositeFacet(const Volume &m) : m(m), adjacent(m.nfacets(), -1) {
+    OppositeFacet::OppositeFacet(const Volume &m) : m(m) {
+        reset();
+    }
+
+    void OppositeFacet::reset() {
+        adjacent = std::vector(m.nfacets(), -1);
+
         std::vector<int> c2c, v2c;
         compute_corner_to_corner_map(m, v2c, c2c);
 
