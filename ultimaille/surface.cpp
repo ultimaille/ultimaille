@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cassert>
 #include "attributes.h"
+#include "polyline.h"
 #include "surface.h"
 #include "volume.h"
 #include "attr_binding.h"

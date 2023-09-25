@@ -34,12 +34,12 @@ TEST_CASE("PolyLine + PolyLineAttributes IO test", "[geogram]") {
     static const std::string filename = "ultimaille-test-polyline.geogram";
     PolyLine m;
     *m.points.data = {{0,.9,0}, {0,.8,0}, {1.,.3,0.}};
-    m.segments = {0,1,1,2};
+    m.edges = {0,1,1,2};
     PointAttribute<bool> vbool(m.points);
-    SegmentAttribute<int> sint(m);
+    EdgeAttribute<int> sint(m);
     for (int v : range(m.nverts()))
         vbool[v] = rand()&1;
-    for (int cc : range(m.nsegments()))
+    for (int cc : range(m.nedges()))
         sint[cc] = rand();
     write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"sint", sint.ptr}}});
 
@@ -47,7 +47,7 @@ TEST_CASE("PolyLine + PolyLineAttributes IO test", "[geogram]") {
     PolyLineAttributes attrs = read_by_extension(filename, m2);
 
     REQUIRE( m.nverts()==m2.nverts() );
-    REQUIRE( m.nsegments()==m2.nsegments() );
+    REQUIRE( m.nedges()==m2.nedges() );
 
     PointAttribute<bool> vbool2("vbool", attrs, m2);
     for (int v=0; v<m.nverts(); v++) {
@@ -55,8 +55,8 @@ TEST_CASE("PolyLine + PolyLineAttributes IO test", "[geogram]") {
         REQUIRE( vbool[v]==vbool2[v] );
     }
 
-    SegmentAttribute<int> sint2("sint", attrs, m2);
-    for (int c=0; c<m.nsegments(); c++) {
+    EdgeAttribute<int> sint2("sint", attrs, m2);
+    for (int c=0; c<m.nedges(); c++) {
         for (int lv=0; lv<2; lv++) {
             REQUIRE( m.vert(c, lv)==m2.vert(c, lv) );
         }

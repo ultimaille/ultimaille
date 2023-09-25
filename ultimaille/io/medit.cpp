@@ -305,10 +305,10 @@ namespace UM {
 
     void write_medit(const std::string filename, const PolyLine& pl) {
         std::vector<vec3> verts(pl.nverts());
-        std::vector<int> edges(2 * pl.nsegments());
+        std::vector<int> edges(2 * pl.nedges());
         std::vector<int> tris, quads, tets, hexes, wedges, pyramids;
         FOR(v, pl.nverts()) verts[v] = pl.points[v];
-        FOR(e, pl.nsegments()) FOR(ev, 2) edges[2 * e + ev] = pl.vert(e, ev);
+        FOR(e, pl.nedges()) FOR(ev, 2) edges[2 * e + ev] = pl.vert(e, ev);
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids);
     }
 
@@ -371,8 +371,8 @@ namespace UM {
         m = PolyLine();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
-        m.create_segments(edges.size()/2);
-        FOR(e, m.nsegments()) FOR(ev, 2) m.vert(e, ev) = edges[2 * e + ev];
+        m.create_edges(edges.size()/2);
+        FOR(e, m.nedges()) FOR(ev, 2) m.vert(e, ev) = edges[2 * e + ev];
         return {};
     }
 

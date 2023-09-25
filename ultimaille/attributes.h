@@ -3,12 +3,14 @@
 #include <vector>
 #include <memory>
 #include <cassert>
-#include "polyline.h"
 #include "pointset.h"
+//#include "polyline.h"
 //#include "surface.h"
 //#include "volume.h"
 
 namespace UM {
+//    struct PointSet;
+    struct PolyLine;
     struct Surface;
     struct Volume;
 
@@ -40,7 +42,7 @@ namespace UM {
         std::vector<NamedContainer> points;
     };
     struct PolyLineAttributes {
-        std::vector<NamedContainer> points, segments;
+        std::vector<NamedContainer> points, edges;
     };
     struct SurfaceAttributes {
         std::vector<NamedContainer> points, facets, corners;
@@ -142,10 +144,10 @@ namespace UM {
         PointAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
     };
 
-    template <typename T> struct SegmentAttribute : GenericAttribute<T> {
-        SegmentAttribute(PolyLine &seg, const T def = T());
-        SegmentAttribute(const PolyLine &seg, const T def = T());
-        SegmentAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def = T());
+    template <typename T> struct EdgeAttribute : GenericAttribute<T> {
+        EdgeAttribute(PolyLine &seg, const T def = T());
+        EdgeAttribute(const PolyLine &seg, const T def = T());
+        EdgeAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def = T());
     };
 
     template <typename T> struct FacetAttribute : GenericAttribute<T> {

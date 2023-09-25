@@ -32,8 +32,8 @@ namespace UM {
                     if (iss.eof()) break;
                     iss >> tmp;
                     if (prev != -1) {
-                        m.segments.push_back(prev);
-                        m.segments.push_back(tmp-1);
+                        m.edges.push_back(prev);
+                        m.edges.push_back(tmp-1);
                     }
                     prev = tmp-1;
                 }

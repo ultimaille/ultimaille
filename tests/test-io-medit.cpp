@@ -70,7 +70,7 @@ TEST_CASE("Medit Polyline IO test", "[Medit]") {
         read_by_extension(filename[i], m[i]);
 
         REQUIRE( m[i].nverts()==3 );
-        REQUIRE( m[i].nsegments()==2 );
+        REQUIRE( m[i].nedges()==2 );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }

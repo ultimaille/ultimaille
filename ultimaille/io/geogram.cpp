@@ -119,14 +119,14 @@ namespace UM {
             writer.addAttributeSize("GEO::Mesh::vertices", pl.nverts());
             writer.addAttribute("GEO::Mesh::vertices", "point", "double", reinterpret_cast<const double *>(pl.points.data->data()), pl.nverts(), 3);
 
-            writer.addAttributeSize("GEO::Mesh::edges", pl.nsegments());
+            writer.addAttributeSize("GEO::Mesh::edges", pl.nedges());
             {
-                std::vector<index_t> segments;
-                for (int s : pl.segments) segments.push_back(s);
-                writer.addAttribute("GEO::Mesh::edges", "GEO::Mesh::edges::edge_vertex", "index_t", reinterpret_cast<const index_t *>(segments.data()), pl.nsegments(), 2);
+                std::vector<index_t> edges;
+                for (int s : pl.edges) edges.push_back(s);
+                writer.addAttribute("GEO::Mesh::edges", "GEO::Mesh::edges::edge_vertex", "index_t", reinterpret_cast<const index_t *>(edges.data()), pl.nedges(), 2);
             }
 
-            std::vector<NamedContainer> A[2] = {attr.points, attr.segments};
+            std::vector<NamedContainer> A[2] = {attr.points, attr.edges};
             for (int z=0; z<2; z++) {
                 auto &att = A[z];
 
@@ -759,7 +759,7 @@ namespace UM {
         read_geogram(filename, attrib);
         parse_pointset_attributes(pl.points, attrib[0]);
 
-        parse_int_array("GEO::Mesh::edges::edge_vertex", pl.segments, attrib[1]);
+        parse_int_array("GEO::Mesh::edges::edge_vertex", pl.edges, attrib[1]);
 
         for (auto &a : attrib[0]) pl.points.attr.emplace_back(a.second);
         for (auto &a : attrib[1]) pl.attr.emplace_back(a.second);

@@ -289,14 +289,14 @@ namespace UM {
         out << std::endl;
 
         if constexpr (std::is_same_v<M, PolyLine>) {
-            out << std::endl << "CELLS " << m.nsegments() << " " << (m.nsegments()*(1+2)) << std::endl;
-            for (int c=0; c<m.nsegments(); c++) {
+            out << std::endl << "CELLS " << m.nedges() << " " << (m.nedges()*(1+2)) << std::endl;
+            for (int c=0; c<m.nedges(); c++) {
                 out << "2 ";
                 for (int lv=0; lv<2; lv++)
                     out << m.vert(c, lv) << " ";
                 out << std::endl;
             }
-            out << std::endl << "CELL_TYPES " << m.nsegments() << std::endl;
+            out << std::endl << "CELL_TYPES " << m.nedges() << std::endl;
         } else if constexpr (std::is_base_of_v<Surface, M>) {
             /*
             if (auto ptr = dynamic_cast<Triangles *>(&m)) {
@@ -360,7 +360,7 @@ namespace UM {
         }
 
         if constexpr (std::is_same_v<M, PolyLine>) {
-            for (int c=0; c<m.nsegments(); c++)
+            for (int c=0; c<m.nedges(); c++)
                 out << "3 ";
             out << std::endl;
         } else if constexpr (std::is_base_of_v<Surface, M>) {
@@ -425,9 +425,9 @@ namespace UM {
 
         if constexpr (std::is_same_v<A, PointSetAttributes>) {
         } else if constexpr (std::is_same_v<A, PolyLineAttributes>) {
-            if (a.segments.size()) {
-                out << std::endl << "CELL_DATA " << m.nsegments() << std::endl;
-                drop_attributes(a.segments, out);
+            if (a.edges.size()) {
+                out << std::endl << "CELL_DATA " << m.nedges() << std::endl;
+                drop_attributes(a.edges, out);
             }
         } else if constexpr (std::is_same_v<A, SurfaceAttributes>) {
             if (a.facets.size()) {
@@ -518,8 +518,8 @@ namespace UM {
         m = PolyLine();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
-        m.create_segments(edges.size()/2);
-        FOR(e, m.nsegments()) FOR(ev, 2) m.vert(e, ev) = edges[2 * e + ev];
+        m.create_edges(edges.size()/2);
+        FOR(e, m.nedges()) FOR(ev, 2) m.vert(e, ev) = edges[2 * e + ev];
         return { attrib[0], attrib[1] };
     }
 

@@ -49,15 +49,15 @@ namespace UM {
 
 
 
-    template <typename T> SegmentAttribute<T>::SegmentAttribute(PolyLine &seg, const T def) : GenericAttribute<T>(seg.nsegments(), def) {
+    template <typename T> EdgeAttribute<T>::EdgeAttribute(PolyLine &seg, const T def) : GenericAttribute<T>(seg.nedges(), def) {
         seg.attr.push_back(this->ptr);
     }
 
-    template <typename T> SegmentAttribute<T>::SegmentAttribute(const PolyLine &seg, const T def) : GenericAttribute<T>(seg.nsegments(), def) {
+    template <typename T> EdgeAttribute<T>::EdgeAttribute(const PolyLine &seg, const T def) : GenericAttribute<T>(seg.nedges(), def) {
     }
 
-    template <typename T> SegmentAttribute<T>::SegmentAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def) : GenericAttribute<T>() {
-        bind_attribute(this, name, seg.nsegments(), attributes.segments, seg.attr, def);
+    template <typename T> EdgeAttribute<T>::EdgeAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def) : GenericAttribute<T>() {
+        bind_attribute(this, name, seg.nedges(), attributes.edges, seg.attr, def);
     }
 
 
