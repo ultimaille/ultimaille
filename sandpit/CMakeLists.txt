@@ -1,5 +1,5 @@
-add_executable(untangle3d untangle3d.cpp)
-target_link_libraries(untangle3d  ${CMAKE_DL_LIBS} ultimaille m)
+#add_executable(untangle3d untangle3d.cpp)
+#target_link_libraries(untangle3d  ${CMAKE_DL_LIBS} ultimaille m)
 
 add_executable(helloworld helloworld.cpp)
 target_link_libraries(helloworld  ${CMAKE_DL_LIBS} ultimaille)
