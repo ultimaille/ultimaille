@@ -199,5 +199,52 @@ namespace UM {
                 v2c[v] = crn;
             }
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // c, org and dst are global indices
+    int HalfEdgeHelper::halfedge_from_verts(const int c, const int org, const int dst) const {
+        assert(c>=0 && c<m.ncells());
+        assert(org>=0 && org<m.nverts());
+        assert(dst>=0 && dst<m.nverts());
+
+        for (int cf=0; cf<m.nfacets_per_cell(); cf++) {
+            int nbv = m.facet_size(cf);
+            for (int cfh=0; cfh<nbv; cfh++) {
+                if (
+                        org == m.facet_vert(c, cf, cfh) &&
+                        dst == m.facet_vert(c, cf, (cfh+1) % nbv)
+                   )
+                    return halfedge(c, cf, cfh);
+            }
+        }
+        return -1;
+    }
+
+    int HalfEdgeHelper::nhalfedges() const {
+        return m.ncells() * nhalfedges_per_cell();
+    }
+
+    vec3 HalfEdgeHelper::geom(const int he) const {
+        return m.points[to(he)] - m.points[from(he)];
+    }
+
+    // global vertex id
+    int HalfEdgeHelper::from(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return m.facet_vert(cell(he), cell_facet(he), facet_halfedge(he));
+    }
+
+    // global vertex id
+    int HalfEdgeHelper::to(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        const int size = m.facet_size(cell_facet(he));
+        return m.facet_vert(cell(he), cell_facet(he), (facet_halfedge(he)+1) % size);
+    }
+
+    int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
+        return adj.opposite_c(he);
+    }
+
 }
 
