@@ -455,7 +455,7 @@ namespace UM {
     }
 
     inline int Surface::Halfedge::id_in_facet() {
-        return id - m.corner(id, 0);
+        return id - m.corner(facet(), 0);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
