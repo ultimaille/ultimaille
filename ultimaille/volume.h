@@ -39,7 +39,7 @@ namespace UM {
         const Volume &m;
     };
 
-    struct halfedge_around_edge_iter {
+    [[deprecated]] struct halfedge_around_edge_iter {
         const OppositeFacet  &of;
         const HalfEdgeHelper &heh;
         int start  = -1;
@@ -75,7 +75,7 @@ namespace UM {
         enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };
         constexpr virtual CELL_TYPE cell_type() const noexcept = 0;
 
-        HalfEdgeHelper heh;
+        [[deprecated]] HalfEdgeHelper heh;
         PointSet points{};
         std::vector<int> cells{};
 
@@ -125,7 +125,7 @@ namespace UM {
             return *this;
         }
 
-        struct Util {
+       [[deprecated]] struct Util {
             Util(const Volume &mesh) : m(mesh) {}
             virtual double cell_volume(const int c) const;
             virtual vec3 facet_normal(const int c, const int lf) const;
@@ -133,7 +133,161 @@ namespace UM {
             vec3 bary_facet(const int c, const int lf) const;
             const Volume &m;
         } util;
+
+        struct Connectivity {
+            Volume &m;
+            OppositeFacet oppf;
+            HalfEdgeHelper heh;
+
+            Connectivity(Volume &m);
+            void reset();
+        };
+
+        std::unique_ptr<Connectivity> conn = {};
+        inline bool connected() const { return conn != nullptr; }
+
+        void connect();
+        void disconnect();
+
+        // TODO careful assert policy, esp. for the iterators
+
+        struct Primitive {
+            Primitive(Volume& m, int id) : m(m), id(id) {}
+            Primitive(Primitive& p)  = default;
+            Primitive(Primitive&& p) = default;
+
+            Primitive& operator=(Primitive& p);
+            Primitive& operator=(int i);
+
+            operator int() const;
+            operator int& ();
+            bool active() const;
+
+        protected:
+            friend struct Volume;
+            Volume& m;
+            int id;
+        };
+
+        struct Vertex;
+        struct Corner;
+        struct Halfedge;
+        struct Facet;
+        struct Cell;
+
+        struct Vertex :  Primitive {
+            using Primitive::Primitive;
+            using Primitive::operator=;
+            Vertex(Vertex& v)  = default;
+            Vertex(Vertex&& v) = default;
+            Vertex& operator=(Vertex& v);
+
+            vec3  pos() const;
+            vec3& pos();
+        };
+
+        struct Corner : Primitive {
+            using Primitive::Primitive;
+            using Primitive::operator=;
+            Corner(Corner& v)  = default;
+            Corner(Corner&& v) = default;
+            Corner& operator=(Corner& v);
+
+            int id_in_cell();
+            Vertex vertex();
+            Cell cell();
+        };
+
+        struct Halfedge : Primitive {
+            using Primitive::Primitive;
+            using Primitive::operator=;
+            Halfedge(Halfedge& he)  = default;
+            Halfedge(Halfedge&& he) = default;
+            Halfedge& operator=(Halfedge& he);
+
+            Facet facet();
+            int id_in_facet();
+            Vertex from();
+            Vertex to();
+            Corner from_corner();
+            Corner to_corner();
+            Halfedge next();
+            Halfedge prev();
+            Cell cell();
+            int id_in_cell();
+            Halfedge opposite_f();
+            Halfedge opposite_c();
+
+            auto iter_CCW_around_edge();
+        };
+
+        struct Facet : Primitive {
+            using Primitive::Primitive;
+            using Primitive::operator=;
+            Facet(Facet& he)  = default;
+            Facet(Facet&& he) = default;
+            Facet& operator=(Facet& he);
+
+            int nverts()     const;
+            int ncorners()   const;
+            int nhalfedges() const;
+
+            Halfedge halfedge(int lh);
+            Vertex vertex(int lv);
+            Corner corner(int lc);
+
+            Facet opposite();
+
+            Cell cell();
+            int id_in_cell();
+
+            auto iter_halfedges();
+        };
+
+        struct Cell : Primitive {
+            using Primitive::Primitive;
+            using Primitive::operator=;
+            Cell(Cell& he)  = default;
+            Cell(Cell&& he) = default;
+            Cell& operator=(Cell& he);
+
+            int nfacets()    const;
+            int ncorners()   const;
+            int nverts()     const;
+            int nhalfedges() const;
+
+            Facet facet(int lf);
+            Corner corner(int lc);
+            Vertex vertex(int lv);
+            Halfedge halfedge(int lh);
+
+            auto iter_facets();
+        };
+
+        auto iter_vertices();
+        auto iter_corners();
+        auto iter_halfedges();
+        auto iter_facets();
+        auto iter_cells();
     };
+
+   /*
+    * EdgeGraph represents edges of a volumetric mesh
+    *    -> Concept: An edge corresponds to a set of halfedges with same from/to vertices
+    *    -> Design choice: Edges are manifold, so a non manifold edge is represented edges with same from/to vertices
+    *   -> Benefits: A) use EdgeAttributes and B) gives acces to vertex neigborhood i.e. all primitives can reach its neigborgs
+    */
+
+    struct EdgeGraph : public PolyLine {
+        EdgeGraph(Volume& m);
+        PolyLine::Edge edge_from_halfedge(Volume::Halfedge h);
+        Volume::Halfedge halfedge_from_edge(Edge e);
+
+        std::vector<int> m_halfedge_from_edge;
+        Volume& m;
+    };
+
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -229,7 +383,16 @@ namespace UM {
         return c*nverts_per_cell() + lc;
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    //      _____                            _   _       _ _         _    //
+    //     / ____|                          | | (_)     (_) |       | |   //
+    //    | |     ___  _ __  _ __   ___  ___| |_ ___   ___| |_ _   _| |   //
+    //    | |    / _ \| '_ \| '_ \ / _ \/ __| __| \ \ / / | __| | | | |   //
+    //    | |___| (_) | | | | | | |  __/ (__| |_| |\ V /| | |_| |_| |_|   //
+    //     \_____\___/|_| |_|_| |_|\___|\___|\__|_| \_/ |_|\__|\__, (_)   //
+    //                                                          __/ |     //
+    //                                                         |___/      //
+    ////////////////////////////////////////////////////////////////////////
 
     inline constexpr int HalfEdgeHelper::nhalfedges_per_cell() const {
         return reference_cells[m.cell_type()].ncorners();
@@ -300,6 +463,368 @@ namespace UM {
         return nhalfedges_per_cell()*cell(he) + reference_cells[m.cell_type()].opposite(cell_halfedge(he));
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline Volume::Primitive::operator int() const {
+        return id;
+    }
+
+    inline Volume::Primitive::operator int& () {
+        return id;
+    }
+
+    inline bool Volume::Primitive::active() const {
+        return id>=0;
+    }
+
+    inline Volume::Primitive& Volume::Primitive::operator=(Volume::Primitive& p) {
+        assert(&m == &p.m);
+        id = p.id;
+        return *this;
+    }
+
+    inline Volume::Primitive& Volume::Primitive::operator=(int i) {
+        id = i;
+        return *this;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline Volume::Vertex& Volume::Vertex::operator=(Volume::Vertex& v) {
+        Primitive::operator=(v);
+        return *this;
+    }
+
+    inline vec3  Volume::Vertex::pos() const {
+        return m.points[id];
+    }
+
+    inline vec3& Volume::Vertex::pos() {
+        return m.points[id];
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline Volume::Corner& Volume::Corner::operator=(Volume::Corner& v) {
+        Primitive::operator=(v);
+        return *this;
+    }
+
+    inline Volume::Vertex Volume::Corner::vertex() {
+        return { m, m.vert(id / m.nverts_per_cell(), id % m.nverts_per_cell()) };
+    }
+
+    inline Volume::Cell Volume::Corner::cell() {
+         return { m, id / m.nverts_per_cell() };
+    }
+
+    inline int Volume::Corner::id_in_cell() {
+        return id % m.nverts_per_cell();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline Volume::Halfedge& Volume::Halfedge::operator=(Volume::Halfedge& v) {
+        Primitive::operator=(v);
+        return *this;
+    }
+
+    inline Volume::Vertex Volume::Halfedge::from() {
+        assert(m.connected());
+        return { m, m.conn->heh.from(id) };
+    }
+
+    inline Volume::Vertex Volume::Halfedge::to() {
+        assert(m.connected());
+        return { m, m.conn->heh.to(id) };
+    }
+
+    inline Volume::Corner Volume::Halfedge::from_corner() {
+        assert(m.connected());
+        return { m, m.conn->heh.corner(id) };
+    }
+
+    inline Volume::Corner Volume::Halfedge::to_corner() {
+        assert(m.connected());
+        return { m, next().from_corner() };
+    }
+
+    inline Volume::Halfedge Volume::Halfedge::next() {
+        assert(m.connected());
+        return { m, m.conn->heh.next(id) };
+    }
+
+    inline Volume::Halfedge Volume::Halfedge::prev() {
+        assert(m.connected());
+        return { m, m.conn->heh.prev(id) };
+    }
+
+    inline Volume::Facet Volume::Halfedge::facet() {
+        assert(m.connected());
+        return { m, m.conn->heh.facet(id) };
+    }
+
+    inline int Volume::Halfedge::id_in_facet() {
+        assert(m.connected());
+        return id - facet().halfedge(0);
+    }
+
+    inline Volume::Cell Volume::Halfedge::cell() {
+        assert(m.connected());
+        return { m, m.conn->heh.cell(id) };
+    }
+
+    inline int Volume::Halfedge::id_in_cell() {
+        assert(m.connected());
+        return id - m.conn->heh.cell(id)*m.conn->heh.nhalfedges_per_cell();
+    }
+
+    inline Volume::Halfedge Volume::Halfedge::opposite_f() {
+        assert(m.connected());
+        return { m, m.conn->heh.opposite_f(id) };
+    }
+
+    inline Volume::Halfedge Volume::Halfedge::opposite_c() {
+        assert(m.connected());
+        Facet oppf = facet().opposite();
+        if (!oppf.active()) return { m, -1 };
+        for (int lv=0; lv<oppf.nhalfedges(); lv++) {
+            Halfedge res = oppf.halfedge(lv);
+            if (res.from() == to() && res.to() == from()) return res;
+        }
+        um_assert(false);
+        return { m, -1 };
+    }
+
+    inline auto Volume::Halfedge::iter_CCW_around_edge() {
+        struct iterator {
+            Halfedge ref;
+            Halfedge data;
+            void operator++() {
+                data = data.opposite_f().opposite_c();
+                if (data == ref) data.id = -1;
+            }
+            bool operator!=(iterator& rhs) { return data != rhs.data; }
+            Halfedge& operator*() { return data; }
+        };
+        struct wrapper {
+            Halfedge ref;
+            auto begin() {
+                if (!ref.active())return iterator{ ref,ref };
+                Halfedge org = ref;
+                do {
+                    Halfedge opp = ref.opposite_c();
+                    if (!opp.active())
+                        return iterator{ ref , ref };
+                    ref = opp.opposite_f();
+                } while (org != ref);
+                return iterator{ ref , ref };
+            }
+            auto end() { return iterator{ ref , Halfedge(ref.m,-1) }; }
+        };
+        return wrapper{ *this };
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline Volume::Facet& Volume::Facet::operator=(Volume::Facet& v) {
+        Primitive::operator=(v);
+        return *this;
+    }
+
+    inline int Volume::Facet::nverts() const {
+        return m.facet_size(id);
+    }
+
+    inline int Volume::Facet::ncorners() const {
+        return m.facet_size(id);
+    }
+
+    inline int Volume::Facet::nhalfedges() const {
+        return m.facet_size(id);
+    }
+
+    inline Volume::Halfedge Volume::Facet::halfedge(int i) {
+        assert(m.connected());
+        return { m, m.conn->heh.halfedge(cell(), id_in_cell(), i) };
+    }
+
+    inline Volume::Vertex Volume::Facet::vertex(int i) {
+        assert(m.connected());
+        return { m, halfedge(i).from() };
+    }
+
+    inline Volume::Corner Volume::Facet::corner(int i) {
+        assert(m.connected());
+        return { m, halfedge(i).from_corner() };
+    }
+
+    inline Volume::Facet Volume::Facet::opposite() {
+        assert(m.connected());
+        return { m, m.conn->oppf.adjacent[id] };
+    }
+
+    inline Volume::Cell Volume::Facet::cell() {
+        assert(m.connected());
+        return { m, m.cell_from_facet(id) };
+    }
+
+    inline int Volume::Facet::id_in_cell() {
+        return id % m.nfacets_per_cell();
+    }
+
+    inline auto Volume::Facet::iter_halfedges() {
+        struct iterator {
+            Halfedge data;
+            void operator++() { int f = data.facet(); ++(data.id); if (data.id % data.m.facet_size(f) == 0) data.id = -1; }
+            bool operator!=(iterator& rhs) { return data != rhs.data; }
+            Halfedge& operator*() { return data; }
+        };
+        struct wrapper {
+            Facet& f;
+            auto begin() { return iterator{ f.halfedge(0) }; }
+            auto end()   { return iterator{ Halfedge(f.m,-1) }; }
+        };
+        return wrapper{ *this };
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline Volume::Cell& Volume::Cell::operator=(Volume::Cell& v) {
+        Primitive::operator=(v);
+        return *this;
+    }
+
+    inline int Volume::Cell::nverts() const {
+        return m.nverts_per_cell();
+    }
+
+    inline int Volume::Cell::nfacets() const {
+        return m.nfacets_per_cell();
+    }
+
+    inline int Volume::Cell::ncorners() const {
+        return m.nverts_per_cell();
+    }
+
+    inline int Volume::Cell::nhalfedges() const {
+        assert(m.connected());
+        return m.conn->heh.nhalfedges_per_cell();
+    }
+
+    inline Volume::Vertex Volume::Cell::vertex(int lv) {
+        assert(m.connected());
+        return { m, m.vert(id, lv) };
+    }
+
+    inline Volume::Corner Volume::Cell::corner(int lc) {
+        assert(m.connected());
+        return { m, m.corner(id, lc) };
+    }
+
+    inline Volume::Halfedge Volume::Cell::halfedge(int lh) {
+        assert(m.connected());
+        return { m, m.conn->heh.nhalfedges_per_cell()*id + lh };
+    }
+
+    inline Volume::Facet Volume::Cell::facet(int lf) {
+        assert(m.connected());
+        return { m, m.nfacets_per_cell()*id + lf };
+    }
+
+    inline auto Volume::Cell::iter_facets() {
+        struct iterator {
+            Facet data;
+            void operator++() { ++(data.id); }
+            bool operator!=(iterator& rhs) { return data != rhs.data; }
+            Facet& operator*() { return data; }
+        };
+        struct wrapper {
+            Cell& c;
+            auto begin() { return iterator{ c.facet(0) }; }
+            auto end()   { return iterator{ c.facet(c.nfacets()) }; }
+        };
+        return wrapper{ *this };
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline auto Volume::iter_vertices() {
+        struct iterator {
+            Vertex v;
+            void operator++() { ++v.id; }
+            bool operator!=(iterator& rhs) { return v != rhs.v; }
+            Vertex& operator*() { return v; }
+        };
+        struct wrapper {
+            Volume& m;
+            auto begin() { return iterator{ Vertex(m,0) }; }
+            auto end() { return iterator{ Vertex(m,m.nverts()) }; }
+        };
+        return wrapper{ *this };
+    }
+
+    inline auto Volume::iter_corners() {
+        struct iterator {
+            Corner c;
+            void operator++() { ++c.id; }
+            bool operator!=(iterator& rhs) { return c != rhs.c; }
+            Corner& operator*() { return c; }
+        };
+        struct wrapper {
+            Volume& m;
+            auto begin() { return iterator{ Corner(m,0) }; }
+            auto end() { return iterator{ Corner(m,m.ncorners()) }; }
+        };
+        return wrapper{ *this };
+    }
+
+    inline auto Volume::iter_halfedges() {
+        assert(connected());
+        struct iterator {
+            Halfedge data;
+            void operator++() { ++data.id; }
+            bool operator!=( iterator& rhs)  { return data != rhs.data; }
+            Halfedge& operator*()  { return data; }
+        };
+        struct wrapper {
+            Volume& m;
+            auto begin() { return iterator{ Halfedge(m,0) }; }
+            auto end() { return iterator{ Halfedge(m,m.conn->heh.nhalfedges()) }; }
+        };
+        return wrapper{ *this};
+    }
+
+    inline auto Volume::iter_facets() {
+        struct iterator {
+            Facet data;
+            void operator++() { ++(data.id); }
+            bool operator!=( iterator& rhs)  { return data != rhs.data; }
+             Facet& operator*()  { return data; }
+        };
+        struct wrapper {
+            Volume& m;
+            auto begin() {return iterator{ Facet(m,0) };}
+            auto end() { return iterator{ Facet(m,m.nfacets()) }; }
+        };
+        return wrapper{ *this };
+    }
+
+    inline auto Volume::iter_cells() {
+        struct iterator {
+            Cell data;
+            void operator++() { ++data.id; }
+            bool operator!=( iterator& rhs)  { return data != rhs.data; }
+            Cell& operator*()  { return data; }
+        };
+        struct wrapper {
+            Volume& m;
+            auto begin() { return iterator{ Cell(m,0) }; }
+            auto end() { return iterator{ Cell(m,m.ncells()) }; }
+        };
+        return wrapper{ *this};
+    }
 
 }
 

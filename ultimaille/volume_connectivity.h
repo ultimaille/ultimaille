@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "syntactic-sugar/assert.h"
+#include "polyline.h"
 //#include "volume.h"
 
 namespace UM {
@@ -13,10 +14,10 @@ namespace UM {
         OppositeFacet(const Volume &m);
         void reset();
 
-        int & operator[](const int i);
+        [[deprecated]] int & operator[](const int i);
         int   operator[](const int i) const;
 
-        int opposite_c(const int he) const;
+        [[deprecated]] int opposite_c(const int he) const;
         [[deprecated]] std::vector<int> halfedges_around_edge(const int he) const;
 
         const Volume &m;

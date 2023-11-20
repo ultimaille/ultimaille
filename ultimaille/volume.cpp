@@ -202,6 +202,25 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    void Volume::connect() {
+        if (!conn) conn = std::make_unique<Connectivity>(*this);
+        conn->reset();
+    }
+
+    void Volume::disconnect() {
+        conn.reset();
+    }
+
+    Volume::Connectivity::Connectivity(Volume &m) : m(m),  oppf(m), heh(m) {
+        reset();
+    }
+
+    void Volume::Connectivity::reset() {
+        oppf.reset();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     // c, org and dst are global indices
     int HalfEdgeHelper::halfedge_from_verts(const int c, const int org, const int dst) const {
         assert(c>=0 && c<m.ncells());
@@ -245,6 +264,36 @@ namespace UM {
     int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
         return adj.opposite_c(he);
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    EdgeGraph::EdgeGraph(Volume& m) : m(m) {
+        points = m.points;
+        for (auto h : m.iter_halfedges()) {
+            bool h_is_resp = true;
+            for (int cir : h.iter_CCW_around_edge())
+                h_is_resp = h_is_resp && h >= cir;
+            if (!h_is_resp) continue;
+            int e = create_edges(1);
+            vert(e, 0) = h.from();
+            vert(e, 1) = h.to();
+            m_halfedge_from_edge.push_back(h);
+        }
+        connect();
+    }
+
+    PolyLine::Edge EdgeGraph::edge_from_halfedge(Volume::Halfedge h) {
+        int p[2] = { h.from(),h.to() };
+        Vertex v = vertex(p[0]);
+        for (auto it : v.iter_edges()) if (p[1] == it.to()) {
+            for (int cir : halfedge_from_edge(it).iter_CCW_around_edge())
+                if (cir == h) return it;
+        }
+        um_assert(false);
+        return edge(-1);
+    }
+
+    Volume::Halfedge EdgeGraph::halfedge_from_edge(Edge e) { return { m, m_halfedge_from_edge[e] }; }
 
 }
 
