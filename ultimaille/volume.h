@@ -39,7 +39,7 @@ namespace UM {
         const Volume &m;
     };
 
-    [[deprecated]] struct halfedge_around_edge_iter {
+    struct [[deprecated]] halfedge_around_edge_iter {
         const OppositeFacet  &of;
         const HalfEdgeHelper &heh;
         int start  = -1;
@@ -125,7 +125,7 @@ namespace UM {
             return *this;
         }
 
-       [[deprecated]] struct Util {
+       struct [[deprecated]] Util {
             Util(const Volume &mesh) : m(mesh) {}
             virtual double cell_volume(const int c) const;
             virtual vec3 facet_normal(const int c, const int lf) const;
