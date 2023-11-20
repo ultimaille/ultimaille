@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <catch2/catch_test_macros.hpp>
 
 #include <iostream>
@@ -311,7 +313,7 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
 
     void edge_one_ring(Tetrahedra& m, int n) {
         m.points.create_points(n + 2);
-        FOR(v, n) m.points[v] = vec3(cos(2. * M_PI * double(v) / double(n)), sin(2. * M_PI * double(v) / double(n)), 0);
+        FOR(v, n) m.points[v] = {std::cos(2. * M_PI * double(v) / double(n)), std::sin(2. * M_PI * double(v) / double(n)), 0.};
         m.points[n] = vec3(0, 0, 1);
         m.points[n + 1] = vec3(0, 0, -1);
         m.create_cells(n);
