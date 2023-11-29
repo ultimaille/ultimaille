@@ -12,13 +12,16 @@
 #endif
 
 namespace UM {
+
     template<int n> struct vec {
-        vec() = default;
+        //vec() = default;
+
         double & operator[](const int i)       { assert(i>=0 && i<n); return data[i]; }
         double   operator[](const int i) const { assert(i>=0 && i<n); return data[i]; }
         double norm2() const { return (*this)*(*this) ; }
         double norm()  const { return std::sqrt(norm2()); }
-        double data[n] = {0};
+        double data[n];
+
     };
 
     template<int n> double operator*(const vec<n>& lhs, const vec<n>& rhs) {
@@ -147,8 +150,23 @@ namespace UM {
     };
     */
 
-    /////////////////////////////////////////////////////////////////////////////////
+    // Really necessary ? Just for the implicit cast...
+    template<> struct vec<1> {
+        vec() =  default;
+        constexpr vec(double X) : x(X) {}
+        double& operator[](const int i)       { assert(i>=0 && i<1); return x; }
+        double  operator[](const int i) const { assert(i>=0 && i<1); return x; }
+        operator const double() const { return x; }
+        double norm2() const { return (*this)*(*this) ; }
+        double norm()  const { return std::sqrt(norm2()); }
+        void normalize() { *this = *this/norm(); }
+        vec<1> normalized() const { return *this/norm(); }
 
+        double x{};
+    };
+
+    /////////////////////////////////////////////////////////////////////////////////
+    typedef vec<1> vec1;
     typedef vec<2> vec2;
     typedef vec<3> vec3;
     typedef vec<4> vec4;
