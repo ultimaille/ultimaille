@@ -121,6 +121,7 @@ namespace UM {
             Halfedge& operator=(Halfedge& he);
 
             bool active();
+            bool on_boundary();
             Facet facet();
 
             Halfedge next();
@@ -396,6 +397,10 @@ namespace UM {
 
     inline bool Surface::Halfedge::active() {
         return id >= 0 && facet().active();
+    }
+
+    inline bool Surface::Halfedge::on_boundary() {
+        return !opposite().active();
     }
 
     inline Surface::Facet Surface::Halfedge::facet() {

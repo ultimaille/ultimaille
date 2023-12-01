@@ -120,6 +120,7 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
         if (cnt_opp[he]==0) {
             REQUIRE(he.from().on_boundary());
             REQUIRE(he.to().on_boundary());
+            REQUIRE(he.on_boundary());
             brd++;
         }
     }
