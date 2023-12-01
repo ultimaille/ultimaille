@@ -11,29 +11,29 @@ TEST_CASE("Test 1D bbox", "[bb]") {
 
 
 
-    BBox1 bbox1(0., 1.);
+    BBox1 bbox1({0.}, {1.});
     //BBox<2> b;
     CHECK_FALSE(bbox1.empty());
 
     // Check point is contained in bbox
-    CHECK(bbox1.contains(.5));
+    CHECK(bbox1.contains({.5}));
 
     // Check that bbox2 overlap bbox1
-    BBox1 b2(0.8, 1.2);
+    BBox1 b2({0.8}, {1.2});
     CHECK(bbox1.intersect(b2));
 
     // Check that center is approximatively equal to {0.5, 0.5}
-    // CHECK(std::abs((bbox1.center()-vec1{0.5}).norm()) < 10e-4);
-    CHECK(std::abs(bbox1.center()-0.5) < 10e-4);
+    CHECK(std::abs((bbox1.center()-vec<1>{0.5}).norm()) < 10e-4);
+    
 
     // Size before dilate
-    double p_min = bbox1.min;
-    double p_max = bbox1.max;
+    double p_min = bbox1.min.data[0];
+    double p_max = bbox1.max.data[0];
     // Dilate BBox
     bbox1.dilate(1.);
     // Check new size of bbox is correct
-    CHECK(bbox1.min <= p_min - 1.);
-    CHECK(bbox1.max >= p_max + 1.);
+    CHECK(bbox1.min[0] <= p_min - 1.);
+    CHECK(bbox1.max[0] >= p_max + 1.);
     
 
     BBox1 empty_bbox;
@@ -80,9 +80,9 @@ TEST_CASE("Test 2D bbox", "[bb]") {
 
 TEST_CASE("Test 1D hbbox", "[hb]") {
 
-    BBox1 bbox1(vec1{0.}, vec1{1.});
-    BBox1 bbox2(vec1{1.1}, vec1{2.});
-    BBox1 bbox3(vec1{2.1}, vec1{3.});
+    BBox1 bbox1({0.}, {1.});
+    BBox1 bbox2({1.1}, {2.});
+    BBox1 bbox3({2.1}, {3.});
     std::vector<BBox1> bboxes;
     bboxes.push_back(bbox1);
     bboxes.push_back(bbox2);
@@ -91,7 +91,7 @@ TEST_CASE("Test 1D hbbox", "[hb]") {
     HBoxes1 hbbox(bboxes);
     std::vector<int> primitives;
 
-    BBox1 bbox4(vec1{1.9}, vec1{2.5});
+    BBox1 bbox4({1.9}, {2.5});
 
     hbbox.intersect(bbox4, primitives, 0);
     CHECK(primitives[1]==1);
