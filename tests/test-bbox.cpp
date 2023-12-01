@@ -1,0 +1,128 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <iostream>
+#include <ultimaille/all.h>
+
+using namespace UM;
+
+TEST_CASE("Test 1D bbox", "[bb]") {
+
+
+
+    BBox1 bbox1(0., 1.);
+    //BBox<2> b;
+    CHECK_FALSE(bbox1.empty());
+
+    // Check point is contained in bbox
+    CHECK(bbox1.contains(.5));
+
+    // Check that bbox2 overlap bbox1
+    BBox1 b2(0.8, 1.2);
+    CHECK(bbox1.intersect(b2));
+
+    // Check that center is approximatively equal to {0.5, 0.5}
+    // CHECK(std::abs((bbox1.center()-vec1{0.5}).norm()) < 10e-4);
+    CHECK(std::abs(bbox1.center()-0.5) < 10e-4);
+
+    // Size before dilate
+    double p_min = bbox1.min;
+    double p_max = bbox1.max;
+    // Dilate BBox
+    bbox1.dilate(1.);
+    // Check new size of bbox is correct
+    CHECK(bbox1.min <= p_min - 1.);
+    CHECK(bbox1.max >= p_max + 1.);
+    
+
+    BBox1 empty_bbox;
+    CHECK(empty_bbox.empty());
+
+}
+
+TEST_CASE("Test 2D bbox", "[bb]") {
+
+    BBox2 bbox1(vec2(0.,0.), vec2(1.,1.));
+    //BBox<2> b;
+    CHECK_FALSE(bbox1.empty());
+
+    // Check point is contained in bbox
+    CHECK(bbox1.contains(vec2(.5,.5)));
+
+    // Check that bbox2 overlap bbox1
+    BBox2 b2(vec2(0.8,0.8), vec2(1.2,1.2));
+    CHECK(bbox1.intersect(b2));
+
+    // Check that center is approximatively equal to {0.5, 0.5}
+    CHECK(std::abs((bbox1.center()-vec2(0.5, 0.5)).norm()) < 10e-4);
+
+
+    vec2 v;
+    std::cout <<v.x << std::endl;
+
+    // Dilate BBox
+    bbox1.dilate(1.);
+    // Check new size of bbox is correct
+    CHECK(bbox1.min[0] <= -1.);
+    CHECK(bbox1.max[0] >= 2.);
+    
+
+    BBox2 empty_bbox;
+    CHECK(empty_bbox.empty());
+
+}
+
+// TEST_CASE("Blbla") {
+//     GENERATE(range(0, 10), prim<())
+// }
+
+
+TEST_CASE("Test 1D hbbox", "[hb]") {
+
+    BBox1 bbox1(vec1{0.}, vec1{1.});
+    BBox1 bbox2(vec1{1.1}, vec1{2.});
+    BBox1 bbox3(vec1{2.1}, vec1{3.});
+    std::vector<BBox1> bboxes;
+    bboxes.push_back(bbox1);
+    bboxes.push_back(bbox2);
+    bboxes.push_back(bbox3);
+
+    HBoxes1 hbbox(bboxes);
+    std::vector<int> primitives;
+
+    BBox1 bbox4(vec1{1.9}, vec1{2.5});
+
+    hbbox.intersect(bbox4, primitives, 0);
+    CHECK(primitives[1]==1);
+    
+
+}
+
+TEST_CASE("Test 2D hbbox", "[hb]") {
+
+    BBox2 bbox1(vec2(0., 0.), vec2(1., 1.));
+    BBox2 bbox2(vec2(1.1, 1.1), vec2(2., 2.));
+    BBox2 bbox3(vec2(2.1, 2.1), vec2(3., 3.));
+    std::vector<BBox2> bboxes;
+    bboxes.push_back(bbox1);
+    bboxes.push_back(bbox2);
+    bboxes.push_back(bbox3);
+
+    HBoxes2 hbbox(bboxes);
+    std::vector<int> primitives;
+
+    BBox2 bbox4(vec2(1.9, 1.9), vec2(2.5, 2.5));
+
+    hbbox.intersect(bbox4, primitives, 0);
+    CHECK(primitives[1]==1);
+
+}
+
+/*
+TEST_CASE("Test ND bbox", "[bb]") {
+
+    BBox<4> bbox1(0., 1., 2., 3.);
+
+}
+*/
