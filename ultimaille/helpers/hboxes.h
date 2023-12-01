@@ -69,6 +69,10 @@ namespace UM {
             return (min + max)*.5;
         }
 
+        vec<n> size() const {
+            return max - min;
+        }
+
         vec<n> min;
         vec<n> max;
     };
