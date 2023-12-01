@@ -40,7 +40,7 @@ add_library(ultimaille ${SOURCES})
 include(FetchContent)
 FetchContent_Declare(
   OpenNL_psm
-  GIT_REPOSITORY https://github.com/fprotais/geogram.psm.OpenNL
+  GIT_REPOSITORY https://github.com/BrunoLevy/geogram.psm.OpenNL
   GIT_TAG        main
 )
 FetchContent_MakeAvailable(OpenNL_psm)
