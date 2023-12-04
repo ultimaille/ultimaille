@@ -3,7 +3,7 @@
 #include <initializer_list>
 #include <vector>
 #include <memory>
-#include <iterator>
+#include "iterator.h"
 #include "algebra/vec.h"
 #include "attributes.h"
 #include "pointset.h"
@@ -98,7 +98,7 @@ namespace UM {
         };
 
         struct Vertex : Primitive {
-            friend struct VertexIterator;
+            friend struct Iterator::VertexIterator<Surface>;
             using Primitive::Primitive;
             using Primitive::operator=;
             Vertex(Vertex& v) = default;
@@ -113,21 +113,6 @@ namespace UM {
             int id_in_facet(Facet f);
 
             auto iter_halfedges();
-        };
-
-        struct VertexIterator  {
-            Surface& m;
-            VertexIterator(Surface& _m);
-            struct iterator {
-
-                Surface::Vertex v;
-                void operator++() ;
-                bool operator!=(const iterator& rhs) const;
-                Surface::Vertex& operator*();
-            };
-        
-            iterator begin();
-            iterator end();
         };
 
         struct Halfedge : Primitive {
@@ -168,8 +153,8 @@ namespace UM {
 
             auto iter_halfedges();
         };
-
-        VertexIterator iter_vertices();
+        
+        Iterator::VertexIterator<Surface> iter_vertices();
         auto iter_halfedges();
         auto iter_facets();
     };
