@@ -44,6 +44,18 @@ namespace UM {
         return Iterator::VertexIterator<Surface>(*this);
     }
 
+    Iterator::HalfedgeIterator<Surface> Surface::iter_halfedges() {
+        return Iterator::HalfedgeIterator<Surface>(*this);
+    }
+
+    Iterator::VertexHalfEdgeIterator<Surface> Surface::Vertex::iter_halfedges() {
+        return Iterator::VertexHalfEdgeIterator<Surface>(*this);
+    }
+
+    Iterator::FacetHalfEdgeIterator<Surface> Surface::Facet::iter_halfedges() {
+        return Iterator::FacetHalfEdgeIterator<Surface>(*this);
+    }
+
     Surface::Connectivity::Connectivity(Surface &m) : m(m), v2c(m, -1), c2f(m, -1), c2c(m, -1), active(m, true) {
         init();
     }

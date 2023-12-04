@@ -99,6 +99,7 @@ namespace UM {
 
         struct Vertex : Primitive {
             friend struct Iterator::VertexIterator<Surface>;
+            friend struct Iterator::VertexHalfEdgeIterator<Surface>;
             using Primitive::Primitive;
             using Primitive::operator=;
             Vertex(Vertex& v) = default;
@@ -112,10 +113,13 @@ namespace UM {
             bool active();
             int id_in_facet(Facet f);
 
-            auto iter_halfedges();
+            Iterator::VertexHalfEdgeIterator<Surface> iter_halfedges();
         };
 
         struct Halfedge : Primitive {
+            friend struct Iterator::HalfedgeIterator<Surface>;
+            friend struct Iterator::VertexHalfEdgeIterator<Surface>;
+
             using Primitive::Primitive;
             using Primitive::operator=;
             Halfedge(Halfedge& he) = default;
@@ -151,11 +155,11 @@ namespace UM {
             int size();
             bool active();
 
-            auto iter_halfedges();
+            Iterator::FacetHalfEdgeIterator<Surface> iter_halfedges();
         };
         
         Iterator::VertexIterator<Surface> iter_vertices();
-        auto iter_halfedges();
+        Iterator::HalfedgeIterator<Surface> iter_halfedges();
         auto iter_facets();
     };
 
@@ -492,30 +496,6 @@ namespace UM {
 
     // TODO: is it really reasonable to inline these functions?
 
-    inline auto Surface::iter_halfedges() {
-        struct iterator {
-            Halfedge h;
-            void operator++() {
-                ++h.id;
-                if (h.m.connected())
-                    while (h.id < h.m.ncorners() && !h.active()) ++h.id;
-            }
-            bool operator!=(const iterator& rhs) const { return h != rhs.h; }
-            Halfedge& operator*() { return h; }
-        };
-        struct wrapper {
-            Surface& m;
-            auto begin() {
-                iterator res{ {m,0} };
-                if (m.connected())
-                    if (m.ncorners() > 0 && !res.h.active()) ++res;
-                return res;
-            }
-            auto end() { return iterator{ {m,m.ncorners()} }; }
-        };
-        return wrapper{ *this };
-    }
-
     inline auto Surface::iter_facets() {
         struct iterator {
             Facet f;
@@ -540,27 +520,27 @@ namespace UM {
         return wrapper{ *this };
     }
 
-    inline auto Surface::Vertex::iter_halfedges() {
-        assert(m.connected());
-        struct iterator {
-            Surface::Halfedge he;
-            void operator++() {
-                const auto &c2c = he.m.conn->c2c;
-                do {
-                    he = c2c[he];
-                    if (he == -1) return;
-                } while (!he.active());
-            }
-            bool operator!=(const iterator& rhs) const { return he != rhs.he; }
-            Surface::Halfedge& operator*() { return he; }
-        };
-        struct wrapper {
-            Vertex v;
-            iterator begin() { return { v.halfedge() }; }
-            iterator end()   { return { {v.m, -1} }; }
-        };
-        return wrapper{ *this };
-    }
+    // inline auto Surface::Vertex::iter_halfedges() {
+    //     assert(m.connected());
+    //     struct iterator {
+    //         Surface::Halfedge he;
+    //         void operator++() {
+    //             const auto &c2c = he.m.conn->c2c;
+    //             do {
+    //                 he = c2c[he];
+    //                 if (he == -1) return;
+    //             } while (!he.active());
+    //         }
+    //         bool operator!=(const iterator& rhs) const { return he != rhs.he; }
+    //         Surface::Halfedge& operator*() { return he; }
+    //     };
+    //     struct wrapper {
+    //         Vertex v;
+    //         iterator begin() { return { v.halfedge() }; }
+    //         iterator end()   { return { {v.m, -1} }; }
+    //     };
+    //     return wrapper{ *this };
+    // }
 
     inline auto Surface::Halfedge::iter_sector_halfedges() {
         struct iterator {
@@ -594,23 +574,23 @@ namespace UM {
         return wrapper{ *this };
     }
 
-    inline auto Surface::Facet::iter_halfedges() {
-        struct iterator {
-            Surface::Halfedge he;
-            void operator++() {
-                auto f = he.facet();
-                if (++he == f.halfedge()+f.size()) he = -1;
-            }
-            bool operator!=(const iterator& rhs) const { return he != rhs.he; }
-            Surface::Halfedge& operator*() { return he; }
-        };
-        struct wrapper {
-            Surface::Facet f;
-            iterator begin() { return { f.halfedge() }; }
-            iterator end()   { return { {f.m,-1} }; }
-        };
-        return wrapper{ *this };
-    }
+    // inline auto Surface::Facet::iter_halfedges() {
+    //     struct iterator {
+    //         Surface::Halfedge he;
+    //         void operator++() {
+    //             auto f = he.facet();
+    //             if (++he == f.halfedge()+f.size()) he = -1;
+    //         }
+    //         bool operator!=(const iterator& rhs) const { return he != rhs.he; }
+    //         Surface::Halfedge& operator*() { return he; }
+    //     };
+    //     struct wrapper {
+    //         Surface::Facet f;
+    //         iterator begin() { return { f.halfedge() }; }
+    //         iterator end()   { return { {f.m,-1} }; }
+    //     };
+    //     return wrapper{ *this };
+    // }
 }
 
 #endif //__SURFACE_H__
