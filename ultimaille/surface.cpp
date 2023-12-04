@@ -38,6 +38,18 @@ namespace UM {
         return false;
     }
 
+    // Vertex iterator
+    Surface::VertexIterator::VertexIterator(Surface& _m) : m(_m) {}
+    Surface::VertexIterator::iterator Surface::VertexIterator::begin() { return Surface::VertexIterator::iterator{ {m,0} }; }
+    Surface::VertexIterator::iterator Surface::VertexIterator::end() { return iterator{ {m,m.nverts()} }; }
+    void Surface::VertexIterator::iterator::operator++() { ++v.id; }
+    bool Surface::VertexIterator::iterator::operator!=(const iterator& rhs) const { return v != rhs.v; }
+    Surface::Vertex& Surface::VertexIterator::iterator::operator*() { return v; }
+
+    Surface::VertexIterator Surface::iter_vertices() {
+        return Surface::VertexIterator(*this);
+    }
+
     Surface::Connectivity::Connectivity(Surface &m) : m(m), v2c(m, -1), c2f(m, -1), c2c(m, -1), active(m, true) {
         init();
     }

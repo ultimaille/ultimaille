@@ -132,6 +132,13 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
         REQUIRE(cnt_facet[f]==4);
     }
 
+    int i = 0;
+    for (auto v : q.iter_vertices()) {
+        REQUIRE(v.pos().norm() != 0);
+        i++;
+    }
+    REQUIRE(i == q.nverts());
+
 //  write_geogram("bunny2.geogram", q, {{}, {}, {{"val", val.ptr}}});
 }
 

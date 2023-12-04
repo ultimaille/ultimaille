@@ -3,6 +3,7 @@
 #include <initializer_list>
 #include <vector>
 #include <memory>
+#include <iterator>
 #include "algebra/vec.h"
 #include "attributes.h"
 #include "pointset.h"
@@ -97,6 +98,7 @@ namespace UM {
         };
 
         struct Vertex : Primitive {
+            friend struct VertexIterator;
             using Primitive::Primitive;
             using Primitive::operator=;
             Vertex(Vertex& v) = default;
@@ -111,6 +113,21 @@ namespace UM {
             int id_in_facet(Facet f);
 
             auto iter_halfedges();
+        };
+
+        struct VertexIterator  {
+            Surface& m;
+            VertexIterator(Surface& _m);
+            struct iterator {
+
+                Surface::Vertex v;
+                void operator++() ;
+                bool operator!=(const iterator& rhs) const;
+                Surface::Vertex& operator*();
+            };
+        
+            iterator begin();
+            iterator end();
         };
 
         struct Halfedge : Primitive {
@@ -152,7 +169,7 @@ namespace UM {
             auto iter_halfedges();
         };
 
-        auto iter_vertices();
+        VertexIterator iter_vertices();
         auto iter_halfedges();
         auto iter_facets();
     };
@@ -489,21 +506,6 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // TODO: is it really reasonable to inline these functions?
-
-    inline auto Surface::iter_vertices() {
-        struct iterator {
-            Vertex v;
-            void operator++() { ++v.id; }
-            bool operator!=(const iterator& rhs) const { return v != rhs.v; }
-            Vertex& operator*() { return v; }
-        };
-        struct wrapper {
-            Surface& m;
-            auto begin() { return iterator{ {m,0} }; }
-            auto end() { return iterator{ {m,m.nverts()} }; }
-        };
-        return wrapper{ *this };
-    }
 
     inline auto Surface::iter_halfedges() {
         struct iterator {
