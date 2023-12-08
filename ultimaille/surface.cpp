@@ -181,6 +181,8 @@ namespace UM {
         return res.normalized();
     }
 
+
+
     void Surface::resize_attrs() {
         for (auto &wp : attr_facets)  if (auto spt = wp.lock())
             spt->resize(nfacets());

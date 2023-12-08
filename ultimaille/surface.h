@@ -9,7 +9,57 @@
 #include "syntactic-sugar/assert.h"
 
 namespace UM {
+
+    struct Triangle3d {
+        vec3 v[3] = {};
+        inline vec3 normal() const;
+        inline vec3 bary_verts() const;
+    };
+    
+    inline vec3 Triangle3d::normal() const {
+        return cross(v[1]-v[0], v[2]-v[0]).normalized();
+    }
+
+    inline vec3 Triangle3d::bary_verts() const {
+        return (v[0] + v[1] + v[2]) / 3;
+    }
+    
+    struct Quad3d {
+        vec3 v[4] = {};
+        inline vec3 normal() const;
+        inline vec3 bary_verts() const;
+    };
+
+    // Copy past of Utils !
+    inline vec3 Quad3d::bary_verts() const {
+        vec3 ave = {0, 0, 0};
+        const int nbv = 4;
+        for (int lv=0; lv<nbv; lv++)
+            ave += v[lv];
+        return ave / static_cast<double>(nbv);
+    }
+
+    // Copy past of Utils !
+    inline vec3 Quad3d::normal() const {
+        vec3 res = {0, 0, 0};
+        vec3 bary = bary_verts();
+        for (int lv=0; lv<4; lv++)
+            res += cross(
+                    v[lv]-bary,
+                    v[(lv+1)%4]-bary
+                    );
+        return res.normalized();
+    }
+
+    struct Poly3d {
+        std::vector<vec3> v = {};
+    };
+
     struct Surface { // polygonal mesh interface
+
+        enum CELL_TYPE { TRI=0, QUAD=1, POLY=3 };
+        constexpr virtual CELL_TYPE cell_type() const noexcept = 0;
+
         PointSet points{};
         std::vector<int> facets{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
@@ -149,6 +199,7 @@ namespace UM {
             int size();
             bool active();
 
+            template<typename T> T geom();
             auto iter_halfedges();
         };
 
@@ -157,11 +208,34 @@ namespace UM {
         auto iter_facets();
     };
 
+    template<> inline Triangle3d Surface::Facet::geom() {
+        um_assert(size()==3);
+        return Triangle3d{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos()}};
+    }
+
+    template<> inline Quad3d Surface::Facet::geom() {
+        um_assert(size()==4);
+        return Quad3d{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
+    }
+
+    template<> inline Poly3d Surface::Facet::geom() {
+        std::vector<vec3> points(size());
+        for (int i = 0; i < size(); i++)
+            points[i] = vertex(i).pos();
+
+        return Poly3d{points};
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Triangles : Surface { // simplicial mesh implementation
+        
+        constexpr CELL_TYPE cell_type() const noexcept override {
+            return Surface::TRI;
+        }
+
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -187,6 +261,11 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Quads : Surface { // quad mesh implementation
+        
+        constexpr CELL_TYPE cell_type() const noexcept override {
+            return Surface::QUAD;
+        }
+
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -211,6 +290,11 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Polygons : Surface { // polygonal mesh implementation
+
+        constexpr CELL_TYPE cell_type() const noexcept override {
+            return Surface::POLY;
+        }
+
         std::vector<int> offset = { 0 };
         Polygons() = default;
         Polygons(const Polygons& m) = default;
@@ -477,6 +561,7 @@ namespace UM {
     inline Surface::Halfedge Surface::Facet::halfedge(int lh) {
         return { m, m.corner(id, lh) };
     }
+
 
     inline int Surface::Facet::size() {
         return m.facet_size(id);
