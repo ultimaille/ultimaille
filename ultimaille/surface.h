@@ -52,6 +52,7 @@ namespace UM {
             return *this;
         }
 
+        // TODO lbinria: to remove
         struct Util {
             const Surface& m;
             vec3 bary_verts(const int f) const;
@@ -206,6 +207,7 @@ namespace UM {
             return *this;
         }
 
+        // TODO lbinria: to remove
         struct Util : Surface::Util {
             double unsigned_area(const int f) const;
             void project(const int t, vec2& z0, vec2& z1, vec2& z2) const;
