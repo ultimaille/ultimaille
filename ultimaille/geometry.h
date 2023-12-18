@@ -8,28 +8,28 @@
 
 namespace UM {
 
-    struct Triangle3d {
+    struct Triangle3 {
         vec3 v[3] = {};
         inline vec3 normal() const;
         inline vec3 bary_verts() const;
     };
 
-    inline vec3 Triangle3d::normal() const {
+    inline vec3 Triangle3::normal() const {
         return cross(v[1]-v[0], v[2]-v[0]).normalized();
     }
 
-    inline vec3 Triangle3d::bary_verts() const {
+    inline vec3 Triangle3::bary_verts() const {
         return (v[0] + v[1] + v[2]) / 3;
     }
 
-    struct Quad3d {
+    struct Quad3 {
         vec3 v[4] = {};
         inline vec3 normal() const;
         inline vec3 bary_verts() const;
     };
 
     // Copy past of Utils !
-    inline vec3 Quad3d::bary_verts() const {
+    inline vec3 Quad3::bary_verts() const {
         vec3 ave = {0, 0, 0};
         const int nbv = 4;
         for (int lv=0; lv<nbv; lv++)
@@ -38,7 +38,7 @@ namespace UM {
     }
 
     // Copy past of Utils !
-    inline vec3 Quad3d::normal() const {
+    inline vec3 Quad3::normal() const {
         vec3 res = {0, 0, 0};
         vec3 bary = bary_verts();
         for (int lv=0; lv<4; lv++)
@@ -49,7 +49,7 @@ namespace UM {
         return res.normalized();
     }
 
-    struct Poly3d {
+    struct Poly3 {
         std::vector<vec3> v = {};
     };
     
