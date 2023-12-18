@@ -164,22 +164,22 @@ namespace UM {
         auto iter_facets();
     };
 
-    template<> inline Triangle3d Surface::Facet::geom() {
+    template<> inline Triangle3 Surface::Facet::geom() {
         um_assert(size()==3);
-        return Triangle3d{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos()}};
+        return Triangle3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos()}};
     }
 
-    template<> inline Quad3d Surface::Facet::geom() {
+    template<> inline Quad3 Surface::Facet::geom() {
         um_assert(size()==4);
-        return Quad3d{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
+        return Quad3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
     }
 
-    template<> inline Poly3d Surface::Facet::geom() {
+    template<> inline Poly3 Surface::Facet::geom() {
         std::vector<vec3> points(size());
         for (int i = 0; i < size(); i++)
             points[i] = vertex(i).pos();
 
-        return Poly3d{points};
+        return Poly3{points};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
