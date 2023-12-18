@@ -8,10 +8,22 @@
 
 namespace UM {
 
+    enum CELL_TYPE { TRI=0, QUAD=1, POLY=3 };
+
     struct Triangle3 {
         vec3 v[3] = {};
         inline vec3 normal() const;
         inline vec3 bary_verts() const;
+    };
+
+    struct Quad3 {
+        vec3 v[4] = {};
+        inline vec3 normal() const;
+        inline vec3 bary_verts() const;
+    };
+
+    struct Poly3 {
+        std::vector<vec3> v = {};
     };
 
     inline vec3 Triangle3::normal() const {
@@ -22,11 +34,17 @@ namespace UM {
         return (v[0] + v[1] + v[2]) / 3;
     }
 
-    struct Quad3 {
-        vec3 v[4] = {};
-        inline vec3 normal() const;
-        inline vec3 bary_verts() const;
-    };
+    // Copy past of Utils !
+    inline vec3 Quad3::normal() const {
+        vec3 res = {0, 0, 0};
+        vec3 bary = bary_verts();
+        for (int lv=0; lv<4; lv++)
+            res += cross(
+                v[lv]-bary,
+                v[(lv+1)%4]-bary
+            );
+        return res.normalized();
+    }
 
     // Copy past of Utils !
     inline vec3 Quad3::bary_verts() const {
@@ -37,22 +55,6 @@ namespace UM {
         return ave / static_cast<double>(nbv);
     }
 
-    // Copy past of Utils !
-    inline vec3 Quad3::normal() const {
-        vec3 res = {0, 0, 0};
-        vec3 bary = bary_verts();
-        for (int lv=0; lv<4; lv++)
-            res += cross(
-                    v[lv]-bary,
-                    v[(lv+1)%4]-bary
-                    );
-        return res.normalized();
-    }
-
-    struct Poly3 {
-        std::vector<vec3> v = {};
-    };
-    
 }
 
 #endif //__GEOM_H__
