@@ -24,11 +24,11 @@ TEST_CASE("Test geom", "[geom]") {
     m.vert(1, 2) = 2;
 
     for (auto f : m.iter_facets()) {
-        CHECK(f.geom<Triangle3d>().normal().z > 0);
+        CHECK(f.geom<Triangle3>().normal().z > 0);
     }
 
     auto f = m.iter_facets().begin().f;
-    CHECK(std::abs((f.geom<Triangle3d>().bary_verts() - vec3{0.5,0.5/3.,0}).norm()) < 1e-4);
+    CHECK(std::abs((f.geom<Triangle3>().bary_verts() - vec3{0.5,0.5/3.,0}).norm()) < 1e-4);
 
     Quads m2;
     m2.points.create_points(6);
@@ -51,7 +51,7 @@ TEST_CASE("Test geom", "[geom]") {
     m2.vert(1, 3) = 2;
 
     for (auto f : m2.iter_facets()) {
-        CHECK(f.geom<Quad3d>().normal().z > 0);
+        CHECK(f.geom<Quad3>().normal().z > 0);
     }
 
 }
