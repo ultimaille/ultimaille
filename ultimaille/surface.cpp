@@ -110,11 +110,13 @@ namespace UM {
         v2c[new_vertex_id] = he;
     }
 
-    // unsigned area for a 3D triangle
-    inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
-        return 0.5*cross(B-A, C-A).norm();
-    }
+    // // unsigned area for a 3D triangle
+    // // TODO lbinria: move to another module (algebra/geometry_computation) ?
+    // inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
+    //     return 0.5*cross(B-A, C-A).norm();
+    // }
 
+    [[deprecated]]
     vec3 Surface::Util::bary_verts(const int f) const {
         vec3 ave = {0, 0, 0};
         const int nbv = m.facet_size(f);
@@ -131,6 +133,7 @@ namespace UM {
         delete_vertices(to_kill);
     }
 
+    [[deprecated]]
     double Triangles::Util::unsigned_area(const int f) const {
         const vec3 &A = m.points[m.vert(f, 0)];
         const vec3 &B = m.points[m.vert(f, 1)];
@@ -138,6 +141,7 @@ namespace UM {
         return UM::unsigned_area(A, B, C);
     }
 
+    [[deprecated]]
     void Triangles::Util::project(const int f, vec2& z0, vec2& z1, vec2& z2) const {
         const vec3 &A = m.points[m.vert(f, 0)];
         const vec3 &B = m.points[m.vert(f, 1)];
@@ -152,6 +156,7 @@ namespace UM {
         z2 = vec2((C - A)*X, (C - A)*Y);
     }
 
+    [[deperecated]]
     vec3 Triangles::Util::normal(const int f) const {
         const vec3 &A = m.points[m.vert(f, 0)];
         const vec3 &B = m.points[m.vert(f, 1)];
@@ -159,6 +164,7 @@ namespace UM {
         return cross(B-A, C-A).normalized();
     }
 
+    [[deprecated]]
     double Quads::Util::unsigned_area(const int f) const {
         double a = 0;
         vec3 G = m.util.bary_verts(f);
@@ -170,6 +176,7 @@ namespace UM {
         return a;
     }
 
+    [[deprecated]]
     vec3 Quads::Util::normal(const int f) const {
         vec3 res = {0, 0, 0};
         vec3 bary = m.util.bary_verts(f);
@@ -180,8 +187,6 @@ namespace UM {
                     );
         return res.normalized();
     }
-
-
 
     void Surface::resize_attrs() {
         for (auto &wp : attr_facets)  if (auto spt = wp.lock())
