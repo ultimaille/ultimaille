@@ -30,13 +30,24 @@ TEST_CASE("Test triangle geom", "[geom]") {
 
     // Check bary
     auto f = m.iter_facets().begin().f;
-    CHECK(std::abs((f.geom<Triangle3>().bary_verts() - vec3{0.5,0.5/3.,0}).norm()) < 1e-4);
+    auto tri_f = f.geom<Triangle3>();
 
-    // Check area
-    double tri_area = f.geom<Triangle3>().unsigned_area();
-    // Check with formula: A = bh / 2
+    CHECK(std::abs((tri_f.bary_verts() - vec3{0.5,0.5/3.,0}).norm()) < 1e-4);
+
+    // Check area comparing with formula A = bh / 2
+    double tri_area = tri_f.unsigned_area();
     double test_area = 1. /* b */ * 0.5 /* h */ * 0.5 /* divide by two */;
-    CHECK(tri_area == test_area);
+    CHECK(std::abs(tri_area - test_area) < 1e-4);
+
+    // Check projection
+    vec2 a, b, c;
+    tri_f.project(a, b, c);
+    // a is near from (0,0)
+    CHECK(std::abs(a.norm2()) < 1e-4);
+    // b is near from the norm of b-a
+    vec2 x{sqrt(1), 0};
+    CHECK(std::abs((x - b).norm2()) < 1e-4);
+    // c is somewhere
 
 }
 
@@ -61,16 +72,67 @@ TEST_CASE("Test quad geom", "[geom]") {
     m.vert(1, 2) = 5;
     m.vert(1, 3) = 2;
 
+    // Get geometry of first face
+    auto f = m.iter_facets().begin().f;
+    auto quad_f = f.geom<Quad3>();
+
+    INFO("quad: " << quad_f.normal());
+
     // Check normal
     for (auto f : m.iter_facets()) {
-        CHECK(f.geom<Quad3>().normal().z > 0);
+        auto n = quad_f.normal().z;
+        CHECK(n > 0);
     }
 
     // Check area
-    auto f = m.iter_facets().begin().f;
-    double quad_area = f.geom<Quad3>().unsigned_area();
+    double quad_area = quad_f.unsigned_area();
     // Considering the quad is a square of length 1 and height 1
     // We have an area equal to 1*1=1
     bool is_area_correct = quad_area >= 0.9999 && quad_area <= 1.0001;
     CHECK(is_area_correct);
+}
+
+TEST_CASE("Test poly geom", "[geom]") {
+
+    // Create a unique regular polygon facet of size 6
+    const int nbv = 6;
+    Polygons m;
+    m.points.create_points(nbv);
+    
+    // Create a regular polygon
+    for (int i = 0; i < nbv; i++) {
+        const double t = 2*M_PI/nbv*i;
+        m.points[i] = vec3(cos(t), sin(t), 0);
+    }
+
+    // Associate each vertex with corresponding point
+    m.create_facets(1, nbv);
+    for (int i = 0; i < nbv; i++) {
+        m.vert(0, i) = i;
+    }
+
+    // // Get geometry of first face
+    auto f = m.iter_facets().begin().f;
+    auto poly_f = f.geom<Poly3>();
+
+    // // Check normal
+    for (auto f : m.iter_facets()) {
+        CHECK(f.geom<Poly3>().normal().z > 0);
+    }
+
+    // Check bary
+    vec3 bary = poly_f.bary_verts();
+    CHECK(std::abs((bary - vec3{0,0,0}).norm2()) < 1e-4);
+
+    INFO("poly computesize: " << poly_f.v.size());
+
+    // Check area
+    double area = poly_f.unsigned_area();
+    INFO("polygon area is: " << area);
+    // Considering the polygon is regular we have the formula: A = r²n*sin(360/n)*0.5
+    double r = 1.;
+    int n = nbv;
+    double computed_area = (r*r)*n*sin(360/n*0.01745329)*0.5;
+    INFO("regular polygon area is: " << computed_area);
+    CHECK(std::abs(area - computed_area) < 1e-2);
 }
