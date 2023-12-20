@@ -13,8 +13,6 @@ namespace UM {
 
     struct Surface { // polygonal mesh interface
 
-        constexpr virtual CELL_TYPE cell_type() const noexcept = 0;
-
         PointSet points{};
         std::vector<int> facets{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
@@ -188,10 +186,6 @@ namespace UM {
 
     struct Triangles : Surface { // simplicial mesh implementation
         
-        constexpr CELL_TYPE cell_type() const noexcept override {
-            return TRI;
-        }
-
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -219,10 +213,6 @@ namespace UM {
 
     struct Quads : Surface { // quad mesh implementation
         
-        constexpr CELL_TYPE cell_type() const noexcept override {
-            return QUAD;
-        }
-
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -247,10 +237,6 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Polygons : Surface { // polygonal mesh implementation
-
-        constexpr CELL_TYPE cell_type() const noexcept override {
-            return POLY;
-        }
 
         std::vector<int> offset = { 0 };
         Polygons() = default;

@@ -1,5 +1,4 @@
 #include "geometry.h"
-#include <initializer_list>
 #include <vector>
 #include <memory>
 #include "algebra/vec.h"
@@ -23,14 +22,27 @@ namespace UM {
     }
 
     double Quad3::unsigned_area() const {
-        double a = 0;
-        vec3 G = bary_verts();
-        for (int lv=0; lv<4; lv++) {
-            const vec3 &A = v[lv];
-            const vec3 &B = v[(lv+1)%4];
-            a += UM::unsigned_area(G, A, B);
-        }
-        return a;
+        return UM::unsigned_area(v, 4);
+    }
+
+    vec3 Quad3::normal() const {
+        return UM::normal(v, 4);
+    }
+
+    vec3 Quad3::bary_verts() const {
+        return UM::bary_verts(v, 4);
+    }
+
+    vec3 Poly3::bary_verts() const {
+        return UM::bary_verts(v.data(), static_cast<const int>(v.size()));
+    }
+
+    vec3 Poly3::normal() const {
+        return UM::normal(v.data(), static_cast<const int>(v.size()));
+    }
+
+    double Poly3::unsigned_area() const {
+        return UM::unsigned_area(v.data(), static_cast<const int>(v.size()));
     }
 
 }
