@@ -10,6 +10,7 @@
 #include "pointset.h"
 #include "volume_reference.h"
 #include "volume_connectivity.h"
+#include "geometry.h"
 
 namespace UM {
     struct Volume;
@@ -125,6 +126,7 @@ namespace UM {
             return *this;
         }
 
+        // TODO lbinria remove [moved to geom]
        struct [[deprecated]] Util {
             Util(const Volume &mesh) : m(mesh) {}
             virtual double cell_volume(const int c) const;
@@ -242,6 +244,8 @@ namespace UM {
             Cell cell();
             int id_in_cell();
 
+            template<typename T> T geom();
+
             auto iter_halfedges();
         };
 
@@ -261,6 +265,8 @@ namespace UM {
             Corner corner(int lc);
             Vertex vertex(int lv);
             Halfedge halfedge(int lh);
+
+            template<typename T> T geom();
 
             auto iter_facets();
         };
@@ -738,7 +744,7 @@ namespace UM {
     }
 
     inline Volume::Vertex Volume::Cell::vertex(int lv) {
-//        assert(m.connected());
+        //assert(m.connected());
         return { m, m.vert(id, lv) };
     }
 
@@ -770,6 +776,31 @@ namespace UM {
             auto end()   { return iterator{ c.facet(c.nfacets()) }; }
         };
         return wrapper{ *this };
+    }
+
+    template<> inline Tetrahedron3 Volume::Cell::geom() {
+        um_assert(nfacets()==4 && nverts()==4);
+        return Tetrahedron3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
+    }
+
+    template<> inline Pyramid3 Volume::Cell::geom() {
+        um_assert(nfacets()==5 && nverts()==5);
+        return Pyramid3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos()}};
+    }
+
+    template<> inline Hexahedron3 Volume::Cell::geom() {
+        um_assert(nfacets()==6 && nverts()==8);
+        return Hexahedron3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos()}};
+    }
+
+    template<> inline Triangle3 Volume::Facet::geom() {
+        um_assert(nverts()==3);
+        return Triangle3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos()}};
+    }
+
+    template<> inline Quad3 Volume::Facet::geom() {
+        um_assert(nverts()==4);
+        return Quad3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

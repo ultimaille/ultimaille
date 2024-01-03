@@ -6,11 +6,15 @@
 #include "attributes.h"
 
 namespace UM {
-    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
-    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
-        return ((B-A)*cross(C-A,D-A))/6.;
-    }
 
+    // TODO lbinria remove [moved to geom]
+//    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
+//    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
+//        return ((B-A)*cross(C-A,D-A))/6.;
+//    }
+
+    // TODO lbinria remove [moved to geom]
+    [[deprecated]]
     double Volume::Util::cell_volume(const int c) const {
         if (m.cell_type==Volume::TETRAHEDRON)
             return tet_volume(
@@ -48,6 +52,8 @@ namespace UM {
         return vol;
     }
 
+    // TODO lbinria remove [moved to geom]
+    [[deprecated]]
     vec3 Volume::Util::bary_verts(const int c) const {
         vec3 ave = {0, 0, 0};
         const int nbv = m.nverts_per_cell();
@@ -56,6 +62,8 @@ namespace UM {
         return ave / static_cast<double>(nbv);
     }
 
+    // TODO lbinria remove [moved to geom]
+    [[deprecated]]
     vec3 Volume::Util::bary_facet(const int c, const int lf) const {
         vec3 ave = {0, 0, 0};
         const int nbv = m.facet_size(lf);
@@ -64,7 +72,9 @@ namespace UM {
         return ave / static_cast<double>(nbv);
     }
 
+    // TODO lbinria remove [moved to geom]
     // unit vector: weighted sum of normal of a triangle fan around the barycenter
+    [[deprecated]]
     vec3 Volume::Util::facet_normal(const int c, const int lf) const {
         if (3==m.facet_size(lf)) {
             const vec3 &A = m.points[m.facet_vert(c, lf, 0)];
