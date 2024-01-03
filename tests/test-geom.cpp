@@ -187,3 +187,62 @@ TEST_CASE("Test tetra geom", "[geom]") {
     INFO("tet facet area: " << tet_f.unsigned_area());
     CHECK(std::abs(tet_f.unsigned_area() - area) < 1e-4);
 }
+
+TEST_CASE("Test hexa geom", "[geom]") {
+
+    // Construct a cube
+    Hexahedra m;
+
+    m.points.create_points(8);
+    m.points[0] = vec3(-0.5,-0.5,-0.5);
+    m.points[1] = vec3(0.5,-0.5,-0.5);
+    m.points[2] = vec3(-0.5,0.5,-0.5);
+    m.points[3] = vec3(0.5,0.5,-0.5);
+
+    m.points[4] = vec3(-0.5,-0.5,0.5);
+    m.points[5] = vec3(0.5,-0.5,0.5);
+    m.points[6] = vec3(-0.5,0.5,0.5);
+    m.points[7] = vec3(0.5,0.5,0.5);
+
+    m.create_cells(1);
+    m.vert(0, 0) = 0;
+    m.vert(0, 1) = 1;
+    m.vert(0, 2) = 2;
+    m.vert(0, 3) = 3;
+    m.vert(0, 4) = 4;
+    m.vert(0, 5) = 5;
+    m.vert(0, 6) = 6;
+    m.vert(0, 7) = 7;
+
+    // Check bary
+    auto c = m.iter_cells().begin().data;
+    auto hex_c = c.geom<Hexahedron3>();
+
+    INFO("hex bary: " << hex_c.bary_verts());
+    CHECK(std::abs((hex_c.bary_verts() - vec3{0,0,0}).norm2()) < 1e-4);
+
+    // Compute volume of a hex cube of side length 1 with the formula V = w*h*d
+    double v = 1;
+    INFO("regular hex volume: " << v);
+    INFO("hex volume: " << hex_c.volume());
+    CHECK(std::abs(hex_c.volume() - v) < 1e-4);
+
+    // Get first cell facet (match with points at indexes {0,2,4,6})
+    // It's the left of the cube
+    m.connect();
+    auto f = c.iter_facets().begin().data;
+    auto hex_f = f.geom<Quad3>();
+    INFO("facet points: " << hex_f.v[0] << "," << hex_f.v[1] << "," << hex_f.v[2] << "," << hex_f.v[3]);
+
+    // Check normal
+    INFO("facet normal: " << hex_f.normal());
+    CHECK(hex_f.normal().x < 0);
+    // Check bary
+    INFO("facet bary: " << hex_f.bary_verts());
+    CHECK(std::abs((hex_f.bary_verts() - vec3{-0.5,0,0}).norm2()) < 1e-4);
+    // Compute area of a facet of a cube (square) of side length 1 with the formula A = s²
+    double area = 1;
+    INFO("regular hex facet area: " << area);
+    INFO("hex facet area: " << hex_f.unsigned_area());
+    CHECK(std::abs(hex_f.unsigned_area() - area) < 1e-4);
+}
