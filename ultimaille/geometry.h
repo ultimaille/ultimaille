@@ -63,6 +63,38 @@ namespace UM {
         double unsigned_area() const;
     };
 
+    struct Tetrahedron3 {
+        vec3 v[4] = {};
+        vec3 bary_verts() const;
+        inline double volume() const;
+    };
+
+    struct Hexahedron3 {
+        vec3 v[8] = {};
+        double volume() const;
+        vec3 bary_verts() const;
+    };
+
+    struct Pyramid3 {
+        vec3 v[5] = {};
+        double volume() const;
+        vec3 bary_verts() const;
+    };
+
+    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
+    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
+        return ((B-A)*cross(C-A,D-A))/6.;
+    }
+
+    inline double Tetrahedron3::volume() const {
+        return tet_volume(
+                v[0],
+                v[1],
+                v[2],
+                v[3]
+            );
+    }
+
     inline vec3 Triangle3::normal() const {
         return cross(v[1]-v[0], v[2]-v[0]).normalized();
     }

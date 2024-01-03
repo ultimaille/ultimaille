@@ -136,3 +136,54 @@ TEST_CASE("Test poly geom", "[geom]") {
     INFO("regular polygon area is: " << computed_area);
     CHECK(std::abs(area - computed_area) < 1e-2);
 }
+
+TEST_CASE("Test tetra geom", "[geom]") {
+
+    // Construct a regular tetrahedron
+    Tetrahedra m;
+
+    m.points.create_points(4);
+    m.points[3] = vec3(1/3.0*sqrt(3.0),0,0);
+    m.points[2] = vec3(-1/6.0*sqrt(3.0),1/2.0,0);
+    m.points[1] = vec3(-1/6.0*sqrt(3.0),-1/2.0,0);
+    m.points[0] = vec3(0,0,1/3.0*sqrt(6.0));
+
+    m.create_cells(1);
+    m.vert(0, 0) = 0;
+    m.vert(0, 1) = 1;
+    m.vert(0, 2) = 2;
+    m.vert(0, 3) = 3;
+
+    // Check bary
+    auto c = m.iter_cells().begin().data;
+    auto tet_c = c.geom<Tetrahedron3>();
+
+    vec3 bary{0,0,sqrt(6.0)/12.0};
+    INFO("tet bary: " << tet_c.bary_verts());
+    CHECK(std::abs((tet_c.bary_verts() - bary).norm2()) < 1e-4);
+
+    // Compute volume of a regular tetrahedron of side length 1 with the formula V = (a^3*sqrt(2))/12
+    double v = sqrt(2.0) / 12.0;
+    INFO("regular tet volume: " << v);
+    INFO("tet volume: " << tet_c.volume());
+    CHECK(std::abs(tet_c.volume() - v) < 1e-4);
+
+    // Get first cell facet (match with points at indexes {3,2,1})
+    // It's the surface on plane x, y
+    m.connect();
+    auto f = c.iter_facets().begin().data;
+    auto tet_f = f.geom<Triangle3>();
+    INFO("facet points: " << tet_f.v[0] << "," << tet_f.v[1] << "," << tet_f.v[2]);
+
+    // Check normal
+    INFO("facet normal: " << tet_f.normal());
+    CHECK(tet_f.normal().z < 0);
+    // Check bary
+    INFO("facet bary: " << tet_f.bary_verts());
+    CHECK(std::abs((tet_f.bary_verts() - vec3{0,0,0}).norm2()) < 1e-4);
+    // Compute area of a facet of a regular tetrahedron (equilateral triangle) of side length 1 with the formula A = (1/4)*sqrt(3)*s²
+    double area = 1/4.0*sqrt(3);
+    INFO("regular tet facet area: " << area);
+    INFO("tet facet area: " << tet_f.unsigned_area());
+    CHECK(std::abs(tet_f.unsigned_area() - area) < 1e-4);
+}

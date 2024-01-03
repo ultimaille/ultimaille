@@ -37,6 +37,52 @@ namespace UM {
         return UM::bary_verts(v.data(), static_cast<const int>(v.size()));
     }
 
+    vec3 Tetrahedron3::bary_verts() const {
+        return UM::bary_verts(v, 4);
+    }
+
+    vec3 Hexahedron3::bary_verts() const {
+        return UM::bary_verts(v, 8);
+    }
+
+    vec3 Pyramid3::bary_verts() const {
+        return UM::bary_verts(v, 5);
+    }
+
+    double Hexahedron3::volume() const {
+        const vec3 bary = bary_verts();
+        double vol = 0;
+
+        // TODO: How are numbered vertices of hex ? (IMPORTANT)
+        // Indexes of hex faces
+        int indexes[] = {
+            0,1,5,4,
+            0,4,7,3,
+            3,2,6,7,
+            2,1,5,6,
+            0,1,2,3,
+            4,5,6,7,
+        };
+
+        for (int f=0; f<6; f++) {
+            for (int i=0; i<4; i++) {
+                const int offset = 4*f;
+                vol += tet_volume(
+                        bary,
+                        v[indexes[i + offset]],
+                        v[indexes[(i+1)%4 + offset]],
+                        v[indexes[(i+2)%4 + offset]]
+                        )*.5;
+            }
+        }
+        return vol;
+    }
+
+    double Pyramid3::volume() const {
+        // TODO fill
+        return 0;
+    }
+
     vec3 Poly3::normal() const {
         return UM::normal(v.data(), static_cast<const int>(v.size()));
     }
