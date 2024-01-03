@@ -53,15 +53,16 @@ namespace UM {
         const vec3 bary = bary_verts();
         double vol = 0;
 
-        // TODO: How are numbered vertices of hex ? (IMPORTANT)
         // Indexes of hex faces
+        // Vertices numbering convention (from geogram) is very IMPORTANT (and respected)
+        // as well as counter-clock wise convention for facet orientation
         int indexes[] = {
-            0,1,5,4,
-            0,4,7,3,
-            3,2,6,7,
-            2,1,5,6,
-            0,1,2,3,
-            4,5,6,7,
+            0,1,5,4, // front
+            2,6,7,3, // back
+            2,0,4,6, // left
+            1,3,7,5, // right
+            4,5,7,6, // top
+            0,2,3,1 // bottom
         };
 
         for (int f=0; f<6; f++) {
