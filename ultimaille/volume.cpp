@@ -8,12 +8,6 @@
 namespace UM {
 
     // TODO lbinria remove [moved to geom]
-//    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
-//    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
-//        return ((B-A)*cross(C-A,D-A))/6.;
-//    }
-
-    // TODO lbinria remove [moved to geom]
     [[deprecated]]
     double Volume::Util::cell_volume(const int c) const {
         if (m.cell_type==Volume::TETRAHEDRON)

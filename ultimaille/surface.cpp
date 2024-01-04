@@ -110,12 +110,7 @@ namespace UM {
         v2c[new_vertex_id] = he;
     }
 
-    // // unsigned area for a 3D triangle
-    // // TODO lbinria: move to another module (algebra/geometry_computation) ?
-    // inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
-    //     return 0.5*cross(B-A, C-A).norm();
-    // }
-
+    // TODO lbinria remove [moved to geom]
     [[deprecated]]
     vec3 Surface::Util::bary_verts(const int f) const {
         vec3 ave = {0, 0, 0};
@@ -133,6 +128,7 @@ namespace UM {
         delete_vertices(to_kill);
     }
 
+    // TODO lbinria remove [moved to geom]
     [[deprecated]]
     double Triangles::Util::unsigned_area(const int f) const {
         const vec3 &A = m.points[m.vert(f, 0)];
@@ -141,6 +137,7 @@ namespace UM {
         return UM::unsigned_area(A, B, C);
     }
 
+    // TODO lbinria remove [moved to geom]
     [[deprecated]]
     void Triangles::Util::project(const int f, vec2& z0, vec2& z1, vec2& z2) const {
         const vec3 &A = m.points[m.vert(f, 0)];
@@ -156,6 +153,7 @@ namespace UM {
         z2 = vec2((C - A)*X, (C - A)*Y);
     }
 
+    // TODO lbinria remove [moved to geom]
     [[deperecated]]
     vec3 Triangles::Util::normal(const int f) const {
         const vec3 &A = m.points[m.vert(f, 0)];
@@ -164,6 +162,7 @@ namespace UM {
         return cross(B-A, C-A).normalized();
     }
 
+    // TODO lbinria remove [moved to geom]
     [[deprecated]]
     double Quads::Util::unsigned_area(const int f) const {
         double a = 0;
@@ -176,6 +175,7 @@ namespace UM {
         return a;
     }
 
+    // TODO lbinria remove [moved to geom]
     [[deprecated]]
     vec3 Quads::Util::normal(const int f) const {
         vec3 res = {0, 0, 0};
