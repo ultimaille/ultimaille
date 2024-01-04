@@ -73,13 +73,25 @@ namespace UM {
         vec3 v[8] = {};
         double volume() const;
         vec3 bary_verts() const;
+        // TODO lbinria: add ?
+        // double jacobian() const;
     };
 
     struct Pyramid3 {
         vec3 v[5] = {};
         double volume() const;
         vec3 bary_verts() const;
+        inline Quad3 base() const;
+        inline const vec3 apex() const;
     };
+
+    inline Quad3 Pyramid3::base() const {
+        return Quad3{{v[0], v[1], v[2], v[3]}};
+    }
+
+    inline const vec3 Pyramid3::apex() const {
+        return v[4];
+    }
 
     // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
     inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
