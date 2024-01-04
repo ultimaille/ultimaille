@@ -80,8 +80,26 @@ namespace UM {
     }
 
     double Pyramid3::volume() const {
-        // TODO fill
-        return 0;
+
+        // Indexes of pyramid base
+        // Vertices numbering convention (from geogram) is very IMPORTANT
+        // as well as counter-clock wise convention for facet orientation
+        int indexes[] = {3,2,1,0};
+
+        const vec3 apx = apex();
+        double vol = 0;
+
+        // Compute base to apex volume
+        for (int i=0; i<4; i++) {
+            vol += tet_volume(
+                    apx,
+                    v[indexes[i]],
+                    v[indexes[(i+1)%4]],
+                    v[indexes[(i+2)%4]]
+                    )*.5;
+        }
+
+        return vol;
     }
 
     vec3 Poly3::normal() const {

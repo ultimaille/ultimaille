@@ -246,3 +246,60 @@ TEST_CASE("Test hexa geom", "[geom]") {
     INFO("hex facet area: " << hex_f.unsigned_area());
     CHECK(std::abs(hex_f.unsigned_area() - area) < 1e-4);
 }
+
+TEST_CASE("Test pyramid geom", "[geom]") {
+
+    // Construct an equilateral square pyramid
+    // https://en.wikipedia.org/wiki/Square_pyramid
+    Pyramids m;
+
+    m.points.create_points(5);
+    double h = sqrt(0.5);
+    // Base
+    m.points[0] = vec3(-0.5,-0.5,0);
+    m.points[1] = vec3(0.5,-0.5,0);
+    m.points[2] = vec3(0.5,0.5,0);
+    m.points[3] = vec3(-0.5,0.5,0);
+    // Apex
+    m.points[4] = vec3(0,0,h);
+
+    m.create_cells(1);
+    m.vert(0, 0) = 0;
+    m.vert(0, 1) = 1;
+    m.vert(0, 2) = 2;
+    m.vert(0, 3) = 3;
+    m.vert(0, 4) = 4;
+
+    // Check bary
+    auto c = m.iter_cells().begin().data;
+    auto pyr_c = c.geom<Pyramid3>();
+
+    INFO("pyramid bary: " << pyr_c.bary_verts());
+    // All distances from apex should be equal to 1
+    INFO("dist a:" << (m.points[0] - m.points[4]).norm());
+    INFO("dist b:" << (m.points[1] - m.points[4]).norm());
+    INFO("dist c:" << (m.points[2] - m.points[4]).norm());
+    INFO("dist d:" << (m.points[3] - m.points[4]).norm());
+    CHECK(std::abs((pyr_c.bary_verts() - vec3{0,0,h/5}).norm2()) < 1e-4);
+
+    // Compute volume of a square pyramid of side length 1 with the formula V = 1/3*l²*h
+    double v = 1/3.0*h;
+    INFO("square pyramid volume: " << v);
+    INFO("pyramid volume: " << pyr_c.volume());
+    CHECK(std::abs(pyr_c.volume() - v) < 1e-4);
+
+    // Get pyramid base geometry
+    // It should be oriented up (Z-up)
+    auto base_geom = pyr_c.base();
+    // Check base normal
+    INFO("base normal: " << base_geom.normal());
+    CHECK(base_geom.normal().z > 0);
+    // Check base bary
+    INFO("base bary: " << base_geom.bary_verts());
+    CHECK(std::abs((base_geom.bary_verts() - vec3{0,0,0}).norm2()) < 1e-4);
+    // Check base area
+    double area = 1;
+    INFO("square base area: " << area);
+    INFO("base area: " << base_geom.unsigned_area());
+    CHECK(std::abs(base_geom.unsigned_area() - area) < 1e-4);
+}
