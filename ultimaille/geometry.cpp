@@ -7,7 +7,7 @@
 
 namespace UM {
 
-    void Triangle3::project(vec2& z0, vec2& z1, vec2& z2) const {
+    Triangle2 Triangle3::project() const {
         const vec3 &A = v[0];
         const vec3 &B = v[1];
         const vec3 &C = v[2];
@@ -16,9 +16,12 @@ namespace UM {
         vec3 Z = cross(X, C - A).normalized();
         vec3 Y = cross(Z, X);
 
-        z0 = vec2(0,0); // project the triangle to the 2d basis (X,Y)
-        z1 = vec2((B - A).norm(), 0);
-        z2 = vec2((C - A)*X, (C - A)*Y);
+        
+        const vec2 z0 = vec2(0,0); // project the triangle to the 2d basis (X,Y)
+        const vec2 z1 = vec2((B - A).norm(), 0);
+        const vec2 z2 = vec2((C - A)*X, (C - A)*Y);
+
+        return Triangle2{{z0, z1, z2}};
     }
 
     double Quad3::unsigned_area() const {

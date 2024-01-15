@@ -41,13 +41,42 @@ namespace UM {
         return a;
     }
 
+    struct Triangle2 {
+        vec2 v[3] = {};
+        inline vec2 bary_verts() const;
+        inline double signed_area() const;
+    };
+
+    inline vec2 Triangle2::bary_verts() const {
+        return (v[0] + v[1] + v[2]) / 3;
+    }
+
+    inline double Triangle2::signed_area() const {
+        const vec2 &A = v[0];
+        const vec2 &B = v[1];
+        const vec2 &C = v[2];
+        return .5*((B.y-A.y)*(B.x+A.x) + (C.y-B.y)*(C.x+B.x) + (A.y-C.y)*(A.x+C.x));
+    }
+
     struct Triangle3 {
         vec3 v[3] = {};
         inline vec3 normal() const;
         inline vec3 bary_verts() const;
         inline double unsigned_area() const;
-        void project(vec2& z0, vec2& z1, vec2& z2) const;
+        Triangle2 project() const;
     };
+
+    inline vec3 Triangle3::normal() const {
+        return cross(v[1]-v[0], v[2]-v[0]).normalized();
+    }
+
+    inline vec3 Triangle3::bary_verts() const {
+        return (v[0] + v[1] + v[2]) / 3;
+    }
+
+    inline double Triangle3::unsigned_area() const {
+        return UM::unsigned_area(v[0], v[1], v[2]);
+    }
 
     struct Quad3 {
         vec3 v[4] = {};
@@ -68,6 +97,20 @@ namespace UM {
         vec3 bary_verts() const;
         inline double volume() const;
     };
+
+    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
+    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
+        return ((B-A)*cross(C-A,D-A))/6.;
+    }
+
+    inline double Tetrahedron3::volume() const {
+        return tet_volume(
+                v[0],
+                v[1],
+                v[2],
+                v[3]
+            );
+    }
 
     struct Hexahedron3 {
         vec3 v[8] = {};
@@ -91,32 +134,6 @@ namespace UM {
 
     inline const vec3 Pyramid3::apex() const {
         return v[4];
-    }
-
-    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
-    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
-        return ((B-A)*cross(C-A,D-A))/6.;
-    }
-
-    inline double Tetrahedron3::volume() const {
-        return tet_volume(
-                v[0],
-                v[1],
-                v[2],
-                v[3]
-            );
-    }
-
-    inline vec3 Triangle3::normal() const {
-        return cross(v[1]-v[0], v[2]-v[0]).normalized();
-    }
-
-    inline vec3 Triangle3::bary_verts() const {
-        return (v[0] + v[1] + v[2]) / 3;
-    }
-
-    inline double Triangle3::unsigned_area() const {
-        return UM::unsigned_area(v[0], v[1], v[2]);
     }
 
 }
