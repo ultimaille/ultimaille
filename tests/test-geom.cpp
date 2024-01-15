@@ -40,8 +40,6 @@ TEST_CASE("Test triangle geom", "[geom]") {
     CHECK(std::abs(tri_area - test_area) < 1e-4);
 
     // Check projection
-    // vec2 a, b, c;
-    // tri_f.project(a, b, c);
     Triangle2 t2 = tri_f.project();
     const vec2 &a = t2.v[0];
     const vec2 &b = t2.v[1];
