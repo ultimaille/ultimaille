@@ -246,6 +246,40 @@ TEST_CASE("Test hexa geom", "[geom]") {
     INFO("regular hex facet area: " << area);
     INFO("hex facet area: " << hex_f.unsigned_area());
     CHECK(std::abs(hex_f.unsigned_area() - area) < 1e-4);
+
+    // Construct an ugly hex
+    for (int i = 0; i < 10; i++) {
+        Hexahedra m2;
+
+        m2.points.create_points(8);
+        m2.points[0] = vec3(-0.5+i/10.,-0.5,-0.5);
+        m2.points[1] = vec3(0.5,-0.5,-0.5);
+        m2.points[2] = vec3(-0.5,0.5,-0.5);
+        m2.points[3] = vec3(0.5,0.5+i/10.,-0.5);
+
+        m2.points[4] = vec3(-0.5,-0.5,0.5);
+        m2.points[5] = vec3(0.5,-0.5,0.5);
+        m2.points[6] = vec3(-0.5,0.5,0.5);
+        m2.points[7] = vec3(0.5,0.5,0.5);
+
+        m2.create_cells(1);
+        m2.vert(0, 0) = 0;
+        m2.vert(0, 1) = 1;
+        m2.vert(0, 2) = 2;
+        m2.vert(0, 3) = 3;
+        m2.vert(0, 4) = 4;
+        m2.vert(0, 5) = 5;
+        m2.vert(0, 6) = 6;
+        m2.vert(0, 7) = 7;
+        auto c2 = m2.iter_cells().begin().data;
+        auto hex_c2 = c2.geom<Hexahedron3>();
+
+        double scaled_jacobian = hex_c2.scaled_jacobian();
+        INFO("i: " << i);
+        INFO("scaled jacobian: " << scaled_jacobian);
+        CHECK(scaled_jacobian == 1);
+    }
+
 }
 
 TEST_CASE("Test pyramid geom", "[geom]") {

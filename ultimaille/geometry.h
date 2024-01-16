@@ -117,7 +117,9 @@ namespace UM {
         double volume() const;
         vec3 bary_verts() const;
         // TODO lbinria: add ?
-        // double jacobian() const;
+        double jacobian(int c) const;
+        double jacobian2(int c) const;
+        double scaled_jacobian() const;
     };
 
     struct Pyramid3 {
