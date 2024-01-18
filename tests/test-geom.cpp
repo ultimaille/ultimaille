@@ -6,6 +6,12 @@
 
 using namespace UM;
 
+template<int n, int m>
+struct VerdictResult {
+    double coordinates[n][m];
+    double result;
+};
+
 TEST_CASE("Test triangle geom", "[geom]") {
 
     Triangles m;
@@ -91,6 +97,46 @@ TEST_CASE("Test quad geom", "[geom]") {
     // We have an area equal to 1*1=1
     bool is_area_correct = quad_area >= 0.9999 && quad_area <= 1.0001;
     CHECK(is_area_correct);
+
+    // Check quality metrics
+
+    // Results obtained with verdict library formated as following: {quad_coordinate, result}
+    VerdictResult<4,2> verdict_jacobian_scale_results[5] {
+        {{{0.3,0.6},{1.7,0.5},{1.3,1.5},{0.6,1.2}},0.645942},
+        {{{0.9,0.1},{1.2,0.7},{1,1.9},{0.3,1.6}},0.588172},
+        {{{0,0.6},{1.2,0.6},{1.1,1.8},{0.7,1.9}},0.880471},
+        {{{0.2,0},{1.2,0.3},{1.7,1.5},{0.9,1.2}},0.63186},
+        {{{0.2,0.8},{1.9,0.7},{1.3,1.6},{0.1,1.2}},0.798041}
+    };
+
+    // Construct quads from verdict results
+    for (auto verdict_result : verdict_jacobian_scale_results) {
+
+        // Construct a quad from given coordinates
+        Quads custom_m;
+        custom_m.points.create_points(6);
+        for (int i = 0; i < 4; i++) {
+            custom_m.points[i] = vec3(verdict_result.coordinates[i][0], verdict_result.coordinates[i][1], 0);
+        }
+
+        custom_m.create_facets(1);
+        custom_m.vert(0, 0) = 0;
+        custom_m.vert(0, 1) = 1;
+        custom_m.vert(0, 2) = 2;
+        custom_m.vert(0, 3) = 3;
+
+        // Get geometry of first face
+        auto custom_m_f = custom_m.iter_facets().begin().f;
+        auto custom_quad = custom_m_f.geom<Quad3>();
+
+        // Check consistency between verdict result & ultimaille result
+        double scaled_jacobian = custom_quad.scaled_jacobian();
+        INFO("jacobian scale [verdict]: " << verdict_result.result);
+        INFO("jacobian scale [ultimaille]: " << scaled_jacobian);
+        CHECK(std::abs(scaled_jacobian - verdict_result.result) < 1e-5);
+    }
+
+
 }
 
 TEST_CASE("Test poly geom", "[geom]") {
@@ -199,7 +245,6 @@ TEST_CASE("Test hexa geom", "[geom]") {
     m.points[1] = vec3(0.5,-0.5,-0.5);
     m.points[2] = vec3(-0.5,0.5,-0.5);
     m.points[3] = vec3(0.5,0.5,-0.5);
-
     m.points[4] = vec3(-0.5,-0.5,0.5);
     m.points[5] = vec3(0.5,-0.5,0.5);
     m.points[6] = vec3(-0.5,0.5,0.5);
@@ -247,37 +292,51 @@ TEST_CASE("Test hexa geom", "[geom]") {
     INFO("hex facet area: " << hex_f.unsigned_area());
     CHECK(std::abs(hex_f.unsigned_area() - area) < 1e-4);
 
-    // Construct an ugly hex
-    for (int i = 0; i < 10; i++) {
-        Hexahedra m2;
+    // Check quality metrics
 
-        m2.points.create_points(8);
-        m2.points[0] = vec3(-0.5+i/10.,-0.5,-0.5);
-        m2.points[1] = vec3(0.5,-0.5,-0.5);
-        m2.points[2] = vec3(-0.5,0.5,-0.5);
-        m2.points[3] = vec3(0.5,0.5+i/10.,-0.5);
+    // Results obtained with verdict library formated as following: {quad_coordinate, result}
+    VerdictResult<8,3> verdict_jacobian_scale_results[10] {
+        {{{-0.5,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,0.5,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},1},
+        {{{-0.4,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,0.6,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},0.977069},
+        {{{-0.3,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,0.7,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},0.916841},
+        {{{-0.2,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,0.8,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},0.832049},
+        {{{-0.1,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,0.9,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},0.734169},
+        {{{0,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,1,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},0.632456},
+        {{{0.1,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,1.1,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},0.53357},
+        {{{0.2,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,1.2,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},0.441714},
+        {{{0.3,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,1.3,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},0.359086},
+        {{{0.4,-0.5,-0.5},{0.5,-0.5,-0.5},{-0.5,1.4,-0.5},{0.5,0.5,-0.5},{-0.5,-0.5,0.5},{0.5,-0.5,0.5},{-0.5,0.5,0.5},{0.5,0.5,0.5}},0.286442}
+    };
 
-        m2.points[4] = vec3(-0.5,-0.5,0.5);
-        m2.points[5] = vec3(0.5,-0.5,0.5);
-        m2.points[6] = vec3(-0.5,0.5,0.5);
-        m2.points[7] = vec3(0.5,0.5,0.5);
+    // Construct quads from verdict results
+    for (auto verdict_result : verdict_jacobian_scale_results) {
 
-        m2.create_cells(1);
-        m2.vert(0, 0) = 0;
-        m2.vert(0, 1) = 1;
-        m2.vert(0, 2) = 2;
-        m2.vert(0, 3) = 3;
-        m2.vert(0, 4) = 4;
-        m2.vert(0, 5) = 5;
-        m2.vert(0, 6) = 6;
-        m2.vert(0, 7) = 7;
-        auto c2 = m2.iter_cells().begin().data;
-        auto hex_c2 = c2.geom<Hexahedron3>();
+        // Construct a quad from given coordinates
+        Hexahedra custom_m;
+        custom_m.points.create_points(8);
+        for (int i = 0; i < 8; i++) {
+            custom_m.points[i] = vec3(verdict_result.coordinates[i][0], verdict_result.coordinates[i][1], verdict_result.coordinates[i][2]);
+        }
 
-        double scaled_jacobian = hex_c2.scaled_jacobian();
-        INFO("i: " << i);
-        INFO("scaled jacobian: " << scaled_jacobian);
-        CHECK(scaled_jacobian == 1);
+        custom_m.create_cells(1);
+        custom_m.vert(0, 0) = 0;
+        custom_m.vert(0, 1) = 1;
+        custom_m.vert(0, 2) = 2;
+        custom_m.vert(0, 3) = 3;
+        custom_m.vert(0, 4) = 4;
+        custom_m.vert(0, 5) = 5;
+        custom_m.vert(0, 6) = 6;
+        custom_m.vert(0, 7) = 7;
+
+        // Get geometry of first face
+        auto custom_m_f = custom_m.iter_cells().begin().data;
+        auto custom_quad = custom_m_f.geom<Hexahedron3>();
+
+        // Check consistency between verdict result & ultimaille result
+        double scaled_jacobian = custom_quad.scaled_jacobian();
+        INFO("jacobian scale [verdict]: " << verdict_result.result);
+        INFO("jacobian scale [ultimaille]: " << scaled_jacobian);
+        CHECK(std::abs(scaled_jacobian - verdict_result.result) < 1e-5);
     }
 
 }

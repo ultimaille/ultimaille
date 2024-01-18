@@ -83,6 +83,10 @@ namespace UM {
         vec3 normal() const;
         vec3 bary_verts() const;
         double unsigned_area() const;
+        double scaled_jacobian() const;
+        
+        private:
+            double jacobian(int c) const;
     };
 
     struct Poly3 {
@@ -116,10 +120,10 @@ namespace UM {
         vec3 v[8] = {};
         double volume() const;
         vec3 bary_verts() const;
-        // TODO lbinria: add ?
-        double jacobian(int c) const;
-        double jacobian2(int c) const;
         double scaled_jacobian() const;
+
+        private:
+            double jacobian(int c) const;
     };
 
     struct Pyramid3 {
