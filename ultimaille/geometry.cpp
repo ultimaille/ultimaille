@@ -268,10 +268,6 @@ namespace UM {
         return UM::unsigned_area(v, 4);
     }
 
-    vec3 Quad3::cross_product() const {
-        return UM::cross_product(v, 4);
-    }
-
     vec3 Quad3::normal() const {
         return UM::normal(v, 4);
     }
