@@ -149,11 +149,11 @@ namespace UM {
 		vec3 result;
 		double sum = 0;
 
-        for (int d = 0; d < 3; d++) {
-			const vec2 &A = v[(d + 1) % 3];
-			const vec2 &B = v[(d + 2) % 3];
-			result[d] = Triangle2({A, B, G}).signed_area();
-			sum += result[d];
+        for (int i = 0; i < 3; i++) {
+			const vec2 &A = v[(i + 1) % 3];
+			const vec2 &B = v[(i + 2) % 3];
+			result[i] = Triangle2{{A, B, G}}.signed_area();
+			sum += result[i];
 		}
 
 		return result / sum;
@@ -164,11 +164,29 @@ namespace UM {
         double sum = 0;
         const vec3 n = normal();
         
-        for (int d = 0; d < 3; d++) {
-            const vec3 &A = v[(d + 1) % 3];
-            const vec3 &B = v[(d + 2) % 3];
-            result[d] = Triangle3({A, B, G}).cross_product() * n;
-            sum += result[d];
+        for (int i = 0; i < 3; i++) {
+            const vec3 &A = v[(i + 1) % 3];
+            const vec3 &B = v[(i + 2) % 3];
+
+            result[i] = Triangle3{{A, B, G}}.cross_product() * n;
+            sum += result[i];
+        }
+
+        return result / sum;
+    }
+
+    vec4 Tetrahedron3::bary_coords(vec3 G) const {
+        vec4 result;
+        double sum = 0;
+        
+        for (int i = 0; i < 4; i++) {
+            const vec3 &P = v[i];
+            const vec3 &A = v[(i + 1) % 4];
+            const vec3 &B = v[(i + 2) % 4];
+            const vec3 &C = v[(i + 3) % 4];
+
+            result[i] = Tetrahedron3{{A, B, C, G}}.volume() / Tetrahedron3{{A, B, C, P}}.volume();
+            sum += result[i];
         }
 
         return result / sum;
@@ -336,6 +354,8 @@ namespace UM {
     vec3 Hexahedron3::bary_verts() const {
         return UM::bary_verts(v, 8);
     }
+
+
 
     double Hexahedron3::volume() const {
         const vec3 bary = bary_verts();
