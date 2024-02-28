@@ -55,7 +55,23 @@ TEST_CASE("Test triangle geom", "[geom]") {
     vec2 x{sqrt(1), 0};
     CHECK(std::abs((x - b).norm2()) < 1e-4);
     // c is somewhere
-
+    // Check projection xy
+    Triangle2 expected_xy_tri{{{tri_f.v[0].x, tri_f.v[0].y}, {tri_f.v[1].x, tri_f.v[1].y}, {tri_f.v[2].x, tri_f.v[2].y}}};
+    Triangle2 actual_xy_tri = tri_f.xy();
+    INFO("xy projection: " << actual_xy_tri.v[0] << "," << actual_xy_tri.v[1] << "," << actual_xy_tri.v[2]);
+    CHECK(std::abs((expected_xy_tri.v[0] - actual_xy_tri.v[0]).norm2()) < 1e-4);
+    CHECK(std::abs((expected_xy_tri.v[1] - actual_xy_tri.v[1]).norm2()) < 1e-4);
+    CHECK(std::abs((expected_xy_tri.v[2] - actual_xy_tri.v[2]).norm2()) < 1e-4);
+    // Check unproject xy0
+    Triangle3 actual_xy0_tri = actual_xy_tri.xy0();
+    INFO("xy0 unproject: " << actual_xy0_tri.v[0] << "," << actual_xy0_tri.v[1] << "," << actual_xy0_tri.v[2]);
+    CHECK(std::abs((tri_f.v[0].xy().xy0() - actual_xy0_tri.v[0]).norm2()) < 1e-4);
+    CHECK(std::abs((tri_f.v[1].xy().xy0() - actual_xy0_tri.v[1]).norm2()) < 1e-4);
+    CHECK(std::abs((tri_f.v[2].xy().xy0() - actual_xy0_tri.v[2]).norm2()) < 1e-4);
+    // Check bary coordinates
+    vec2 g = actual_xy_tri.bary_verts();
+    vec3 expected_bary_coords = vec3{1, 1, 1} / 3.;
+    CHECK(std::abs((actual_xy_tri.bary_coords(g) - expected_bary_coords).norm2()) < 1e-4);
 }
 
 TEST_CASE("Test quad geom", "[geom]") {
@@ -228,11 +244,24 @@ TEST_CASE("Test tetra geom", "[geom]") {
     // Check bary
     INFO("facet bary: " << tet_f.bary_verts());
     CHECK(std::abs((tet_f.bary_verts() - vec3{0,0,0}).norm2()) < 1e-4);
+    // Check bary coordinates
+    vec3 g{0,0,0};
+    INFO("facet bary coords: " << tet_f.bary_coords(g));
+    // As it's a regular tet, with regular tri as facets we expect the following bary coords
+    vec3 expected_bary_coords = vec3{1, 1, 1} / 3.;
+    CHECK(std::abs((tet_f.bary_coords(g) - expected_bary_coords).norm2()) < 1e-4);
     // Compute area of a facet of a regular tetrahedron (equilateral triangle) of side length 1 with the formula A = (1/4)*sqrt(3)*s²
     double area = 1/4.0*sqrt(3);
     INFO("regular tet facet area: " << area);
     INFO("tet facet area: " << tet_f.unsigned_area());
     CHECK(std::abs(tet_f.unsigned_area() - area) < 1e-4);
+    // Check dilate
+    auto tet_f_dilated = tet_f.dilate(2.);
+    CHECK(std::abs(tet_f.unsigned_area() - tet_f_dilated.unsigned_area() / 4.) < 1e-4);
+    //tangent_basis
+    mat3x3 t = tet_f.tangent_basis({1,0,0});
+    INFO("tangent basis: " << t);
+    CHECK(std::abs((t[1] - vec3{0,-1,0}).norm2()) < 1e-4);
 }
 
 TEST_CASE("Test hexa geom", "[geom]") {
