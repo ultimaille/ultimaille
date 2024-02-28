@@ -280,7 +280,7 @@ namespace UM {
         return UM::bary_verts(v, 4);
     }
 
-    double Quad3::jacobian(int c) const {
+    double Quad2::jacobian(int c) const {
 
         mat<2,4> A = {{
             {v[0].x, v[1].x, v[2].x, v[3].x},
@@ -310,7 +310,7 @@ namespace UM {
             return std::max(scaled_jacobian, -(1e30));
     }
 
-    double Quad3::scaled_jacobian() const {
+    double Quad2::scaled_jacobian() const {
         double min_j = std::numeric_limits<double>::max();
         for (int c = 0; c < 4; c++) {
             double j = jacobian(c);

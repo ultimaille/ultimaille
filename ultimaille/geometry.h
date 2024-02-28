@@ -125,6 +125,10 @@ namespace UM {
         inline vec2 bary_verts() const;
         // double signed_area() const;
         inline Quad3 xy0() const;
+        double scaled_jacobian() const;
+
+        private:
+            double jacobian(int c) const;
     };
 
     inline vec2 Quad2::bary_verts() const {
@@ -145,11 +149,7 @@ namespace UM {
         vec3 normal() const;
         vec3 bary_verts() const;
         double unsigned_area() const;
-        double scaled_jacobian() const;
         inline Quad2 xy() const;
-        
-        private:
-            double jacobian(int c) const;
     };
 
     inline Quad3 Quad2::xy0() const {
