@@ -150,17 +150,16 @@ TEST_CASE("Test quad geom", "[geom]") {
         INFO("jacobian scale [verdict]: " << verdict_result.result);
         INFO("jacobian scale [ultimaille]: " << scaled_jacobian);
         CHECK(std::abs(scaled_jacobian - verdict_result.result) < 1e-5);
-
-        // Check signed area of Quad2
-        // Create a rect
-        Quad2 q2{{{0,0}, {2,0}, {2,1}, {0,1}}};
-        double actual_q2_signed_area = q2.signed_area();
-        // Using the rect formula of area: a=l*h
-        double expected_signed_area = (q2.v[1] - q2.v[0]).norm() * (q2.v[3] - q2.v[0]).norm();
-        INFO("signed area of q2 is: " << actual_q2_signed_area);
-        CHECK(std::abs(actual_q2_signed_area - expected_signed_area) < 1e-4);
     }
 
+    // Check signed area of Quad2
+    // Create a rect
+    Quad2 q2{{{0,0}, {2,0}, {2,1}, {0,1}}};
+    double actual_q2_signed_area = q2.signed_area();
+    // Using the rect formula of area: a=l*h
+    double expected_signed_area = (q2.v[1] - q2.v[0]).norm() * (q2.v[3] - q2.v[0]).norm();
+    INFO("signed area of q2 is: " << actual_q2_signed_area);
+    CHECK(std::abs(actual_q2_signed_area - expected_signed_area) < 1e-4);
 
 }
 
@@ -239,6 +238,11 @@ TEST_CASE("Test tetra geom", "[geom]") {
     INFO("regular tet volume: " << v);
     INFO("tet volume: " << tet_c.volume());
     CHECK(std::abs(tet_c.volume() - v) < 1e-4);
+
+    // Check bary coordinates
+    vec3 tet_c_g = tet_c.bary_verts();
+    vec4 expected_tet_bary_coords = vec4{1, 1, 1, 1} / 4.;
+    CHECK(std::abs((tet_c.bary_coords(tet_c_g) - expected_tet_bary_coords).norm2()) < 1e-4);
 
     // Get first cell facet (match with points at indexes {3,2,1})
     // It's the surface on plane x, y

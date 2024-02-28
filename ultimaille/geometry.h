@@ -164,6 +164,7 @@ namespace UM {
         vec3 v[4] = {};
         vec3 bary_verts() const;
         inline double volume() const;
+        vec4 bary_coords(vec3 G) const;
     };
 
     // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
