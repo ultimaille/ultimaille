@@ -143,7 +143,7 @@ TEST_CASE("Test quad geom", "[geom]") {
 
         // Get geometry of first face
         auto custom_m_f = custom_m.iter_facets().begin().f;
-        auto custom_quad = custom_m_f.geom<Quad3>();
+        auto custom_quad = custom_m_f.geom<Quad3>().xy();
 
         // Check consistency between verdict result & ultimaille result
         double scaled_jacobian = custom_quad.scaled_jacobian();
