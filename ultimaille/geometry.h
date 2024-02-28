@@ -19,18 +19,18 @@ namespace UM {
         return ave / static_cast<double>(nbv);
     }
 
-    // TODO see if necessary (if yes, refact normal => cross_product().normalized())
-    inline vec3 cross_product(const vec3 v[], const int nbv) {
-        vec3 res = {0, 0, 0};
-        vec3 bary = bary_verts(v, nbv);
+    // // TODO see if necessary (if yes, refact normal => cross_product().normalized())
+    // inline vec3 cross_product(const vec3 v[], const int nbv) {
+    //     vec3 res = {0, 0, 0};
+    //     vec3 bary = bary_verts(v, nbv);
         
-        for (int lv=0; lv<nbv; lv++)
-            res += cross(
-                v[lv]-bary,
-                v[(lv+1)%nbv]-bary
-            );
-        return res;
-    }
+    //     for (int lv=0; lv<nbv; lv++)
+    //         res += cross(
+    //             v[lv]-bary,
+    //             v[(lv+1)%nbv]-bary
+    //         );
+    //     return res;
+    // }
 
     inline vec3 normal(const vec3 v[], const int nbv) {
         vec3 res = {0, 0, 0};
@@ -123,7 +123,7 @@ namespace UM {
     struct Quad2 {
         vec2 v[4] = {};
         inline vec2 bary_verts() const;
-        // double signed_area() const;
+        double signed_area() const;
         inline Quad3 xy0() const;
         double scaled_jacobian() const;
 
@@ -135,17 +135,14 @@ namespace UM {
         return (v[0] + v[1] + v[2] + v[3]) / 4;
     }
 
-    // inline double Quad2::signed_area() const {
-    //     const vec2 &A = v[0];
-    //     const vec2 &B = v[1];
-    //     const vec2 &C = v[2];
-    //     return .5*((B.y-A.y)*(B.x+A.x) + (C.y-B.y)*(C.x+B.x) + (A.y-C.y)*(A.x+C.x));
-    // }
+    inline double Quad2::signed_area() const {
+        const vec2 A = v[2] - v[0];
+        const vec2 B = v[3] - v[1];
+        return (A.x * B.y - A.y * B.x) * .5;
+    }
 
     struct Quad3 {
         vec3 v[4] = {};
-        // TODO see if necessary (maybe on Poly3 ?)
-        vec3 cross_product() const;
         vec3 normal() const;
         vec3 bary_verts() const;
         double unsigned_area() const;

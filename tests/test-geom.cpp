@@ -150,6 +150,15 @@ TEST_CASE("Test quad geom", "[geom]") {
         INFO("jacobian scale [verdict]: " << verdict_result.result);
         INFO("jacobian scale [ultimaille]: " << scaled_jacobian);
         CHECK(std::abs(scaled_jacobian - verdict_result.result) < 1e-5);
+
+        // Check signed area of Quad2
+        // Create a rect
+        Quad2 q2{{{0,0}, {2,0}, {2,1}, {0,1}}};
+        double actual_q2_signed_area = q2.signed_area();
+        // Using the rect formula of area: a=l*h
+        double expected_signed_area = (q2.v[1] - q2.v[0]).norm() * (q2.v[3] - q2.v[0]).norm();
+        INFO("signed area of q2 is: " << actual_q2_signed_area);
+        CHECK(std::abs(actual_q2_signed_area - expected_signed_area) < 1e-4);
     }
 
 
