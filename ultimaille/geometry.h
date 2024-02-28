@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include "algebra/vec.h"
+#include "algebra/mat.h"
 #include "syntactic-sugar/assert.h"
 
 namespace UM {
@@ -16,6 +17,19 @@ namespace UM {
         for (int lv=0; lv<nbv; lv++)
             ave += v[lv];
         return ave / static_cast<double>(nbv);
+    }
+
+    // TODO see if necessary (if yes, refact normal => cross_product().normalized())
+    inline vec3 cross_product(const vec3 v[], const int nbv) {
+        vec3 res = {0, 0, 0};
+        vec3 bary = bary_verts(v, nbv);
+        
+        for (int lv=0; lv<nbv; lv++)
+            res += cross(
+                v[lv]-bary,
+                v[(lv+1)%nbv]-bary
+            );
+        return res;
     }
 
     inline vec3 normal(const vec3 v[], const int nbv) {
@@ -41,10 +55,16 @@ namespace UM {
         return a;
     }
 
+    struct Triangle3;
+
     struct Triangle2 {
         vec2 v[3] = {};
         inline vec2 bary_verts() const;
         inline double signed_area() const;
+        inline Triangle3 xy0() const;
+        vec3 bary_coords(vec2 G) const;
+        mat<2,3> grad_operator() const;
+        vec2 grad(vec3 u) const;
     };
 
     inline vec2 Triangle2::bary_verts() const {
@@ -60,14 +80,26 @@ namespace UM {
 
     struct Triangle3 {
         vec3 v[3] = {};
+        inline vec3 cross_product() const;
         inline vec3 normal() const;
         inline vec3 bary_verts() const;
+        vec3 bary_coords(vec3 G) const;
         inline double unsigned_area() const;
         Triangle2 project() const;
+        Triangle2 xy() const;
+        Triangle3 dilate(double scale) const;
+        mat3x3 tangent_basis() const;
+        mat3x3 tangent_basis(vec3 first_axis) const;
+        mat3x3 grad_operator() const;
+        vec3 grad(vec3 u) const;
     };
 
+    inline vec3 Triangle3::cross_product() const {
+        return cross(v[1] - v[0], v[2] - v[0]);
+    }
+
     inline vec3 Triangle3::normal() const {
-        return cross(v[1]-v[0], v[2]-v[0]).normalized();
+        return cross_product().normalized();
     }
 
     inline vec3 Triangle3::bary_verts() const {
@@ -78,16 +110,51 @@ namespace UM {
         return UM::unsigned_area(v[0], v[1], v[2]);
     }
 
+    inline Triangle2 Triangle3::xy() const {
+        return {{v[0].xy(), v[1].xy(), v[2].xy()}};
+    }
+
+    inline Triangle3 Triangle2::xy0() const {
+        return {{v[0].xy0(), v[1].xy0(), v[2].xy0()}};
+    }
+
+    struct Quad3;
+
+    struct Quad2 {
+        vec2 v[4] = {};
+        inline vec2 bary_verts() const;
+        // double signed_area() const;
+        inline Quad3 xy0() const;
+    };
+
+    inline vec2 Quad2::bary_verts() const {
+        return (v[0] + v[1] + v[2] + v[3]) / 4;
+    }
+
+    // inline double Quad2::signed_area() const {
+    //     const vec2 &A = v[0];
+    //     const vec2 &B = v[1];
+    //     const vec2 &C = v[2];
+    //     return .5*((B.y-A.y)*(B.x+A.x) + (C.y-B.y)*(C.x+B.x) + (A.y-C.y)*(A.x+C.x));
+    // }
+
     struct Quad3 {
         vec3 v[4] = {};
+        // TODO see if necessary (maybe on Poly3 ?)
+        vec3 cross_product() const;
         vec3 normal() const;
         vec3 bary_verts() const;
         double unsigned_area() const;
         double scaled_jacobian() const;
+        inline Quad2 xy() const;
         
         private:
             double jacobian(int c) const;
     };
+
+    inline Quad3 Quad2::xy0() const {
+        return {{v[0].xy0(), v[1].xy0(), v[2].xy0(), v[3].xy0()}};
+    }
 
     struct Poly3 {
         std::vector<vec3> v = {};
@@ -140,6 +207,10 @@ namespace UM {
 
     inline const vec3 Pyramid3::apex() const {
         return v[4];
+    }
+
+    inline Quad2 Quad3::xy() const {
+        return {{v[0].xy(), v[1].xy(), v[2].xy(), v[3].xy()}};
     }
 
 }

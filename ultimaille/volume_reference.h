@@ -5,7 +5,7 @@
 namespace UM {
     struct ReferenceCell {     // There are 4 types of volume meshes: Tetrahedra, Hexahedra, Wedges, Prisms.
         const int nv, nf, nc;  // Each one has a reference cell (a polygonal surface) that encodes the numbering convention.
-        const vec3 points[8];  // See comments below about the conevntion.
+        const vec3 points[8];  // See comments below about the convention.
         const int facets[24];  // This struct is a minimal polygonal surface interface needed to encode connectivity between cells.
         const int offset[7];
         const int c2f[24];
@@ -16,6 +16,7 @@ namespace UM {
         constexpr int ncorners() const { return nc; }
         constexpr int facet_size(const int f) const { return offset[f+1]-offset[f]; }
 
+        // Get half-edge  in facet
         constexpr int corner(const int f, const int lc) const { return offset[f]+lc; }
         constexpr int vert(const int f, const int lv)   const { return facets[offset[f]+lv]; }
 

@@ -4,6 +4,7 @@
 #include "algebra/vec.h"
 #include "syntactic-sugar/assert.h"
 #include "algebra/mat.h"
+#include "volume_reference.h"
 
 namespace UM {
 
@@ -111,7 +112,7 @@ namespace UM {
         }}
     };    
 
-    // quadratures for every hex corner (counter-clock wise)
+    // quadratures for every quad corner (counter-clock wise)
     // used to compute jacobian scale on quad
     constexpr mat<4,2> QQ[4] = { 
         {{
@@ -144,6 +145,35 @@ namespace UM {
         }}
     };
 
+	vec3 Triangle2::bary_coords(vec2 G) const {
+		vec3 result;
+		double sum = 0;
+
+        for (int d = 0; d < 3; d++) {
+			const vec2 &A = v[(d + 1) % 3];
+			const vec2 &B = v[(d + 2) % 3];
+			result[d] = Triangle2({A, B, G}).signed_area();
+			sum += result[d];
+		}
+
+		return result / sum;
+	}
+
+    vec3 Triangle3::bary_coords(vec3 G) const {
+        vec3 result;
+        double sum = 0;
+        const vec3 n = normal();
+        
+        for (int d = 0; d < 3; d++) {
+            const vec3 &A = v[(d + 1) % 3];
+            const vec3 &B = v[(d + 2) % 3];
+            result[d] = Triangle3({A, B, G}).cross_product() * n;
+            sum += result[d];
+        }
+
+        return result / sum;
+    }
+
     Triangle2 Triangle3::project() const {
         const vec3 &A = v[0];
         const vec3 &B = v[1];
@@ -161,8 +191,85 @@ namespace UM {
         return Triangle2{{z0, z1, z2}};
     }
 
+    Triangle3 Triangle3::dilate(double scale) const {
+        vec3 G = bary_verts();
+        return {{G + scale * (v[0] - G), G + scale * (v[1] - G), G + scale * (v[2] - G)}};
+    }
+    
+    mat3x3 Triangle3::tangent_basis() const {
+        mat3x3 res = {v[1] - v[0], v[2] - v[0], vec3(0,0,0)};
+        
+        for (int d = 0; d < 2; d++)
+            res[d].normalize();
+        
+        res[2] = cross(res[0], res[1]);
+        res[2].normalize();
+        res[1] = cross(res[2], res[0]);
+
+        return res;
+    }
+
+    mat3x3 Triangle3::tangent_basis(vec3 first_axis) const {
+        mat3x3 res = {v[1] - v[0], v[2] - v[0]};
+        
+        for (int d = 0; d < 2; d++)
+            res[d].normalize();
+        
+        res[2] = cross(res[0], res[1]);
+        res[2].normalize();
+        res[0] = first_axis;
+        res[0].normalize();
+        res[1] = cross(res[2], res[0]);
+        return res;
+    }
+
+    mat3x3 Triangle3::grad_operator() const {
+        mat3x3 accum;
+        vec3 tr_normal = normal();
+        
+        for (int d = 0; d < 3; d++) {
+            vec3 p = v[d];
+            vec3 a = v[(d + 1) % 3];
+            vec3 b = v[(d + 2) % 3];
+            vec3 n = cross(b - a, tr_normal);
+            n.normalize();
+            double scale = (n * (p - a));
+            accum[d] = n / scale;
+        }
+
+        return accum.transpose();
+    }
+
+    vec3 Triangle3::grad(vec3 u) const {
+        return grad_operator() * u;
+    }
+
+	mat<2,3> Triangle2::grad_operator() const {
+		mat<3,2>  accum;
+
+        for (int d = 0; d < 3; d++) {
+			vec2 P = v[d];
+			vec2 A = v[(d + 1) % 3];
+			vec2 B = v[(d + 2) % 3];
+
+			vec2 n((B - A)[1], -(B - A)[0]);
+			n.normalize();
+			double scale = (n * (P - A));
+			accum[d] = n / scale;
+		}
+		return accum.transpose();
+	}
+
+	vec2 Triangle2::grad(vec3 u) const {
+		return grad_operator() * u;
+	}
+
     double Quad3::unsigned_area() const {
         return UM::unsigned_area(v, 4);
+    }
+
+    vec3 Quad3::cross_product() const {
+        return UM::cross_product(v, 4);
     }
 
     vec3 Quad3::normal() const {
@@ -265,34 +372,6 @@ namespace UM {
         return vol;
     }
 
-    // // evaluate the Jacobian matrix at the given corner, return the Jacobian determinant
-    // double Hexahedron3::jacobian(int c) const {
-    //     double J[3][3];
-
-    //     double A[3][8] = {
-    //         {v[0].x, v[1].x, v[2].x, v[3].x, v[4].x, v[5].x, v[6].x, v[7].x},
-    //         {v[0].y, v[1].y, v[2].y, v[3].y, v[4].y, v[5].y, v[6].y, v[7].y},
-    //         {v[0].z, v[1].z, v[2].z, v[3].z, v[4].z, v[5].z, v[6].z, v[7].z}
-    //     };
-
-    //     const double (&B)[8][3] = Q[c];
-
-    //     // TODO can compute using mat
-    //     //J = A * B;
-    //     for (int j=0; j<3; j++) // J = A*B
-    //         for (int i=0; i<3; i++) {
-    //             J[j][i] = 0;
-    //             for (int k=0; k<8; k++)
-    //                 J[j][i] += A[j][k]*B[k][i];
-    //         }
-
-
-
-    //     // 3x3 det (TODO can compute using v1.(v2Xv3))
-    //     return (J[0][0]*J[1][1]*J[2][2] + J[0][1]*J[1][2]*J[2][0] + J[0][2]*J[1][0]*J[2][1]) -
-    //         (J[0][2]*J[1][1]*J[2][0] + J[0][1]*J[1][0]*J[2][2] + J[0][0]*J[1][2]*J[2][1]);
-    // }
-
     double Hexahedron3::jacobian(int c) const {
 
         // Convert verdict volume reference to ultimaille volume reference (https://coreform.com/papers/verdict_quality_library.pdf, p.79)
@@ -302,6 +381,16 @@ namespace UM {
             {v[0].y, v[1].y, v[3].y, v[2].y, v[4].y, v[5].y, v[7].y, v[6].y},
             {v[0].z, v[1].z, v[3].z, v[2].z, v[4].z, v[5].z, v[7].z, v[6].z}
         }};
+
+        for (int lc = 0; lc < 8; lc++)
+            for (int f = 0; f < 3; f++) {
+                const int he = reference_cells[1].corner(f, lc);
+                // std::cout << lc << "," << f << " -> " << reference_cells[1].from(he) << std::endl;
+            }
+
+        // p1-p0, p2-p0, p4-p0
+        // 
+
 
         const mat<8,3> &B = QH[c];
 
