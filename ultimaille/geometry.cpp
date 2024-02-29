@@ -5,6 +5,7 @@
 #include "syntactic-sugar/assert.h"
 #include "algebra/mat.h"
 #include "volume_reference.h"
+#include "volume.h"
 
 namespace UM {
 
@@ -152,6 +153,7 @@ namespace UM {
         for (int i = 0; i < 3; i++) {
 			const vec2 &A = v[(i + 1) % 3];
 			const vec2 &B = v[(i + 2) % 3];
+
 			result[i] = Triangle2{{A, B, G}}.signed_area();
 			sum += result[i];
 		}
@@ -179,13 +181,14 @@ namespace UM {
         vec4 result;
         double sum = 0;
         
-        for (int i = 0; i < 4; i++) {
-            const vec3 &P = v[i];
-            const vec3 &A = v[(i + 1) % 4];
-            const vec3 &B = v[(i + 2) % 4];
-            const vec3 &C = v[(i + 3) % 4];
+        const double vol = volume();
 
-            result[i] = Tetrahedron3{{A, B, C, G}}.volume() / Tetrahedron3{{A, B, C, P}}.volume();
+        for (int i = 0; i < 4; i++) {
+            const vec3 &A = v[i % 4];
+            const vec3 &B = v[(i + 1) % 4];
+            const vec3 &C = v[(i + 2) % 4];
+
+            result[i] = std::abs(Tetrahedron3{{A, B, C, G}}.volume() / vol);
             sum += result[i];
         }
 
@@ -207,6 +210,11 @@ namespace UM {
         const vec2 z2 = vec2((C - A)*X, (C - A)*Y);
 
         return Triangle2{{z0, z1, z2}};
+    }
+
+    Triangle2 Triangle2::dilate(double scale) const {
+        vec2 G = bary_verts();
+        return {{G + scale * (v[0] - G), G + scale * (v[1] - G), G + scale * (v[2] - G)}};
     }
 
     Triangle3 Triangle3::dilate(double scale) const {
@@ -282,6 +290,36 @@ namespace UM {
 		return grad_operator() * u;
 	}
 
+    // // Generic function for grad_operator on N vertices
+    // template<int N> 
+    // inline mat<3,N> grad_operator(const vec3 v[N]) {
+    //     mat<N,3>  accum ;
+
+    //     for (int d = 0; d < N; d++) {
+    //         const vec3 &P = v[d];
+    //         const vec3 &A = v[(d + 1) % N];
+    //         const vec3 &B = v[(d + 2) % N];
+    //         const vec3 &C = v[(d + 3) % N];
+    //         vec3 n = Triangle3{A, B, C}.normal();
+    //         // t.normal();
+    //         // vec3 n = cross(B - A, C - A);
+    //         // n.normalize();
+            
+    //         double scale = (n * (P - A));
+    //         accum[d] = n / scale;
+    //     }
+
+    //     return accum.transpose();
+    // }
+
+    // mat<3,4> Tetrahedron3::grad_operator() const {
+    //     return UM::grad_operator<4>(v);
+    // }
+
+    // vec3 Tetrahedron3::grad(vec4 u) const {
+    //     return grad_operator() * u;
+    // }
+
     double Quad3::unsigned_area() const {
         return UM::unsigned_area(v, 4);
     }
@@ -316,6 +354,7 @@ namespace UM {
 
         double d = std::sqrt(l0.norm2() * l1.norm2());
 
+        std::cout << "det:" << J.det() << std::endl;
         double scaled_jacobian = J.det() / d;
 
         if (scaled_jacobian > 0)
@@ -362,17 +401,9 @@ namespace UM {
         double vol = 0;
 
         // Indexes of hex faces
-        // Vertices numbering convention (from geogram) is very IMPORTANT (and respected)
+        // Vertices numbering convention is very IMPORTANT (and respected in volume_reference.h)
         // as well as counter-clock wise convention for facet orientation
-        // TODO use volume_reference.h instead
-        int indexes[] = {
-            0,1,5,4, // front
-            2,6,7,3, // back
-            2,0,4,6, // left
-            1,3,7,5, // right
-            4,5,7,6, // top
-            0,2,3,1 // bottom
-        };
+        const auto &indexes = reference_cells[Volume::CELL_TYPE::HEXAHEDRON].facets;
 
         for (int f=0; f<6; f++) {
             for (int i=0; i<4; i++) {
@@ -398,15 +429,10 @@ namespace UM {
             {v[0].z, v[1].z, v[3].z, v[2].z, v[4].z, v[5].z, v[7].z, v[6].z}
         }};
 
-        for (int lc = 0; lc < 8; lc++)
-            for (int f = 0; f < 3; f++) {
-                const int he = reference_cells[1].corner(f, lc);
-                // std::cout << lc << "," << f << " -> " << reference_cells[1].from(he) << std::endl;
-            }
-
-        // p1-p0, p2-p0, p4-p0
-        // 
-
+        int ct = Volume::CELL_TYPE::HEXAHEDRON;
+        int h = reference_cells[ct].corner(0, 0);
+        const vec3 &c_pos = reference_cells[1].points[c];
+        
 
         const mat<8,3> &B = QH[c];
 
