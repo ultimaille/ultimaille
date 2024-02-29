@@ -19,19 +19,6 @@ namespace UM {
         return ave / static_cast<double>(nbv);
     }
 
-    // // TODO see if necessary (if yes, refact normal => cross_product().normalized())
-    // inline vec3 cross_product(const vec3 v[], const int nbv) {
-    //     vec3 res = {0, 0, 0};
-    //     vec3 bary = bary_verts(v, nbv);
-        
-    //     for (int lv=0; lv<nbv; lv++)
-    //         res += cross(
-    //             v[lv]-bary,
-    //             v[(lv+1)%nbv]-bary
-    //         );
-    //     return res;
-    // }
-
     // TODO see if possible to template this function
     inline vec3 normal(const vec3 v[], const int nbv) {
         vec3 res = {0, 0, 0};
@@ -94,6 +81,7 @@ namespace UM {
         mat3x3 tangent_basis(vec3 first_axis) const;
         mat3x3 grad_operator() const;
         vec3 grad(vec3 u) const;
+        inline mat3x3 as_matrix() const;
     };
 
     inline vec3 Triangle3::cross_product() const {
@@ -118,6 +106,10 @@ namespace UM {
 
     inline Triangle3 Triangle2::xy0() const {
         return {{v[0].xy0(), v[1].xy0(), v[2].xy0()}};
+    }
+
+    inline mat3x3 Triangle3::as_matrix() const {
+        return {{v[0], v[1], v[2]}};
     }
 
     struct Quad3;
