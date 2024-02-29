@@ -32,6 +32,7 @@ namespace UM {
     //     return res;
     // }
 
+    // TODO see if possible to template this function
     inline vec3 normal(const vec3 v[], const int nbv) {
         vec3 res = {0, 0, 0};
         vec3 bary = bary_verts(v, nbv);
@@ -62,6 +63,7 @@ namespace UM {
         inline vec2 bary_verts() const;
         inline double signed_area() const;
         inline Triangle3 xy0() const;
+        Triangle2 dilate(double scale) const;
         vec3 bary_coords(vec2 G) const;
         mat<2,3> grad_operator() const;
         vec2 grad(vec3 u) const;
@@ -165,6 +167,8 @@ namespace UM {
         vec3 bary_verts() const;
         inline double volume() const;
         vec4 bary_coords(vec3 G) const;
+        // mat<3,4> grad_operator() const;
+        vec3 grad(vec4 u) const;
     };
 
     // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis

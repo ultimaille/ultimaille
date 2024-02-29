@@ -62,6 +62,9 @@ TEST_CASE("Test triangle geom", "[geom]") {
     CHECK(std::abs((expected_xy_tri.v[0] - actual_xy_tri.v[0]).norm2()) < 1e-4);
     CHECK(std::abs((expected_xy_tri.v[1] - actual_xy_tri.v[1]).norm2()) < 1e-4);
     CHECK(std::abs((expected_xy_tri.v[2] - actual_xy_tri.v[2]).norm2()) < 1e-4);
+    // Check dilate
+    auto actual_xy_tri_dilated = actual_xy_tri.dilate(2.);
+    CHECK(std::abs(actual_xy_tri.signed_area() - actual_xy_tri_dilated.signed_area() / 4.) < 1e-4);
     // Check unproject xy0
     Triangle3 actual_xy0_tri = actual_xy_tri.xy0();
     INFO("xy0 unproject: " << actual_xy0_tri.v[0] << "," << actual_xy0_tri.v[1] << "," << actual_xy0_tri.v[2]);
@@ -72,6 +75,11 @@ TEST_CASE("Test triangle geom", "[geom]") {
     vec2 g = actual_xy_tri.bary_verts();
     vec3 expected_bary_coords = vec3{1, 1, 1} / 3.;
     CHECK(std::abs((actual_xy_tri.bary_coords(g) - expected_bary_coords).norm2()) < 1e-4);
+    // Check gradient
+    // Triangle2 equi_tri{{{0,0}, {1,0}, {0.5, 0.8660}}};
+    // INFO("b:" << equi_tri.bary_verts());
+    // INFO("grad: " << equi_tri.grad({1,2,3}));
+    // CHECK(false);
 }
 
 TEST_CASE("Test quad geom", "[geom]") {
