@@ -290,35 +290,26 @@ namespace UM {
 		return grad_operator() * u;
 	}
 
-    // // Generic function for grad_operator on N vertices
-    // template<int N> 
-    // inline mat<3,N> grad_operator(const vec3 v[N]) {
-    //     mat<N,3>  accum ;
+    mat<3,4> Tetrahedron3::grad_operator() const {
+        mat<4,3>  accum ;
 
-    //     for (int d = 0; d < N; d++) {
-    //         const vec3 &P = v[d];
-    //         const vec3 &A = v[(d + 1) % N];
-    //         const vec3 &B = v[(d + 2) % N];
-    //         const vec3 &C = v[(d + 3) % N];
-    //         vec3 n = Triangle3{A, B, C}.normal();
-    //         // t.normal();
-    //         // vec3 n = cross(B - A, C - A);
-    //         // n.normalize();
-            
-    //         double scale = (n * (P - A));
-    //         accum[d] = n / scale;
-    //     }
+        for (int d = 0; d < 3; d++) {
+            vec3 P = v[d];
+            vec3 A = v[(d + 1) % 4];
+            vec3 B = v[(d + 2) % 4];
+            vec3 C = v[(d + 3) % 4];
+            vec3 n = cross(B - A, C - A);
+            n.normalize();
+            double scale = (n * (P - A));
+            accum[d] = n / scale;
+        }
 
-    //     return accum.transpose();
-    // }
+        return accum.transpose();
+    }
 
-    // mat<3,4> Tetrahedron3::grad_operator() const {
-    //     return UM::grad_operator<4>(v);
-    // }
-
-    // vec3 Tetrahedron3::grad(vec4 u) const {
-    //     return grad_operator() * u;
-    // }
+    vec3 Tetrahedron3::grad(vec4 u) const {
+        return grad_operator() * u;
+    }
 
     double Quad3::unsigned_area() const {
         return UM::unsigned_area(v, 4);
@@ -353,8 +344,6 @@ namespace UM {
             return 1e30;
 
         double d = std::sqrt(l0.norm2() * l1.norm2());
-
-        std::cout << "det:" << J.det() << std::endl;
         double scaled_jacobian = J.det() / d;
 
         if (scaled_jacobian > 0)
@@ -419,6 +408,108 @@ namespace UM {
         return vol;
     }
 
+    double frame_jacobian(const mat3x3 &F) {
+        // scale
+        const vec3& l0 = F.col(0);
+        const vec3& l1 = F.col(1);
+        const vec3& l2 = F.col(2);
+
+        // Check L_min² <= DBL_MIN => q = DBL_MAX, with DBL_MIN = 1e-30 and DBL_MAX = 1e+30
+        const double l_min = std::min(std::min(l0.norm2(), l1.norm2()), l2.norm2());
+
+        if (l_min <= 1e-30)
+            return 1e30;
+
+        double d = std::sqrt(l0.norm2() * l1.norm2() * l2.norm2());
+
+        double scaled_jacobian = F.det() / d;
+
+        if (scaled_jacobian > 0)
+            return std::min(scaled_jacobian, 1e30);
+        else 
+            return std::max(scaled_jacobian, -(1e30));
+    }
+
+
+    // constexpr vec3 facets_of(const int v) {
+    //     auto &facets = reference_cells[1].facets;
+    //     auto &c2f = reference_cells[1].c2f;
+
+    //     int cnt = 0;
+    //     int idx[3]{0,0,0};
+    //     for (int i = 0; i < std::size(facets); i++) {
+    //         if (facets[i] == v) {
+    //             idx[cnt] = i;
+    //             cnt++;
+    //             if (cnt == 3)
+    //                 break;
+    //         }
+    //     }
+
+    //     return {c2f[idx[0]], c2f[idx[1]], c2f[idx[2]]};
+    // }
+
+    // constexpr int * neighbors_verts(const int v) {
+
+    //     auto &facets = reference_cells[1].facets;
+    //     auto &c2f = reference_cells[1].c2f;
+
+    //     int cnt = 0;
+    //     int idx[3]{0,0,0};
+    //     for (int i = 0; i < std::size(facets); i++) {
+    //         if (facets[i] == v) {
+    //             idx[cnt] = i;
+    //             cnt++;
+    //             if (cnt == 3)
+    //                 break;
+    //         }
+    //     }
+
+    //     return new int[]{
+    //         reference_cells[1].vert(c2f[idx[0]], ((idx[0] % 4) + 1) % 4), 
+    //         reference_cells[1].vert(c2f[idx[1]], ((idx[1] % 4) + 1) % 4), 
+    //         reference_cells[1].vert(c2f[idx[2]], ((idx[2] % 4) + 1) % 4)
+    //     };
+    // }
+
+    // double Hexahedron3::jacobian(int c) const {
+
+    //     int ct = Volume::CELL_TYPE::HEXAHEDRON;
+    //     // Get neightbors vertices of vertex corner
+    //     const auto &neightbors = reference_cells[ct].neighbors_verts(c);
+        
+    //     const vec3 &pc = v[c];
+    //     const vec3 &p0 = v[neightbors[0]];
+    //     const vec3 &p1 = v[neightbors[1]];
+    //     const vec3 &p2 = v[neightbors[2]];
+
+    //     std::cout << "c: " << c << ", neightbors[0]:" << neightbors[0] << ",neightbors[1]:" << neightbors[1] << ",neightbors[2]:" << neightbors[2] << std::endl;
+    //     std::cout << "pc:  " << pc << ", p0:" << p0 << ",p1:" << p1 << ",p2:" << p2 << std::endl;
+
+
+    //     const mat3x3 FT{{p0 - pc, p1 - pc, p2 - pc}};
+    //     std::cout << "--- FT ---" << std::endl << FT << std::endl;
+    //     const mat3x3 F = FT.transpose();
+    //     std::cout << "--- F ---" << std::endl << F << std::endl;
+
+    //     // test compare
+    //     mat<3,8> A = {{
+    //         {v[0].x, v[1].x, v[3].x, v[2].x, v[4].x, v[5].x, v[7].x, v[6].x},
+    //         {v[0].y, v[1].y, v[3].y, v[2].y, v[4].y, v[5].y, v[7].y, v[6].y},
+    //         {v[0].z, v[1].z, v[3].z, v[2].z, v[4].z, v[5].z, v[7].z, v[6].z}
+    //     }};
+    //     const mat<8,3> &B = QH[c];
+    //     mat3x3 J = A * B;
+    //     std::cout << "--- J ---" << std::endl << J << std::endl;
+
+    //     std::cout << "HEX VERT: " << std::endl;
+    //     for (int i = 0; i < 8; i++) {
+    //         std::cout << v[i] << std::endl;
+    //     }
+
+    //     return frame_jacobian(F);
+    // }
+
     double Hexahedron3::jacobian(int c) const {
 
         // Convert verdict volume reference to ultimaille volume reference (https://coreform.com/papers/verdict_quality_library.pdf, p.79)
@@ -428,11 +519,6 @@ namespace UM {
             {v[0].y, v[1].y, v[3].y, v[2].y, v[4].y, v[5].y, v[7].y, v[6].y},
             {v[0].z, v[1].z, v[3].z, v[2].z, v[4].z, v[5].z, v[7].z, v[6].z}
         }};
-
-        int ct = Volume::CELL_TYPE::HEXAHEDRON;
-        int h = reference_cells[ct].corner(0, 0);
-        const vec3 &c_pos = reference_cells[1].points[c];
-        
 
         const mat<8,3> &B = QH[c];
 

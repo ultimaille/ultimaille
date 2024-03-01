@@ -77,8 +77,14 @@ TEST_CASE("Test triangle geom", "[geom]") {
     CHECK(std::abs((actual_xy_tri.bary_coords(g) - expected_bary_coords).norm2()) < 1e-4);
     // Check gradient
     // Triangle2 equi_tri{{{0,0}, {1,0}, {0.5, 0.8660}}};
-    // INFO("b:" << equi_tri.bary_verts());
-    // INFO("grad: " << equi_tri.grad({1,2,3}));
+    Triangle2 equi_tri{{{0,0}, {1,0}, {0.5, 0.5}}};
+    vec2 xx = equi_tri.v[1] - ((equi_tri.v[0] + equi_tri.v[2]) *.5);
+
+    INFO("b:" << equi_tri.bary_verts());
+    INFO("grad: " << equi_tri.grad({0,1,0}));
+    double mm = std::max(xx[0], xx[1]);
+    INFO("x: " << xx);
+    INFO("x: " << xx / mm);
     // CHECK(false);
 }
 
