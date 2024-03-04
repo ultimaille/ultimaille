@@ -12,6 +12,52 @@ struct VerdictResult {
     double result;
 };
 
+TEST_CASE("Test segment geom", "[geom]") {
+    
+    // Create mesh with one equilateral triangle cell
+    Triangles m;
+    m.points.create_points(3);
+    m.points[0] = {0,0,0};
+    m.points[1] = vec3(1,0,0);
+    m.points[2] = vec3(0.5,0.8660,0);
+    m.create_facets(1);
+    m.vert(0, 0) = 0;
+    m.vert(0, 1) = 1;
+    m.vert(0, 2) = 2;
+    m.connect();
+
+    // Get first half-edge and extract segment
+    for (int hi = 0; hi < 3; hi++) {
+        auto h = Surface::Halfedge(m, hi);
+        auto s = h.geom();
+
+        // Check that segment references points correctly
+        CHECK(std::abs((s[0] - m.points[hi % 3]).norm2()) < 1e-4);
+        CHECK(std::abs((s[1] - m.points[(hi + 1) % 3]).norm2()) < 1e-4);
+
+        // Check length
+        INFO("halfedge " << hi << " - length of segment: " << s.length());
+        CHECK(std::abs(s.length() - 1.) < 1e-4);
+    }
+
+    // Create a segment
+    vec3 sa{0,0,0};
+    vec3 sb{1,0,0};
+    Segment3 s{{sa, sb}};
+
+    INFO("segment: " << s);
+    INFO("length: " << s.length());
+    
+    vec3 p0{2.8, 0, 0.5};
+    vec3 p1{-3.8, 0.2, 0.5};
+    
+    // Check closest point
+    INFO("closest point of p0: " << p0 << " is " << s.closest_point(p0));
+    INFO("closest point of p1: " << p1 << " is " << s.closest_point(p1));
+    CHECK(std::abs((s.closest_point(p0) - sb).norm2()) < 1e-4);
+    CHECK(std::abs((s.closest_point(p1) - sa).norm2()) < 1e-4);
+}
+
 TEST_CASE("Test triangle geom", "[geom]") {
 
     Triangles m;
@@ -37,7 +83,6 @@ TEST_CASE("Test triangle geom", "[geom]") {
     // Check bary
     auto f = m.iter_facets().begin().f;
     auto tri_f = f.geom<Triangle3>();
-
     CHECK(std::abs((tri_f.bary_verts() - vec3{0.5,0.5/3.,0}).norm()) < 1e-4);
 
     // Check area comparing with formula A = bh / 2
@@ -55,6 +100,7 @@ TEST_CASE("Test triangle geom", "[geom]") {
     vec2 x{sqrt(1), 0};
     CHECK(std::abs((x - b).norm2()) < 1e-4);
     // c is somewhere
+
     // Check projection xy
     Triangle2 expected_xy_tri{{{tri_f.v[0].x, tri_f.v[0].y}, {tri_f.v[1].x, tri_f.v[1].y}, {tri_f.v[2].x, tri_f.v[2].y}}};
     Triangle2 actual_xy_tri = tri_f.xy();
@@ -62,19 +108,32 @@ TEST_CASE("Test triangle geom", "[geom]") {
     CHECK(std::abs((expected_xy_tri.v[0] - actual_xy_tri.v[0]).norm2()) < 1e-4);
     CHECK(std::abs((expected_xy_tri.v[1] - actual_xy_tri.v[1]).norm2()) < 1e-4);
     CHECK(std::abs((expected_xy_tri.v[2] - actual_xy_tri.v[2]).norm2()) < 1e-4);
+
     // Check dilate
     auto actual_xy_tri_dilated = actual_xy_tri.dilate(2.);
     CHECK(std::abs(actual_xy_tri.signed_area() - actual_xy_tri_dilated.signed_area() / 4.) < 1e-4);
+
     // Check unproject xy0
     Triangle3 actual_xy0_tri = actual_xy_tri.xy0();
     INFO("xy0 unproject: " << actual_xy0_tri.v[0] << "," << actual_xy0_tri.v[1] << "," << actual_xy0_tri.v[2]);
     CHECK(std::abs((tri_f.v[0].xy().xy0() - actual_xy0_tri.v[0]).norm2()) < 1e-4);
     CHECK(std::abs((tri_f.v[1].xy().xy0() - actual_xy0_tri.v[1]).norm2()) < 1e-4);
     CHECK(std::abs((tri_f.v[2].xy().xy0() - actual_xy0_tri.v[2]).norm2()) < 1e-4);
+
     // Check bary coordinates
     vec2 g = actual_xy_tri.bary_verts();
     vec3 expected_bary_coords = vec3{1, 1, 1} / 3.;
     CHECK(std::abs((actual_xy_tri.bary_coords(g) - expected_bary_coords).norm2()) < 1e-4);
+    // Check bary on inversed tri
+    Triangle3 inversed_t{{{0,0,0},{0.5,0.5,0},{1,0,0}}};
+    vec3 g33 = inversed_t.bary_verts();
+    CHECK(std::abs((inversed_t.bary_coords(g33) - expected_bary_coords).norm2()) < 1e-4);
+
+
+    // Check bary coordinates of Triangle3
+    vec3 g3 = actual_xy0_tri.bary_verts();
+    CHECK(std::abs((actual_xy0_tri.bary_coords(g3) - expected_bary_coords).norm2()) < 1e-4);   
+
     // Check gradient
     // Triangle2 equi_tri{{{0,0}, {1,0}, {0.5, 0.8660}}};
     Triangle2 equi_tri{{{0,0}, {1,0}, {0.5, 0.5}}};

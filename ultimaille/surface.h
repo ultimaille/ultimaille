@@ -138,6 +138,8 @@ namespace UM {
             Vertex from();
             Vertex to();
 
+            inline Segment3 geom();
+
             auto iter_sector_halfedges();
         };
 
@@ -488,6 +490,10 @@ namespace UM {
 
     inline int Surface::Halfedge::id_in_facet() {
         return id - m.corner(facet(), 0);
+    }
+
+    inline Segment3 Surface::Halfedge::geom() {
+        return {from().pos(), to().pos()};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

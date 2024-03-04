@@ -253,14 +253,14 @@ namespace UM {
         mat3x3 accum;
         vec3 tr_normal = normal();
         
-        for (int d = 0; d < 3; d++) {
-            vec3 p = v[d];
-            vec3 a = v[(d + 1) % 3];
-            vec3 b = v[(d + 2) % 3];
-            vec3 n = cross(b - a, tr_normal);
+        for (int i = 0; i < 3; i++) {
+            const vec3 &P = v[i];
+            const vec3 &A = v[(i + 1) % 3];
+            const vec3 &B = v[(i + 2) % 3];
+            vec3 n = cross(B - A, tr_normal);
             n.normalize();
-            double scale = (n * (p - a));
-            accum[d] = n / scale;
+            double scale = (n * (P - A));
+            accum[i] = n / scale;
         }
 
         return accum.transpose();
@@ -273,15 +273,15 @@ namespace UM {
 	mat<2,3> Triangle2::grad_operator() const {
 		mat<3,2>  accum;
 
-        for (int d = 0; d < 3; d++) {
-			vec2 P = v[d];
-			vec2 A = v[(d + 1) % 3];
-			vec2 B = v[(d + 2) % 3];
+        for (int i = 0; i < 3; i++) {
+			const vec2 &P = v[i];
+			const vec2 &A = v[(i + 1) % 3];
+			const vec2 &B = v[(i + 2) % 3];
 
 			vec2 n((B - A)[1], -(B - A)[0]);
 			n.normalize();
 			double scale = (n * (P - A));
-			accum[d] = n / scale;
+			accum[i] = n / scale;
 		}
 		return accum.transpose();
 	}
@@ -293,15 +293,15 @@ namespace UM {
     mat<3,4> Tetrahedron3::grad_operator() const {
         mat<4,3>  accum ;
 
-        for (int d = 0; d < 3; d++) {
-            vec3 P = v[d];
-            vec3 A = v[(d + 1) % 4];
-            vec3 B = v[(d + 2) % 4];
-            vec3 C = v[(d + 3) % 4];
+        for (int i = 0; i < 3; i++) {
+            const vec3 &P = v[i];
+            const vec3 &A = v[(i + 1) % 4];
+            const vec3 &B = v[(i + 2) % 4];
+            const vec3 &C = v[(i + 3) % 4];
             vec3 n = cross(B - A, C - A);
             n.normalize();
             double scale = (n * (P - A));
-            accum[d] = n / scale;
+            accum[i] = n / scale;
         }
 
         return accum.transpose();

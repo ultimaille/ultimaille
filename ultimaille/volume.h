@@ -220,6 +220,8 @@ namespace UM {
             Halfedge opposite_f();
             Halfedge opposite_c();
 
+            inline Segment3 geom();
+
             auto iter_CCW_around_edge();
         };
 
@@ -621,6 +623,10 @@ namespace UM {
         }
         um_assert(false);
         return { m, -1 };
+    }
+
+    inline Segment3 Volume::Halfedge::geom() {
+        return {from().pos(), to().pos()};
     }
 
     inline auto Volume::Halfedge::iter_CCW_around_edge() {
