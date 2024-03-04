@@ -7,6 +7,7 @@
 #include "pointset.h"
 #include "attributes.h"
 #include "syntactic-sugar/assert.h"
+#include "geometry.h"
 
 namespace UM {
     struct GenericAttributeContainer;
@@ -109,6 +110,7 @@ namespace UM {
             Edge opposite();
             Vertex from();
             Vertex to();
+            inline Segment3 geom();
             friend struct Vertex;
         };
 
@@ -277,10 +279,14 @@ inline PolyLine::Edge PolyLine::Edge::opposite() {
 inline PolyLine::Vertex PolyLine::Edge::from() {
 	return { m, m.vert(id, 0) };
 }
+
 inline PolyLine::Vertex PolyLine::Edge::to() {
 	return { m, m.vert(id, 1) };
 }
 
+inline Segment3 PolyLine::Edge::geom() {
+	return {{from().pos(), to().pos()}};
+}
 
 
 
