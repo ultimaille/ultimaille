@@ -13,6 +13,27 @@ namespace UM {
         return 0.5*cross(B-A, C-A).norm();
     }
 
+    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
+    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
+        return ((B-A)*cross(C-A,D-A))/6.;
+    }
+
+    template<int n, int nbv>
+    inline vec<n> bary_verts(const vec<n> v[nbv]) {
+        // Optimized versions
+        if constexpr(nbv == 3)
+            return (v[0] + v[1] + v[2]) / 3;
+        else if constexpr(nbv == 4) 
+            return (v[0] + v[1] + v[2] + v[3]) / 4;
+        // Generic version
+        else {        
+            vec<n> ave = {0, 0, 0};
+            for (int lv=0; lv<nbv; lv++)
+                ave += v[lv];
+            return ave / static_cast<double>(nbv);
+        }
+    }
+
     inline vec3 bary_verts(const vec3 v[], const int nbv) {
         vec3 ave = {0, 0, 0};
         for (int lv=0; lv<nbv; lv++)
@@ -20,7 +41,6 @@ namespace UM {
         return ave / static_cast<double>(nbv);
     }
 
-    // TODO see if possible to template this function
     inline vec3 normal(const vec3 v[], const int nbv) {
         vec3 res = {0, 0, 0};
         vec3 bary = bary_verts(v, nbv);
@@ -100,7 +120,7 @@ namespace UM {
     struct Triangle3;
 
     struct Triangle2 {
-        vec2 v[3] = {};
+        vec2 v[3]{};
 
         inline vec2 bary_verts() const;
         inline double signed_area() const;
@@ -112,7 +132,7 @@ namespace UM {
     };
 
     struct Triangle3 {
-        vec3 v[3] = {};
+        vec3 v[3]{};
 
         inline vec3 cross_product() const;
         inline vec3 normal() const;
@@ -120,7 +140,7 @@ namespace UM {
         vec3 bary_coords(vec3 G) const;
         inline double unsigned_area() const;
         Triangle2 project() const;
-        Triangle2 xy() const;
+        inline Triangle2 xy() const;
         Triangle3 dilate(double scale) const;
         mat3x3 tangent_basis() const;
         mat3x3 tangent_basis(vec3 first_axis) const;
@@ -146,7 +166,7 @@ namespace UM {
     struct Quad3 {
         vec3 v[4] = {};
         vec3 normal() const;
-        vec3 bary_verts() const;
+        inline vec3 bary_verts() const;
         double unsigned_area() const;
         inline Quad2 xy() const;
     };
@@ -184,11 +204,6 @@ namespace UM {
         inline Quad3 base() const;
         inline vec3 apex() const;
     };
-
-    // signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
-    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
-        return ((B-A)*cross(C-A,D-A))/6.;
-    }
 
     inline vec2 Triangle2::bary_verts() const {
         return (v[0] + v[1] + v[2]) / 3;
@@ -247,13 +262,12 @@ namespace UM {
         return {{v[0].xy(), v[1].xy(), v[2].xy(), v[3].xy()}};
     }
 
+    inline vec3 Quad3::bary_verts() const {
+        return (v[0] + v[1] + v[2] + v[3]) / 4;
+    }
+
     inline double Tetrahedron3::volume() const {
-        return tet_volume(
-                v[0],
-                v[1],
-                v[2],
-                v[3]
-            );
+        return tet_volume(v[0], v[1], v[2], v[3]);
     }
 
     inline Quad3 Pyramid3::base() const {
