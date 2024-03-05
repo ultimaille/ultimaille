@@ -134,7 +134,7 @@ TEST_CASE("Test triangle geom", "[geom]") {
     vec3 g3 = actual_xy0_tri.bary_verts();
     CHECK(std::abs((actual_xy0_tri.bary_coords(g3) - expected_bary_coords).norm2()) < 1e-4);   
 
-    // Check gradient
+    // TODO Check gradient
     // Triangle2 equi_tri{{{0,0}, {1,0}, {0.5, 0.8660}}};
     Triangle2 equi_tri{{{0,0}, {1,0}, {0.5, 0.5}}};
     vec2 xx = equi_tri.v[1] - ((equi_tri.v[0] + equi_tri.v[2]) *.5);
@@ -144,7 +144,6 @@ TEST_CASE("Test triangle geom", "[geom]") {
     double mm = std::max(xx[0], xx[1]);
     INFO("x: " << xx);
     INFO("x: " << xx / mm);
-    // CHECK(false);
 }
 
 TEST_CASE("Test quad geom", "[geom]") {
@@ -344,10 +343,16 @@ TEST_CASE("Test tetra geom", "[geom]") {
     // Check dilate
     auto tet_f_dilated = tet_f.dilate(2.);
     CHECK(std::abs(tet_f.unsigned_area() - tet_f_dilated.unsigned_area() / 4.) < 1e-4);
-    //tangent_basis
+    // Check tangent basis
     mat3x3 t = tet_f.tangent_basis({1,0,0});
     INFO("tangent basis: " << t);
     CHECK(std::abs((t[1] - vec3{0,-1,0}).norm2()) < 1e-4);
+    // Check tagent basis
+    Triangle3 tri{{{0,0,0},{1,0,0},{0.5,0.5,0}}};
+    t = tri.tangent_basis();
+    INFO("tangent basis: " << t);
+    CHECK(std::abs((t[1] - vec3{0,1,0}).norm2()) < 1e-4);
+    CHECK(std::abs((t[2] - vec3{0,0,1}).norm2()) < 1e-4);
 }
 
 TEST_CASE("Test hexa geom", "[geom]") {
