@@ -9,110 +9,6 @@
 
 namespace UM {
 
-    // quadratures for every hex corner (https://coreform.com/papers/verdict_quality_library.pdf, p.79, 80)
-    // used to compute jacobian scale on hex
-    constexpr mat<8,3> QH[9] = { 
-        {{
-            // A_0 = (L_0, L_3, L_4)
-            {-1,-1,-1},
-            {1,0,0},
-            {0,0,0},
-            {0,1,0},
-            {0,0,1},
-            {0,0,0},
-            {0,0,0},
-            {0,0,0}
-        }},
-        {{
-            // A_1 = (L_1, -L_0, L_5)
-            {0,1,0},
-            {-1,-1,-1},
-            {1,0,0},
-            {0,0,0},
-            {0,0,0},
-            {0,0,1},
-            {0,0,0},
-            {0,0,0}
-        }},
-        {{
-            // A_2 = (L_2, -L_1, L_6)
-            {0,0,0},
-            {0,1,0},
-            {-1,-1,-1},
-            {1,0,0},
-            {0,0,0},
-            {0,0,0},
-            {0,0,1},
-            {0,0,0}
-        }},
-        {{
-            // A_3 = (-L_3, -L_2, L_7)
-            {1,0,0},
-            {0,0,0},
-            {0,1,0},
-            {-1,-1,-1},
-            {0,0,0},
-            {0,0,0},
-            {0,0,0},
-            {0,0,1}
-        }},
-        {{
-            // A_4 = (L_11, L_8, -L_4)
-            {0,0,1},
-            {0,0,0},
-            {0,0,0},
-            {0,0,0},
-            {-1,-1,-1},
-            {0,1,0},
-            {0,0,0},
-            {1,0,0}
-        }},
-        {{
-            // A_5 = (-L_8, L_9, -L_5)
-            {0,0,0},
-            {0,0,1},
-            {0,0,0},
-            {0,0,0},
-            {1,0,0},
-            {-1,-1,-1},
-            {0,1,0},
-            {0,0,0}
-        }},
-        {{
-            // A_6 = (-L_9, L_10, -L_6)
-            {0,0,0},
-            {0,0,0},
-            {0,0,1},
-            {0,0,0},
-            {0,0,0},
-            {1,0,0},
-            {-1,-1,-1},
-            {0,1,0}
-        }},
-        {{
-            // A_7 = (-L_10, -L_11, -L_7)
-            {0,0,0},
-            {0,0,0},
-            {0,0,0},
-            {0,0,1},
-            {0,1,0},
-            {0,0,0},
-            {1,0,0},
-            {-1,-1,-1}
-        }},
-        {{
-            // A_8 = (X_1, X_2, X_3) = {(P_1-P_0)+(P_2-P_3)+(P_5-P_4)+(P_6-P_7)}
-            {-1,-1,-1},
-            {1,-1,-1},
-            {1,1,-1},
-            {-1,1,-1},
-            {-1,-1,1},
-            {1,-1,1},
-            {1,1,1},
-            {-1,1,1}
-        }}
-    };    
-
     // quadratures for every quad corner (counter-clock wise)
     // used to compute jacobian scale on quad
     constexpr mat<4,2> QQ[4] = { 
@@ -402,49 +298,16 @@ namespace UM {
         return vol;
     }
 
-    double Hexahedron3::jacobian(int c) const {
-
-        // Convert verdict volume reference to ultimaille volume reference (https://coreform.com/papers/verdict_quality_library.pdf, p.79)
-        // Note: Only need to invert points at index 2,3 and 6,7
-        mat<3,8> A = {{
-            {v[0].x, v[1].x, v[3].x, v[2].x, v[4].x, v[5].x, v[7].x, v[6].x},
-            {v[0].y, v[1].y, v[3].y, v[2].y, v[4].y, v[5].y, v[7].y, v[6].y},
-            {v[0].z, v[1].z, v[3].z, v[2].z, v[4].z, v[5].z, v[7].z, v[6].z}
-        }};
-
-        const mat<8,3> &B = QH[c];
-
-        mat3x3 J = A * B;
-        // scale
-        const vec3& l0 = J.col(0);
-        const vec3& l1 = J.col(1);
-        const vec3& l2 = J.col(2);
-
-        // Check L_min² <= DBL_MIN => q = DBL_MAX, with DBL_MIN = 1e-30 and DBL_MAX = 1e+30
-        const double l_min = std::min(std::min(l0.norm2(), l1.norm2()), l2.norm2());
-
-        if (l_min <= 1e-30)
-            return 1e30;
-
-        double d = std::sqrt(l0.norm2() * l1.norm2() * l2.norm2());
-
-        double scaled_jacobian = J.det() / d;
-
-        if (scaled_jacobian > 0)
-            return std::min(scaled_jacobian, 1e30);
-        else 
-            return std::max(scaled_jacobian, -(1e30));
-    }
-
     double Hexahedron3::scaled_jacobian() const {
-        double min_j = std::numeric_limits<double>::max();
+        constexpr int cverts[8][4] = { {0,1,2,4}, {1,3,0,5}, {2,0,3,6}, {3,2,1,7}, {4,6,5,0}, {5,4,7,1}, {6,7,4,2}, {7,5,6,3} };
+        double min_sj = std::numeric_limits<double>::max();
         for (int c = 0; c < 9; c++) {
-            double j = jacobian(c);
-            if (j < min_j)
-                min_j = j;
+            vec3 n1 = (v[cverts[c][1]] - v[cverts[c][0]]).normalized();
+            vec3 n2 = (v[cverts[c][2]] - v[cverts[c][0]]).normalized();
+            vec3 n3 = (v[cverts[c][3]] - v[cverts[c][0]]).normalized();
+            min_sj = std::min(min_sj, n3 * cross(n1, n2));
         }
-
-        return min_j;
+        return min_sj;
     }
 
     vec3 Pyramid3::bary_verts() const {
