@@ -185,6 +185,7 @@ namespace UM {
         vec4 bary_coords(vec3 G) const;
         mat<3,4> grad_operator() const;
         vec3 grad(vec4 u) const;
+        // TODO: double jacobian(const Tetrahedron& reference) const;
     };
 
     struct Hexahedron3 {
@@ -194,7 +195,7 @@ namespace UM {
         double scaled_jacobian() const;
 
         private:
-            double jacobian(int c) const;
+            double jacobian(int c) const; // wrt reference hexahedron
     };
 
     struct Pyramid3 {
