@@ -301,10 +301,16 @@ namespace UM {
     double Hexahedron3::scaled_jacobian() const {
         constexpr int cverts[8][4] = { {0,1,2,4}, {1,3,0,5}, {2,0,3,6}, {3,2,1,7}, {4,6,5,0}, {5,4,7,1}, {6,7,4,2}, {7,5,6,3} };
         double min_sj = std::numeric_limits<double>::max();
-        for (int c = 0; c < 9; c++) {
+        for (int c = 0; c < 8; c++) { // eight corners of the cube
             vec3 n1 = (v[cverts[c][1]] - v[cverts[c][0]]).normalized();
             vec3 n2 = (v[cverts[c][2]] - v[cverts[c][0]]).normalized();
             vec3 n3 = (v[cverts[c][3]] - v[cverts[c][0]]).normalized();
+            min_sj = std::min(min_sj, n3 * cross(n1, n2));
+        }
+        { // principal axes
+            vec3 n1 = (v[1]-v[0] + v[3]-v[2] + v[5]-v[4] + v[7]-v[6]).normalized();
+            vec3 n2 = (v[2]-v[0] + v[3]-v[1] + v[6]-v[4] + v[7]-v[5]).normalized();
+            vec3 n3 = (v[4]-v[0] + v[5]-v[1] + v[6]-v[2] + v[7]-v[3]).normalized();
             min_sj = std::min(min_sj, n3 * cross(n1, n2));
         }
         return min_sj;
