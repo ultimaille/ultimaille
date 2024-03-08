@@ -128,7 +128,9 @@ namespace UM {
         Triangle2 dilate(double scale) const;
         vec3 bary_coords(vec2 G) const;
         mat<2,3> grad_operator() const;
+        mat<2,3> grad_operator2() const;
         vec2 grad(vec3 u) const;
+        vec2 grad2(vec3 u) const;
     };
 
     struct Triangle3 {
@@ -145,7 +147,9 @@ namespace UM {
         mat3x3 tangent_basis() const;
         mat3x3 tangent_basis(vec3 first_axis) const;
         mat3x3 grad_operator() const;
+        mat3x3 grad_operator2() const;
         vec3 grad(vec3 u) const;
+        vec3 grad2(vec3 u) const;
         inline mat3x3 as_matrix() const;
     };
 
