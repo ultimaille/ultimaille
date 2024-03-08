@@ -3,17 +3,73 @@
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>
 #include <ultimaille/all.h>
+#include <chrono>
 
 using namespace UM;
 
 template<int n, int m>
 struct VerdictResult {
-    double coordinates[n][m];
-    double result;
+	double coordinates[n][m];
+	double result;
 };
 
+TEST_CASE("Test grad geom", "[geom]") {
+
+	for (int i = 0; i < 1000; i++) {
+		Triangle3 t{{
+			{(double)(rand() % 100), (double)(rand() % 100), (double)(rand() % 100)}, 
+			{(double)(rand() % 100), (double)(rand() % 100), (double)(rand() % 100)}, 
+			{(double)(rand() % 100), (double)(rand() % 100), (double)(rand() % 100)}
+		}};
+
+		vec3 u{(double)(rand() % 100), (double)(rand() % 100), (double)(rand() % 100)};
+
+		INFO("grad: " << t.grad(u).norm2() << ", grad2: " << t.grad2(u).norm2());
+		CHECK(std::abs((t.grad(u) - t.grad2(u)).norm2()) < 1e-4);
+	}
+
+    // Compare time: D VS N
+    // std::chrono::steady_clock::time_point begin_0 = std::chrono::steady_clock::now();
+
+	// for (int i = 0; i < 1000000; i++) {
+	// 	Triangle3 t{{
+	// 		{rand() % 100, rand() % 100, rand() % 100}, 
+	// 		{rand() % 100, rand() % 100, rand() % 100}, 
+	// 		{rand() % 100, rand() % 100, rand() % 100}
+	// 	}};
+
+	// 	vec3 u{rand() % 100, rand() % 100, rand() % 100};
+    //     auto g = t.grad(u);
+	// }
+
+    // std::chrono::steady_clock::time_point end_0 = std::chrono::steady_clock::now();
+
+    // std::chrono::steady_clock::time_point begin_1 = std::chrono::steady_clock::now();
+
+	// for (int i = 0; i < 1000000; i++) {
+	// 	Triangle3 t{{
+	// 		{rand() % 100, rand() % 100, rand() % 100}, 
+	// 		{rand() % 100, rand() % 100, rand() % 100}, 
+	// 		{rand() % 100, rand() % 100, rand() % 100}
+	// 	}};
+
+	// 	vec3 u{rand() % 100, rand() % 100, rand() % 100};
+    //     auto g = t.grad2(u);
+	// }
+
+    // std::chrono::steady_clock::time_point end_1 = std::chrono::steady_clock::now();
+
+
+
+    // std::cout << "Nico grad: " << std::chrono::duration_cast<std::chrono::microseconds>(end_0 - begin_0).count() << std::endl;
+    // std::cout << "Dmitry grad: " << std::chrono::duration_cast<std::chrono::microseconds>(end_1 - begin_1).count() << std::endl;
+
+    // CHECK(false);
+
+}
+
 TEST_CASE("Test segment geom", "[geom]") {
-    
+
     // Create mesh with one equilateral triangle cell
     Triangles m;
     m.points.create_points(3);

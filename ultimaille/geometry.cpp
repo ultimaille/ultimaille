@@ -162,8 +162,31 @@ namespace UM {
         return accum.transpose();
     }
 
+
+    constexpr mat3x3 tt{{{-1,1,0},{-1,0,1},{0,0,0}}};
+
+    mat3x3 Triangle3::grad_operator2() const {
+
+        vec3 l0 = v[1] - v[0];
+        vec3 l1 = v[2] - v[0];
+        vec3 n = cross(l0, l1);
+
+        auto m = mat3x3{{
+            l0,
+            l1,
+            n
+        }}.invert() * tt;
+
+        return m;
+
+    }
+
     vec3 Triangle3::grad(vec3 u) const {
         return grad_operator() * u;
+    }
+
+    vec3 Triangle3::grad2(vec3 u) const {
+        return grad_operator2() * u;
     }
 
 	mat<2,3> Triangle2::grad_operator() const {
@@ -182,8 +205,25 @@ namespace UM {
 		return accum.transpose();
 	}
 
+    mat<2,3> Triangle2::grad_operator2() const {
+
+        const vec2 l0 = v[1] - v[0];
+        const vec2 l1 = v[2] - v[0];
+
+        return mat<3,2>{{
+            l0,
+            l1,
+            {l0.x * l1.y - l0.y * l1.x, l1.x * l0.y - l1.y * l0.x}
+        }}.transpose();
+
+    }
+
 	vec2 Triangle2::grad(vec3 u) const {
 		return grad_operator() * u;
+	}
+
+	vec2 Triangle2::grad2(vec3 u) const {
+		return grad_operator2() * u;
 	}
 
     mat<3,4> Tetrahedron3::grad_operator() const {
@@ -244,6 +284,17 @@ namespace UM {
             return std::max(scaled_jacobian, -(1e30));
     }
 
+    // double Quad2::scaled_jacobian() const {
+    //     constexpr int cverts[4][3]{ {0,1,3}, {1,0,2}, {2,3,1}, {3,2,0} };
+    //     double min_sj = std::numeric_limits<double>::max();
+    //     for (int c = 0; c < 4; c++) { // 4 corners of the quad
+    //         vec2 n1 = (v[cverts[c][1]] - v[cverts[c][0]]).normalized();
+    //         vec2 n2 = (v[cverts[c][2]] - v[cverts[c][0]]).normalized();
+    //         min_sj = std::min(min_sj, n1.x*n2.y - n2.x*n1.y);
+    //     }
+    //     return min_sj;
+    // }
+
     double Quad2::scaled_jacobian() const {
         double min_j = std::numeric_limits<double>::max();
         for (int c = 0; c < 4; c++) {
@@ -299,6 +350,7 @@ namespace UM {
     }
 
     double Hexahedron3::scaled_jacobian() const {
+        // https://coreform.com/papers/verdict_quality_library.pdf
         constexpr int cverts[8][4] = { {0,1,2,4}, {1,3,0,5}, {2,0,3,6}, {3,2,1,7}, {4,6,5,0}, {5,4,7,1}, {6,7,4,2}, {7,5,6,3} };
         double min_sj = std::numeric_limits<double>::max();
         for (int c = 0; c < 8; c++) { // eight corners of the cube
