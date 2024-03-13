@@ -162,31 +162,8 @@ namespace UM {
         return accum.transpose();
     }
 
-
-    constexpr mat3x3 tt{{{-1,1,0},{-1,0,1},{0,0,0}}};
-
-    mat3x3 Triangle3::grad_operator2() const {
-
-        vec3 l0 = v[1] - v[0];
-        vec3 l1 = v[2] - v[0];
-        vec3 n = cross(l0, l1);
-
-        auto m = mat3x3{{
-            l0,
-            l1,
-            n
-        }}.invert() * tt;
-
-        return m;
-
-    }
-
     vec3 Triangle3::grad(vec3 u) const {
         return grad_operator() * u;
-    }
-
-    vec3 Triangle3::grad2(vec3 u) const {
-        return grad_operator2() * u;
     }
 
 	mat<2,3> Triangle2::grad_operator() const {
@@ -205,25 +182,8 @@ namespace UM {
 		return accum.transpose();
 	}
 
-    mat<2,3> Triangle2::grad_operator2() const {
-
-        const vec2 l0 = v[1] - v[0];
-        const vec2 l1 = v[2] - v[0];
-
-        return mat<3,2>{{
-            l0,
-            l1,
-            {l0.x * l1.y - l0.y * l1.x, l1.x * l0.y - l1.y * l0.x}
-        }}.transpose();
-
-    }
-
 	vec2 Triangle2::grad(vec3 u) const {
 		return grad_operator() * u;
-	}
-
-	vec2 Triangle2::grad2(vec3 u) const {
-		return grad_operator2() * u;
 	}
 
     mat<3,4> Tetrahedron3::grad_operator() const {
