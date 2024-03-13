@@ -4,68 +4,64 @@
 #include <iostream>
 #include <ultimaille/all.h>
 #include <chrono>
+#include <cmath>
+#include <algorithm>
 
 using namespace UM;
 
+// This structure will contains some results of verdict quality library to compare
+// https://github.com/sandialabs/verdict
 template<int n, int m>
 struct VerdictResult {
 	double coordinates[n][m];
 	double result;
 };
 
-TEST_CASE("Test grad geom", "[geom]") {
+// Some useful functions
 
-	for (int i = 0; i < 1000; i++) {
-		Triangle3 t{{
-			{(double)(rand() % 100), (double)(rand() % 100), (double)(rand() % 100)}, 
-			{(double)(rand() % 100), (double)(rand() % 100), (double)(rand() % 100)}, 
-			{(double)(rand() % 100), (double)(rand() % 100), (double)(rand() % 100)}
-		}};
+vec2 rand_v2() {
+    return {(rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5};
+}
 
-		vec3 u{(double)(rand() % 100), (double)(rand() % 100), (double)(rand() % 100)};
+vec3 rand_v3() {
+    return {(rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5};
+}
 
-		INFO("grad: " << t.grad(u).norm2() << ", grad2: " << t.grad2(u).norm2());
-		CHECK(std::abs((t.grad(u) - t.grad2(u)).norm2()) < 1e-4);
+bool are_doubles_equal(double a, double b, double eps) {
+    double diff = std::fabs(a - b);
+    double max = std::max(std::fabs(a), std::fabs(b));
+
+    // Use absolute tolerance for very small numbers
+    if (max < 1e-10) {
+        return diff < eps;
+    }
+
+    // Otherwise, use relative tolerance
+    return diff < max * eps;
+}
+
+template<int n>
+bool are_vec_equal(vec<n> a, vec<n> b, double eps) {
+
+	vec<n> diff = {std::fabs(a.x - b.x), std::fabs(a.y - b.y)};
+	vec<n> max = {std::max(std::fabs(a.x), std::fabs(b.x)), std::max(std::fabs(a.y), std::fabs(b.y))};
+
+	bool equal = true;
+	for (int i = 0; i < n; i++) {
+
+		// Check NaN / infinity consistency
+		if (std::isnan(a[i]) && std::isnan(b[i]) || std::isinf(a[i]) && std::isinf(b[i]))
+			continue;
+
+		// Use absolute tolerance for very small numbers
+		if (max[i] < 1e-10)
+			equal &= diff[i] < eps;
+		else 
+			// Otherwise, use relative tolerance
+			equal &= diff[i] < max[i] * eps;
 	}
 
-    // Compare time: D VS N
-    // std::chrono::steady_clock::time_point begin_0 = std::chrono::steady_clock::now();
-
-	// for (int i = 0; i < 1000000; i++) {
-	// 	Triangle3 t{{
-	// 		{rand() % 100, rand() % 100, rand() % 100}, 
-	// 		{rand() % 100, rand() % 100, rand() % 100}, 
-	// 		{rand() % 100, rand() % 100, rand() % 100}
-	// 	}};
-
-	// 	vec3 u{rand() % 100, rand() % 100, rand() % 100};
-    //     auto g = t.grad(u);
-	// }
-
-    // std::chrono::steady_clock::time_point end_0 = std::chrono::steady_clock::now();
-
-    // std::chrono::steady_clock::time_point begin_1 = std::chrono::steady_clock::now();
-
-	// for (int i = 0; i < 1000000; i++) {
-	// 	Triangle3 t{{
-	// 		{rand() % 100, rand() % 100, rand() % 100}, 
-	// 		{rand() % 100, rand() % 100, rand() % 100}, 
-	// 		{rand() % 100, rand() % 100, rand() % 100}
-	// 	}};
-
-	// 	vec3 u{rand() % 100, rand() % 100, rand() % 100};
-    //     auto g = t.grad2(u);
-	// }
-
-    // std::chrono::steady_clock::time_point end_1 = std::chrono::steady_clock::now();
-
-
-
-    // std::cout << "Nico grad: " << std::chrono::duration_cast<std::chrono::microseconds>(end_0 - begin_0).count() << std::endl;
-    // std::cout << "Dmitry grad: " << std::chrono::duration_cast<std::chrono::microseconds>(end_1 - begin_1).count() << std::endl;
-
-    // CHECK(false);
-
+	return equal;
 }
 
 TEST_CASE("Test segment geom", "[geom]") {
@@ -185,21 +181,36 @@ TEST_CASE("Test triangle geom", "[geom]") {
     vec3 g33 = inversed_t.bary_verts();
     CHECK(std::abs((inversed_t.bary_coords(g33) - expected_bary_coords).norm2()) < 1e-4);
 
-
     // Check bary coordinates of Triangle3
     vec3 g3 = actual_xy0_tri.bary_verts();
     CHECK(std::abs((actual_xy0_tri.bary_coords(g3) - expected_bary_coords).norm2()) < 1e-4);   
 
-    // TODO Check gradient
-    // Triangle2 equi_tri{{{0,0}, {1,0}, {0.5, 0.8660}}};
-    Triangle2 equi_tri{{{0,0}, {1,0}, {0.5, 0.5}}};
-    vec2 xx = equi_tri.v[1] - ((equi_tri.v[0] + equi_tri.v[2]) *.5);
+    // Check gradient on some random 2D triangles
+    for (int i = 0; i < 10000; i++) {
 
-    INFO("b:" << equi_tri.bary_verts());
-    INFO("grad: " << equi_tri.grad({0,1,0}));
-    double mm = std::max(xx[0], xx[1]);
-    INFO("x: " << xx);
-    INFO("x: " << xx / mm);
+        Triangle2 r_tri{{rand_v2(), rand_v2(), rand_v2()}};
+        vec3 abc = rand_v3();
+
+        vec2 grad = r_tri.grad(abc);
+
+        // Rotate 90° all tri vectors (get orthogonal vectors)
+        vec2 o0 = vec2{-r_tri.v[1].y+r_tri.v[2].y, r_tri.v[1].x-r_tri.v[2].x}.normalized();
+        vec2 o1 = vec2{-r_tri.v[2].y+r_tri.v[0].y, r_tri.v[2].x-r_tri.v[0].x}.normalized();
+        vec2 o2 = vec2{-r_tri.v[0].y+r_tri.v[1].y, r_tri.v[0].x-r_tri.v[1].x}.normalized();
+        // Compute lengths of vectors
+        double l0 = abc[0] / (o0*(r_tri.v[0] - r_tri.v[1]));
+        double l1 = abc[1] / (o1*(r_tri.v[1] - r_tri.v[2]));
+        double l2 = abc[2] / (o2*(r_tri.v[2] - r_tri.v[0]));
+        // Compute gradient vector
+        vec2 exp_grad = (o0 * l0 + o1 * l1 + o2 * l2);
+
+        INFO("check gradient on tri: " << r_tri.v[0] << "," << r_tri.v[1] << "," << r_tri.v[2] << ",");
+        INFO("with values :" << abc);
+        INFO("grad: " << grad);
+        INFO("exp grad: " << exp_grad);
+		CHECK(are_vec_equal(grad, exp_grad, 1e-4));
+    }
+
 }
 
 TEST_CASE("Test quad geom", "[geom]") {
