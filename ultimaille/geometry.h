@@ -18,31 +18,15 @@ namespace UM {
 		return ((B-A)*cross(C-A,D-A))/6.;
 	}
 
-	template<int n, int nbv>
-	inline vec<n> bary_verts(const vec<n> v[nbv]) {
-		// Optimized versions
-		if constexpr(nbv == 3)
-			return (v[0] + v[1] + v[2]) / 3;
-		else if constexpr(nbv == 4) 
-			return (v[0] + v[1] + v[2] + v[3]) / 4;
-		// Generic version
-		else {        
-			vec<n> ave = {0, 0, 0};
-			for (int lv=0; lv<nbv; lv++)
-				ave += v[lv];
-			return ave / static_cast<double>(nbv);
-		}
-	}
-
 	inline vec3 bary_verts(const vec3 v[], const int nbv) {
-		vec3 ave = {0, 0, 0};
+		vec3 ave{0, 0, 0};
 		for (int lv=0; lv<nbv; lv++)
 			ave += v[lv];
 		return ave / static_cast<double>(nbv);
 	}
 
 	inline vec3 normal(const vec3 v[], const int nbv) {
-		vec3 res = {0, 0, 0};
+		vec3 res{0, 0, 0};
 		vec3 bary = bary_verts(v, nbv);
 		
 		for (int lv=0; lv<nbv; lv++)
@@ -162,6 +146,7 @@ namespace UM {
 		double signed_area() const;
 		inline Quad3 xy0() const;
 		double scaled_jacobian() const;
+		// double scaled_jacobian2() const;
 
 		private:
 			double jacobian(int c) const;
