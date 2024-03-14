@@ -9,39 +9,6 @@
 
 namespace UM {
 
-	// quadratures for every quad corner (counter-clock wise)
-	// used to compute jacobian scale on quad
-	constexpr mat<4,2> QQ[4] = { 
-		{{
-			// A_0 = (L_0, L_3)
-			{-1,-1},
-			{1,0},
-			{0,0},
-			{0,1},
-		}},
-		{{
-			// A_1 = (L_0, L_1)
-			{-1,0},
-			{1,-1},
-			{0,1},
-			{0,0},
-		}},
-		{{
-			// A_2 = (-L_2, L_1)
-			{0,0},
-			{0,-1},
-			{1,1},
-			{-1,0},
-		}},
-		{{
-			// A_3 = (-L_2, -L_3)
-			{0,-1},
-			{0,0},
-			{1,0},
-			{-1,1},
-		}}
-	};
-
 	vec3 Triangle2::bary_coords(vec2 G) const {
 		vec3 result;
 		double sum = 0;
@@ -77,7 +44,7 @@ namespace UM {
 		vec4 result;
 		double sum = 0;
 		
-		const double vol = volume();
+		double vol = volume();
 
 		for (int i = 0; i < 4; i++) {
 			const vec3 &A = v[i % 4];
@@ -119,7 +86,7 @@ namespace UM {
 	}
 	
 	mat3x3 Triangle3::tangent_basis() const {
-		mat3x3 res = {v[1] - v[0], v[2] - v[0]};
+		mat3x3 res{v[1] - v[0], v[2] - v[0]};
 		
 		for (int i = 0; i < 2; i++)
 			res[i].normalize();
@@ -132,7 +99,7 @@ namespace UM {
 	}
 
 	mat3x3 Triangle3::tangent_basis(vec3 first_axis) const {
-		mat3x3 res = {v[1] - v[0], v[2] - v[0]};
+		mat3x3 res{v[1] - v[0], v[2] - v[0]};
 		
 		for (int i = 0; i < 2; i++)
 			res[i].normalize();
@@ -215,55 +182,26 @@ namespace UM {
 		return UM::normal(v, 4);
 	}
 
-	double Quad2::jacobian(int c) const {
-
-		mat<2,4> A = {{
-			{v[0].x, v[1].x, v[2].x, v[3].x},
-			{v[0].y, v[1].y, v[2].y, v[3].y}
-		}};
-
-		const mat<4,2> &B = QQ[c];
-
-		mat2x2 J = A * B;
-		// scale
-		const vec2& l0 = J.col(0);
-		const vec2& l1 = J.col(1);
-
-		// Check L_min² <= DBL_MIN => q = DBL_MAX, with DBL_MIN = 1e-30 and DBL_MAX = 1e+30
-		const double l_min = std::min(l0.norm2(), l1.norm2());
-
-		if (l_min <= 1e-30)
-			return 1e30;
-
-		double d = std::sqrt(l0.norm2() * l1.norm2());
-		double scaled_jacobian = J.det() / d;
-
-		if (scaled_jacobian > 0)
-			return std::min(scaled_jacobian, 1e30);
-		else 
-			return std::max(scaled_jacobian, -(1e30));
-	}
-
-	// double Quad2::scaled_jacobian() const {
-	//     constexpr int cverts[4][3]{ {0,1,3}, {1,0,2}, {2,3,1}, {3,2,0} };
-	//     double min_sj = std::numeric_limits<double>::max();
-	//     for (int c = 0; c < 4; c++) { // 4 corners of the quad
-	//         vec2 n1 = (v[cverts[c][1]] - v[cverts[c][0]]).normalized();
-	//         vec2 n2 = (v[cverts[c][2]] - v[cverts[c][0]]).normalized();
-	//         min_sj = std::min(min_sj, n1.x*n2.y - n2.x*n1.y);
-	//     }
-	//     return min_sj;
-	// }
-
 	double Quad2::scaled_jacobian() const {
-		double min_j = std::numeric_limits<double>::max();
-		for (int c = 0; c < 4; c++) {
-			double j = jacobian(c);
-			if (j < min_j)
-				min_j = j;
-		}
+		// quadratures for every quad corner
+	    constexpr int cverts[4][2][2] { {{0,1},{0,3}}, {{0,1},{1,2}}, {{3,2},{1,2}}, {{3,2},{0,3}} };
+	    
+	    double min_sj = std::numeric_limits<double>::max();
+	    for (int c = 0; c < 4; c++) { // 4 corners of the quad
+			vec2 n1 = v[cverts[c][0][1]] - v[cverts[c][0][0]];
+			vec2 n2 = v[cverts[c][1][1]] - v[cverts[c][1][0]];
 
-		return min_j;
+			// Check L < DBL_MIN => q = 0
+			if (n1.norm() < 1.0E-30 || n2.norm() < 1.0E-30)
+				return 0;
+
+	        n1.normalize();
+	        n2.normalize();
+
+	        min_sj = std::min(min_sj, n1.x*n2.y - n2.x*n1.y);
+	    }
+
+	    return min_sj;
 	}
 
 	vec3 Poly3::bary_verts() const {

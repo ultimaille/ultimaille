@@ -64,6 +64,29 @@ bool are_vec_equal(vec<n> a, vec<n> b, double eps) {
 	return equal;
 }
 
+// TEST_CASE("vec benchmark", "[geom]") {
+
+//     auto start = std::chrono::high_resolution_clock::now();
+// 	for (int i = 0; i < 100000000; i++) {
+// 		vec2 v{rand()%100, rand()%100};
+// 	}
+//     // Capture the end time
+//     auto end = std::chrono::high_resolution_clock::now();
+
+//     // Compute the duration
+//     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+//     // Output the duration
+//     INFO("DURATION: " << duration.count() << " milliseconds");
+//     INFO("DURATION: " << duration.count() << " milliseconds");
+//     INFO("DURATION: " << duration.count() << " milliseconds");
+//     INFO("DURATION: " << duration.count() << " milliseconds");
+//     INFO("DURATION: " << duration.count() << " milliseconds");
+//     INFO("DURATION: " << duration.count() << " milliseconds");
+//     INFO("DURATION: " << duration.count() << " milliseconds");
+// 	CHECK(false);
+// }
+
 TEST_CASE("Test segment geom", "[geom]") {
 
 	// Create mesh with one equilateral triangle cell
@@ -259,12 +282,13 @@ TEST_CASE("Test quad geom", "[geom]") {
 	// Check quality metrics
 
 	// Results obtained with verdict library formated as following: {quad_coordinate, result}
-	VerdictResult<4,2> verdict_jacobian_scale_results[5] {
+	VerdictResult<4,2> verdict_jacobian_scale_results[6] {
 		{{{0.3,0.6},{1.7,0.5},{1.3,1.5},{0.6,1.2}},0.645942},
 		{{{0.9,0.1},{1.2,0.7},{1,1.9},{0.3,1.6}},0.588172},
 		{{{0,0.6},{1.2,0.6},{1.1,1.8},{0.7,1.9}},0.880471},
 		{{{0.2,0},{1.2,0.3},{1.7,1.5},{0.9,1.2}},0.63186},
-		{{{0.2,0.8},{1.9,0.7},{1.3,1.6},{0.1,1.2}},0.798041}
+		{{{0.2,0.8},{1.9,0.7},{1.3,1.6},{0.1,1.2}},0.798041},
+		{{{0,0},{1e-31,0},{1,1},{0,1}},0}
 	};
 
 	// Construct quads from verdict results
@@ -289,6 +313,7 @@ TEST_CASE("Test quad geom", "[geom]") {
 
 		// Check consistency between verdict result & ultimaille result
 		double scaled_jacobian = custom_quad.scaled_jacobian();
+		// double scaled_jacobian2 = custom_quad.scaled_jacobian2();
 		INFO("jacobian scale [verdict]: " << verdict_result.result);
 		INFO("jacobian scale [ultimaille]: " << scaled_jacobian);
 		CHECK(std::abs(scaled_jacobian - verdict_result.result) < 1e-5);
