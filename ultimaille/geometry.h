@@ -13,7 +13,7 @@ namespace UM {
 		return 0.5*cross(B-A, C-A).norm();
 	}
 
-	// signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
+	// Signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
 	inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
 		return ((B-A)*cross(C-A,D-A))/6.;
 	}
@@ -56,50 +56,26 @@ namespace UM {
 		vec2& operator[](int i) { return v[i]; }
 		vec2 operator[](int i)const { return v[i]; }
 
-		inline vec2 vector() { return v[1] - v[0]; }
-		inline double length2() const { return (v[1] - v[0]).norm2(); }
-		inline double length() const { return (v[1] - v[0]).norm(); }
+		inline vec2 vector();
+		inline double length2() const;
+		inline double length() const;
 		inline Segment3 xy0() const;
 	};
 
 	struct Segment3 {
-
 		vec3 v[2]{};
 
 		vec3& operator[](int i) { return v[i]; }
 		vec3 operator[](int i) const { return v[i]; }
 
-		inline vec3 vector() { return v[1] - v[0]; }
-		inline double length2() const { return (v[1] - v[0]).norm2(); }
-		inline double length() const { return (v[1] - v[0]).norm(); }
-		inline Segment2 xy() const { return {{{v[0].x, v[0].y}, {v[1].x, v[1].y}}}; }
-
-		inline double bary_coords(const vec3 &P) const {
-			if (length2() < 1e-15) return 0.5;
-			return (v[1] - P) * (v[1] - v[0]) / (v[1] - v[0]).norm2();
-		}
-
-		inline vec3 closest_point(const vec3 &P) const {
-			double c = bary_coords(P);
-			if (c < 0) return v[1];
-			if (c > 1) return v[0];
-			return c * v[0] + (1. - c) * v[1];
-		}
+		inline vec3 vector();
+		inline double length2() const;
+		inline double length() const;
+		inline Segment2 xy() const;
+		inline double bary_coords(const vec3 &P) const;
+		inline vec3 closest_point(const vec3 &P) const;
 
 	};
-
-	inline Segment3 Segment2::xy0() const { return {{{v[0].x, v[0].y, 0}, {v[1].x, v[1].y, 0}}}; }
-
-
-	inline std::ostream& operator<<(std::ostream& out, const Segment2& s) {
-		for (int i=0; i<2; i++) out << s[i] << std::endl;
-		return out;
-	}
-
-	inline std::ostream& operator<<(std::ostream& out, const Segment3& s) {
-		for (int i=0; i<2; i++) out << s[i] << std::endl;
-		return out;
-	}
 
 	struct Triangle3;
 
@@ -114,7 +90,6 @@ namespace UM {
 		mat<2,3> grad_operator() const;
 		mat<2,3> grad_operator2() const;
 		vec2 grad(vec3 u) const;
-		vec2 grad2(vec3 u) const;
 	};
 
 	struct Triangle3 {
@@ -133,7 +108,6 @@ namespace UM {
 		mat3x3 grad_operator() const;
 		mat3x3 grad_operator2() const;
 		vec3 grad(vec3 u) const;
-		vec3 grad2(vec3 u) const;
 		inline mat3x3 as_matrix() const;
 	};
 
@@ -194,6 +168,39 @@ namespace UM {
 		inline Quad3 base() const;
 		inline vec3 apex() const;
 	};
+
+	inline vec2 Segment2::vector() { return v[1] - v[0]; }
+	inline double Segment2::length2() const { return (v[1] - v[0]).norm2(); }
+	inline double Segment2::length() const { return (v[1] - v[0]).norm(); }
+	inline Segment3 Segment2::xy0() const { return {{{v[0].x, v[0].y, 0}, {v[1].x, v[1].y, 0}}}; }
+
+	inline vec3 Segment3::vector() { return v[1] - v[0]; }
+	inline double Segment3::length2() const { return (v[1] - v[0]).norm2(); }
+	inline double Segment3::length() const { return (v[1] - v[0]).norm(); }
+	inline Segment2 Segment3::xy() const { return {{{v[0].x, v[0].y}, {v[1].x, v[1].y}}}; }
+
+	inline double Segment3::bary_coords(const vec3 &P) const {
+		if (length2() < 1e-15) return 0.5;
+		return (v[1] - P) * (v[1] - v[0]) / (v[1] - v[0]).norm2();
+	}
+
+	inline vec3 Segment3::closest_point(const vec3 &P) const {
+		double c = bary_coords(P);
+		if (c < 0) return v[1];
+		if (c > 1) return v[0];
+		return c * v[0] + (1. - c) * v[1];
+	}
+
+
+	inline std::ostream& operator<<(std::ostream& out, const Segment2& s) {
+		for (int i=0; i<2; i++) out << s[i] << std::endl;
+		return out;
+	}
+
+	inline std::ostream& operator<<(std::ostream& out, const Segment3& s) {
+		for (int i=0; i<2; i++) out << s[i] << std::endl;
+		return out;
+	}
 
 	inline vec2 Triangle2::bary_verts() const {
 		return (v[0] + v[1] + v[2]) / 3;
