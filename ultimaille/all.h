@@ -31,7 +31,7 @@
 #include <ultimaille/surface_connectivity.h>
 #include <ultimaille/volume.h>
 #include <ultimaille/volume_connectivity.h>
-#include <ultimaille/geometry.h>
+#include <ultimaille/primitive_geometry.h>
 #include <ultimaille/attr_binding.h>
 
 #include <stlbfgs.h>

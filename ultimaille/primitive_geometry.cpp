@@ -1,4 +1,4 @@
-#include "geometry.h"
+#include "primitive_geometry.h"
 #include <vector>
 #include <memory>
 #include "algebra/vec.h"

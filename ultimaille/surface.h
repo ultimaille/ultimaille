@@ -6,7 +6,7 @@
 #include "algebra/vec.h"
 #include "attributes.h"
 #include "pointset.h"
-#include "geometry.h"
+#include "primitive_geometry.h"
 #include "syntactic-sugar/assert.h"
 
 namespace UM {

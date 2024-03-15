@@ -7,7 +7,7 @@
 #include "pointset.h"
 #include "attributes.h"
 #include "syntactic-sugar/assert.h"
-#include "geometry.h"
+#include "primitive_geometry.h"
 
 namespace UM {
     struct GenericAttributeContainer;
