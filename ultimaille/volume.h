@@ -10,7 +10,7 @@
 #include "pointset.h"
 #include "volume_reference.h"
 #include "volume_connectivity.h"
-#include "geometry.h"
+#include "primitive_geometry.h"
 
 namespace UM {
     struct Volume;
