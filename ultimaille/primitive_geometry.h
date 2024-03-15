@@ -53,20 +53,17 @@ namespace UM {
 	struct Segment2 {
 		vec2 v[2]{};
 
-		vec2& operator[](int i) { return v[i]; }
-		vec2 operator[](int i)const { return v[i]; }
-
 		inline vec2 vector();
 		inline double length2() const;
 		inline double length() const;
 		inline Segment3 xy0() const;
+
+		inline vec2& operator[](int i) { return v[i]; }
+		inline vec2 operator[](int i)const { return v[i]; }
 	};
 
 	struct Segment3 {
 		vec3 v[2]{};
-
-		vec3& operator[](int i) { return v[i]; }
-		vec3 operator[](int i) const { return v[i]; }
 
 		inline vec3 vector();
 		inline double length2() const;
@@ -75,6 +72,8 @@ namespace UM {
 		inline double bary_coords(const vec3 &P) const;
 		inline vec3 closest_point(const vec3 &P) const;
 
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
 	struct Triangle3;
@@ -90,6 +89,9 @@ namespace UM {
 		mat<2,3> grad_operator() const;
 		mat<2,3> grad_operator2() const;
 		vec2 grad(vec3 u) const;
+
+		inline vec2& operator[](int i) { return v[i]; }
+		inline vec2 operator[](int i) const { return v[i]; }
 	};
 
 	struct Triangle3 {
@@ -109,6 +111,9 @@ namespace UM {
 		mat3x3 grad_operator2() const;
 		vec3 grad(vec3 u) const;
 		inline mat3x3 as_matrix() const;
+
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i)const { return v[i]; }
 	};
 
 	struct Quad3;
@@ -120,53 +125,68 @@ namespace UM {
 		double signed_area() const;
 		inline Quad3 xy0() const;
 		double scaled_jacobian() const;
-		// double scaled_jacobian2() const;
 
-		private:
-			double jacobian(int c) const;
+		inline vec2& operator[](int i) { return v[i]; }
+		inline vec2 operator[](int i)const { return v[i]; }
 	};
 
 	struct Quad3 {
 		vec3 v[4] = {};
+
 		vec3 normal() const;
 		inline vec3 bary_verts() const;
 		double unsigned_area() const;
 		inline Quad2 xy() const;
+
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
 	struct Poly3 {
 		std::vector<vec3> v = {};
+
 		vec3 normal() const;
 		vec3 bary_verts() const;
 		double unsigned_area() const;
+
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
 	struct Tetrahedron3 {
 		vec3 v[4] = {};
+
 		vec3 bary_verts() const;
 		inline double volume() const;
 		vec4 bary_coords(vec3 G) const;
 		mat<3,4> grad_operator() const;
 		vec3 grad(vec4 u) const;
-		// TODO: double jacobian(const Tetrahedron& reference) const;
+
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
 	struct Hexahedron3 {
 		vec3 v[8] = {};
+
 		double volume() const;
 		vec3 bary_verts() const;
 		double scaled_jacobian() const;
 
-		private:
-			double jacobian(int c) const; // wrt reference hexahedron
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
 	struct Pyramid3 {
 		vec3 v[5] = {};
+
 		double volume() const;
 		vec3 bary_verts() const;
 		inline Quad3 base() const;
 		inline vec3 apex() const;
+
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
 	inline vec2 Segment2::vector() { return v[1] - v[0]; }

@@ -64,6 +64,22 @@ bool are_vec_equal(vec<n> a, vec<n> b, double eps) {
 	return equal;
 }
 
+TEST_CASE("aggregate", "[geom]") {
+
+	CHECK(std::is_aggregate<Segment2>());
+	CHECK(std::is_aggregate<Segment3>());
+	CHECK(std::is_aggregate<Triangle2>());
+	CHECK(std::is_aggregate<Triangle3>());
+	CHECK(std::is_aggregate<Quad2>());
+	CHECK(std::is_aggregate<Quad3>());
+	CHECK(std::is_aggregate<Poly3>());
+	CHECK(std::is_aggregate<Tetrahedron3>());
+	CHECK(std::is_aggregate<Hexahedron3>());
+	CHECK(std::is_aggregate<Pyramid3>());
+
+	// CHECK(std::is_aggregate<vec2>());
+}
+
 // TEST_CASE("vec benchmark", "[geom]") {
 
 //     auto start = std::chrono::high_resolution_clock::now();
