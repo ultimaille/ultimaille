@@ -183,8 +183,8 @@ TEST_CASE("Test triangle geom", "[geom]") {
 
 	// Check projection
 	Triangle2 t2 = tri_f.project();
-	const vec2 &a = t2.v[0];
-	const vec2 &b = t2.v[1];
+	const vec2 &a = t2[0];
+	const vec2 &b = t2[1];
 	// a is near from (0,0)
 	CHECK(std::abs(a.norm2()) < 1e-4);
 	// b is near from the norm of b-a
@@ -193,12 +193,12 @@ TEST_CASE("Test triangle geom", "[geom]") {
 	// c is somewhere
 
 	// Check projection xy
-	Triangle2 expected_xy_tri{{{tri_f.v[0].x, tri_f.v[0].y}, {tri_f.v[1].x, tri_f.v[1].y}, {tri_f.v[2].x, tri_f.v[2].y}}};
+	Triangle2 expected_xy_tri{{{tri_f[0].x, tri_f[0].y}, {tri_f[1].x, tri_f[1].y}, {tri_f[2].x, tri_f[2].y}}};
 	Triangle2 actual_xy_tri = tri_f.xy();
-	INFO("xy projection: " << actual_xy_tri.v[0] << "," << actual_xy_tri.v[1] << "," << actual_xy_tri.v[2]);
-	CHECK(std::abs((expected_xy_tri.v[0] - actual_xy_tri.v[0]).norm2()) < 1e-4);
-	CHECK(std::abs((expected_xy_tri.v[1] - actual_xy_tri.v[1]).norm2()) < 1e-4);
-	CHECK(std::abs((expected_xy_tri.v[2] - actual_xy_tri.v[2]).norm2()) < 1e-4);
+	INFO("xy projection: " << actual_xy_tri[0] << "," << actual_xy_tri[1] << "," << actual_xy_tri[2]);
+	CHECK(std::abs((expected_xy_tri[0] - actual_xy_tri[0]).norm2()) < 1e-4);
+	CHECK(std::abs((expected_xy_tri[1] - actual_xy_tri[1]).norm2()) < 1e-4);
+	CHECK(std::abs((expected_xy_tri[2] - actual_xy_tri[2]).norm2()) < 1e-4);
 
 	// Check dilate
 	auto actual_xy_tri_dilated = actual_xy_tri.dilate(2.);
@@ -206,10 +206,10 @@ TEST_CASE("Test triangle geom", "[geom]") {
 
 	// Check unproject xy0
 	Triangle3 actual_xy0_tri = actual_xy_tri.xy0();
-	INFO("xy0 unproject: " << actual_xy0_tri.v[0] << "," << actual_xy0_tri.v[1] << "," << actual_xy0_tri.v[2]);
-	CHECK(std::abs((tri_f.v[0].xy().xy0() - actual_xy0_tri.v[0]).norm2()) < 1e-4);
-	CHECK(std::abs((tri_f.v[1].xy().xy0() - actual_xy0_tri.v[1]).norm2()) < 1e-4);
-	CHECK(std::abs((tri_f.v[2].xy().xy0() - actual_xy0_tri.v[2]).norm2()) < 1e-4);
+	INFO("xy0 unproject: " << actual_xy0_tri[0] << "," << actual_xy0_tri[1] << "," << actual_xy0_tri[2]);
+	CHECK(std::abs((tri_f[0].xy().xy0() - actual_xy0_tri[0]).norm2()) < 1e-4);
+	CHECK(std::abs((tri_f[1].xy().xy0() - actual_xy0_tri[1]).norm2()) < 1e-4);
+	CHECK(std::abs((tri_f[2].xy().xy0() - actual_xy0_tri[2]).norm2()) < 1e-4);
 
 	// Check bary coordinates
 	vec2 g = actual_xy_tri.bary_verts();
@@ -233,17 +233,17 @@ TEST_CASE("Test triangle geom", "[geom]") {
 		vec2 grad = r_tri.grad(abc);
 
 		// Rotate 90° all tri vectors (get orthogonal vectors)
-		vec2 o0 = vec2{-r_tri.v[1].y+r_tri.v[2].y, r_tri.v[1].x-r_tri.v[2].x}.normalized();
-		vec2 o1 = vec2{-r_tri.v[2].y+r_tri.v[0].y, r_tri.v[2].x-r_tri.v[0].x}.normalized();
-		vec2 o2 = vec2{-r_tri.v[0].y+r_tri.v[1].y, r_tri.v[0].x-r_tri.v[1].x}.normalized();
+		vec2 o0 = vec2{-r_tri[1].y+r_tri[2].y, r_tri[1].x-r_tri[2].x}.normalized();
+		vec2 o1 = vec2{-r_tri[2].y+r_tri[0].y, r_tri[2].x-r_tri[0].x}.normalized();
+		vec2 o2 = vec2{-r_tri[0].y+r_tri[1].y, r_tri[0].x-r_tri[1].x}.normalized();
 		// Compute lengths of vectors
-		double l0 = abc[0] / (o0*(r_tri.v[0] - r_tri.v[1]));
-		double l1 = abc[1] / (o1*(r_tri.v[1] - r_tri.v[2]));
-		double l2 = abc[2] / (o2*(r_tri.v[2] - r_tri.v[0]));
+		double l0 = abc[0] / (o0*(r_tri[0] - r_tri[1]));
+		double l1 = abc[1] / (o1*(r_tri[1] - r_tri[2]));
+		double l2 = abc[2] / (o2*(r_tri[2] - r_tri[0]));
 		// Compute gradient vector
 		vec2 exp_grad = (o0 * l0 + o1 * l1 + o2 * l2);
 
-		INFO("check gradient on tri: " << r_tri.v[0] << "," << r_tri.v[1] << "," << r_tri.v[2] << ",");
+		INFO("check gradient on tri: " << r_tri[0] << "," << r_tri[1] << "," << r_tri[2] << ",");
 		INFO("with values :" << abc);
 		INFO("grad: " << grad);
 		INFO("exp grad: " << exp_grad);
@@ -339,7 +339,7 @@ TEST_CASE("Test quad geom", "[geom]") {
 	Quad2 q2{{{0,0}, {2,0}, {2,1}, {0,1}}};
 	double actual_q2_signed_area = q2.signed_area();
 	// Using the rect formula of area: a=l*h
-	double expected_signed_area = (q2.v[1] - q2.v[0]).norm() * (q2.v[3] - q2.v[0]).norm();
+	double expected_signed_area = (q2[1] - q2[0]).norm() * (q2[3] - q2[0]).norm();
 	INFO("signed area of q2 is: " << actual_q2_signed_area);
 	CHECK(std::abs(actual_q2_signed_area - expected_signed_area) < 1e-4);
 
@@ -431,7 +431,7 @@ TEST_CASE("Test tetra geom", "[geom]") {
 	m.connect();
 	auto f = c.iter_facets().begin().data;
 	auto tet_f = f.geom<Triangle3>();
-	INFO("facet points: " << tet_f.v[0] << "," << tet_f.v[1] << "," << tet_f.v[2]);
+	INFO("facet points: " << tet_f[0] << "," << tet_f[1] << "," << tet_f[2]);
 
 	// Check normal
 	INFO("facet normal: " << tet_f.normal());
@@ -508,7 +508,7 @@ TEST_CASE("Test hexa geom", "[geom]") {
 	m.connect();
 	auto f = c.iter_facets().begin().data;
 	auto hex_f = f.geom<Quad3>();
-	INFO("facet points: " << hex_f.v[0] << "," << hex_f.v[1] << "," << hex_f.v[2] << "," << hex_f.v[3]);
+	INFO("facet points: " << hex_f[0] << "," << hex_f[1] << "," << hex_f[2] << "," << hex_f[3]);
 
 	// Check normal
 	INFO("facet normal: " << hex_f.normal());
