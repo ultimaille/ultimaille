@@ -72,7 +72,7 @@ namespace UM {
 		const vec2 z1 = vec2((B - A).norm(), 0);
 		const vec2 z2 = vec2((C - A)*X, (C - A)*Y);
 
-		return Triangle2{{z0, z1, z2}};
+		return {{z0, z1, z2}};
 	}
 
 	Triangle2 Triangle2::dilate(double scale) const {
