@@ -153,7 +153,7 @@ namespace UM {
 		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
-	struct Tetrahedron3 {
+	struct Tetrahedron {
 		vec3 v[4] = {};
 
 		vec3 bary_verts() const;
@@ -166,7 +166,7 @@ namespace UM {
 		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
-	struct Hexahedron3 {
+	struct Hexahedron {
 		vec3 v[8] = {};
 
 		double volume() const;
@@ -177,7 +177,7 @@ namespace UM {
 		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
-	struct Pyramid3 {
+	struct Pyramid {
 		vec3 v[5] = {};
 
 		double volume() const;
@@ -283,15 +283,15 @@ namespace UM {
 		return (v[0] + v[1] + v[2] + v[3]) / 4;
 	}
 
-	inline double Tetrahedron3::volume() const {
+	inline double Tetrahedron::volume() const {
 		return tet_volume(v[0], v[1], v[2], v[3]);
 	}
 
-	inline Quad3 Pyramid3::base() const {
+	inline Quad3 Pyramid::base() const {
 		return Quad3{{v[0], v[1], v[2], v[3]}};
 	}
 
-	inline vec3 Pyramid3::apex() const {
+	inline vec3 Pyramid::apex() const {
 		return v[4];
 	}
 

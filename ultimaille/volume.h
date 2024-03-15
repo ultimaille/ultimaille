@@ -784,19 +784,19 @@ namespace UM {
         return wrapper{ *this };
     }
 
-    template<> inline Tetrahedron3 Volume::Cell::geom() {
+    template<> inline Tetrahedron Volume::Cell::geom() {
         um_assert(nfacets()==4 && nverts()==4);
-        return Tetrahedron3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
+        return Tetrahedron{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
     }
 
-    template<> inline Pyramid3 Volume::Cell::geom() {
+    template<> inline Pyramid Volume::Cell::geom() {
         um_assert(nfacets()==5 && nverts()==5);
-        return Pyramid3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos()}};
+        return Pyramid{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos()}};
     }
 
-    template<> inline Hexahedron3 Volume::Cell::geom() {
+    template<> inline Hexahedron Volume::Cell::geom() {
         um_assert(nfacets()==6 && nverts()==8);
-        return Hexahedron3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos()}};
+        return Hexahedron{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos()}};
     }
 
     template<> inline Triangle3 Volume::Facet::geom() {

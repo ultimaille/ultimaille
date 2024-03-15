@@ -40,7 +40,7 @@ namespace UM {
 		return result / sum;
 	}
 
-	vec4 Tetrahedron3::bary_coords(vec3 G) const {
+	vec4 Tetrahedron::bary_coords(vec3 G) const {
 		vec4 result;
 		double sum = 0;
 		
@@ -51,7 +51,7 @@ namespace UM {
 			const vec3 &B = v[(i + 1) % 4];
 			const vec3 &C = v[(i + 2) % 4];
 
-			result[i] = std::abs(Tetrahedron3{{A, B, C, G}}.volume() / vol);
+			result[i] = std::abs(Tetrahedron{{A, B, C, G}}.volume() / vol);
 			sum += result[i];
 		}
 
@@ -153,7 +153,7 @@ namespace UM {
 		return grad_operator() * u;
 	}
 
-	mat<3,4> Tetrahedron3::grad_operator() const {
+	mat<3,4> Tetrahedron::grad_operator() const {
 		mat<4,3>  accum ;
 
 		for (int i = 0; i < 3; i++) {
@@ -170,7 +170,7 @@ namespace UM {
 		return accum.transpose();
 	}
 
-	vec3 Tetrahedron3::grad(vec4 u) const {
+	vec3 Tetrahedron::grad(vec4 u) const {
 		return grad_operator() * u;
 	}
 
@@ -220,15 +220,15 @@ namespace UM {
 		return UM::unsigned_area(v.data(), static_cast<const int>(v.size()));
 	}
 
-	vec3 Tetrahedron3::bary_verts() const {
+	vec3 Tetrahedron::bary_verts() const {
 		return UM::bary_verts(v, 4);
 	}
 
-	vec3 Hexahedron3::bary_verts() const {
+	vec3 Hexahedron::bary_verts() const {
 		return UM::bary_verts(v, 8);
 	}
 
-	double Hexahedron3::volume() const {
+	double Hexahedron::volume() const {
 		const vec3 bary = bary_verts();
 		double vol = 0;
 
@@ -251,7 +251,7 @@ namespace UM {
 		return vol;
 	}
 
-	double Hexahedron3::scaled_jacobian() const {
+	double Hexahedron::scaled_jacobian() const {
 		// TODO add extreme values condition !
 		// https://coreform.com/papers/verdict_quality_library.pdf
 		// Note: values of DBL_MIN / DBL_MAX were found in verdict library code
@@ -293,11 +293,11 @@ namespace UM {
 		return min_sj;
 	}
 
-	vec3 Pyramid3::bary_verts() const {
+	vec3 Pyramid::bary_verts() const {
 		return UM::bary_verts(v, 5);
 	}
 
-	double Pyramid3::volume() const {
+	double Pyramid::volume() const {
 		
 		const vec3 apx = apex();
 		double vol = 0;
