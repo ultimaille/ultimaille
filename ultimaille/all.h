@@ -5,6 +5,8 @@
 #include <ultimaille/algebra/svd.h>
 #include <ultimaille/algebra/covariance.h>
 
+#include <ultimaille/linear/linexpr.h>
+
 #include <ultimaille/helpers/colocate.h>
 #include <ultimaille/helpers/constraints.h>
 #include <ultimaille/helpers/disjointset.h>
