@@ -682,7 +682,7 @@ namespace UM {
             Halfedge& operator*() { return data; }
         };
         struct wrapper {
-            Facet& f;
+            Facet f;
             auto begin() { return iterator{ f.halfedge(0) }; }
             auto end()   { return iterator{ Halfedge(f.m,-1) }; }
         };
@@ -714,12 +714,12 @@ namespace UM {
     }
 
     inline Volume::Vertex Volume::Cell::vertex(int lv) {
-        assert(m.connected());
+//        assert(m.connected());
         return { m, m.vert(id, lv) };
     }
 
     inline Volume::Corner Volume::Cell::corner(int lc) {
-        assert(m.connected());
+//        assert(m.connected());
         return { m, m.corner(id, lc) };
     }
 
@@ -729,7 +729,7 @@ namespace UM {
     }
 
     inline Volume::Facet Volume::Cell::facet(int lf) {
-        assert(m.connected());
+//        assert(m.connected());
         return { m, m.nfacets_per_cell()*id + lf };
     }
 
@@ -741,7 +741,7 @@ namespace UM {
             Facet& operator*() { return data; }
         };
         struct wrapper {
-            Cell& c;
+            Cell c;
             auto begin() { return iterator{ c.facet(0) }; }
             auto end()   { return iterator{ c.facet(c.nfacets()) }; }
         };
@@ -793,7 +793,7 @@ namespace UM {
             auto begin() { return iterator{ Halfedge(m,0) }; }
             auto end() { return iterator{ Halfedge(m,m.conn->heh.nhalfedges()) }; }
         };
-        return wrapper{ *this};
+        return wrapper{ *this };
     }
 
     inline auto Volume::iter_facets() {
@@ -805,7 +805,7 @@ namespace UM {
         };
         struct wrapper {
             Volume& m;
-            auto begin() {return iterator{ Facet(m,0) };}
+            auto begin() { return iterator{ Facet(m,0) }; }
             auto end() { return iterator{ Facet(m,m.nfacets()) }; }
         };
         return wrapper{ *this };
@@ -823,7 +823,7 @@ namespace UM {
             auto begin() { return iterator{ Cell(m,0) }; }
             auto end() { return iterator{ Cell(m,m.ncells()) }; }
         };
-        return wrapper{ *this};
+        return wrapper{ *this };
     }
 
 }

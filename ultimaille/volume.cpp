@@ -204,7 +204,7 @@ namespace UM {
 
     void Volume::connect() {
         if (!conn) conn = std::make_unique<Connectivity>(*this);
-        conn->reset();
+        else conn->reset();
     }
 
     void Volume::disconnect() {
@@ -212,7 +212,7 @@ namespace UM {
     }
 
     Volume::Connectivity::Connectivity(Volume &m) : m(m),  oppf(m), heh(m) {
-        reset();
+//        reset();
     }
 
     void Volume::Connectivity::reset() {

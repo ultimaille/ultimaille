@@ -30,6 +30,7 @@ namespace UM {
     }
 
     void OppositeFacet::reset() {
+        std::cerr << "Reset!" << std::endl;
         adjacent = std::vector(m.nfacets(), -1);
 
         std::vector<int> c2c, v2c;
