@@ -237,7 +237,7 @@ namespace UM {
             Corner corner(int lc);
 
             Facet opposite();
-            bool on_border();
+            bool on_boundary();
 
             Cell cell();
             int id_in_cell();
@@ -658,7 +658,7 @@ namespace UM {
         return { m, m.conn->oppf.adjacent[id] };
     }
 
-    inline bool Volume::Facet::on_border() {
+    inline bool Volume::Facet::on_boundary() {
         return !opposite().active();
     }
 

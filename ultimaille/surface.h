@@ -127,7 +127,6 @@ namespace UM {
             Halfedge next();
             Halfedge prev();
             Halfedge opposite();
-            bool on_border();
 
             int id_in_facet();
 
@@ -445,10 +444,6 @@ namespace UM {
 
         }
 
-    }
-
-    inline bool Surface::Halfedge::on_border() {
-        return !opposite().active();
     }
 
     inline Surface::Vertex Surface::Halfedge::from() {
