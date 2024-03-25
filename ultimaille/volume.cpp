@@ -240,31 +240,6 @@ namespace UM {
         return -1;
     }
 
-    int HalfEdgeHelper::nhalfedges() const {
-        return m.ncells() * nhalfedges_per_cell();
-    }
-
-    vec3 HalfEdgeHelper::geom(const int he) const {
-        return m.points[to(he)] - m.points[from(he)];
-    }
-
-    // global vertex id
-    int HalfEdgeHelper::from(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        return m.facet_vert(cell(he), cell_facet(he), facet_halfedge(he));
-    }
-
-    // global vertex id
-    int HalfEdgeHelper::to(const int he) const {
-        assert(he>=0 && he<nhalfedges());
-        const int size = m.facet_size(cell_facet(he));
-        return m.facet_vert(cell(he), cell_facet(he), (facet_halfedge(he)+1) % size);
-    }
-
-    int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
-        return adj.opposite_c(he);
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     EdgeGraph::EdgeGraph(Volume& m) : m(m) {

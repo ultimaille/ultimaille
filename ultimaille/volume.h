@@ -458,6 +458,32 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    inline int HalfEdgeHelper::nhalfedges() const {
+        return m.ncells() * nhalfedges_per_cell();
+    }
+
+    inline vec3 HalfEdgeHelper::geom(const int he) const {
+        return m.points[to(he)] - m.points[from(he)];
+    }
+
+    // global vertex id
+    inline int HalfEdgeHelper::from(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return m.facet_vert(cell(he), cell_facet(he), facet_halfedge(he));
+    }
+
+    // global vertex id
+    inline int HalfEdgeHelper::to(const int he) const {
+        assert(he>=0 && he<nhalfedges());
+        return from(next(he));
+    }
+
+    inline int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
+        return adj.opposite_c(he);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     inline Volume::Primitive::operator int() const {
         return id;
     }
