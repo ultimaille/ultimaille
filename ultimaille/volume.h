@@ -73,7 +73,7 @@ namespace UM {
 
     struct Volume {
         enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };
-        constexpr virtual CELL_TYPE cell_type() const noexcept = 0;
+        CELL_TYPE cell_type;
 
         [[deprecated]] HalfEdgeHelper heh;
         PointSet points{};
@@ -115,7 +115,7 @@ namespace UM {
             attr_corners = {};
         }
 
-        Volume() : heh(*this), util(*this) {}
+        Volume(CELL_TYPE cell_type) : cell_type(cell_type), heh(*this), util(*this) {}
         Volume(const Volume& m) : heh(*this), util(*this) { // TODO re-think copying policy
             um_assert(!m.points.size() && !m.cells.size());
         }
@@ -293,27 +293,19 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Tetrahedra : Volume {
-        constexpr CELL_TYPE cell_type() const noexcept override {
-            return Volume::TETRAHEDRON;
-        }
+        Tetrahedra() : Volume(Volume::TETRAHEDRON) {}
     };
 
     struct Hexahedra : Volume {
-        constexpr CELL_TYPE cell_type() const noexcept override {
-            return Volume::HEXAHEDRON;
-        }
+        Hexahedra() : Volume(Volume::HEXAHEDRON) {}
     };
 
     struct Wedges : Volume {
-        constexpr CELL_TYPE cell_type() const noexcept override {
-            return Volume::WEDGE;
-        }
+        Wedges() : Volume(Volume::WEDGE) {}
     };
 
     struct Pyramids : Volume {
-        constexpr CELL_TYPE cell_type() const noexcept override {
-            return Volume::PYRAMID;
-        }
+        Pyramids() : Volume(Volume::PYRAMID) {}
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,21 +349,21 @@ namespace UM {
     }
 
     inline constexpr int Volume::nverts_per_cell() const {
-        return reference_cells[cell_type()].nverts();
+        return reference_cells[cell_type].nverts();
     }
 
     inline constexpr int Volume::nfacets_per_cell() const {
-        return reference_cells[cell_type()].nfacets();
+        return reference_cells[cell_type].nfacets();
     }
 
     inline constexpr int Volume::facet_size(const int f) const {
         assert(f>=0 && f<nfacets());
-        return reference_cells[cell_type()].facet_size(f % nfacets_per_cell());
+        return reference_cells[cell_type].facet_size(f % nfacets_per_cell());
     }
 
     inline int Volume::facet_vert(const int c, const int lf, const int lv) const {
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell() && lv>=0 && lv<facet_size(lf));
-        return vert(c, reference_cells[cell_type()].vert(lf, lv));
+        return vert(c, reference_cells[cell_type].vert(lf, lv));
     }
 
     inline constexpr int Volume::facet(const int c, const int lf) const {
@@ -396,7 +388,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////
 
     inline constexpr int HalfEdgeHelper::nhalfedges_per_cell() const {
-        return reference_cells[m.cell_type()].ncorners();
+        return reference_cells[m.cell_type].ncorners();
     }
 
     // global halfedge id from local id
@@ -404,7 +396,7 @@ namespace UM {
 //      assert(cell>=0 && cell<m.ncells());
         assert(cell_facet>=0 && cell_facet<m.nfacets_per_cell());
         assert(facet_he>=0 && facet_he<=m.facet_size(cell_facet));
-        return cell*nhalfedges_per_cell() + reference_cells[m.cell_type()].corner(cell_facet, facet_he);
+        return cell*nhalfedges_per_cell() + reference_cells[m.cell_type].corner(cell_facet, facet_he);
     }
 
     // global cell id
@@ -422,13 +414,13 @@ namespace UM {
     // global corner id
     inline constexpr int HalfEdgeHelper::corner(const int he) const {
 //      assert(he>=0 && he<nhalfedges());
-        return cell(he) * m.nverts_per_cell() + reference_cells[m.cell_type()].from(cell_halfedge(he));
+        return cell(he) * m.nverts_per_cell() + reference_cells[m.cell_type].from(cell_halfedge(he));
     }
 
     // local facet id
     inline constexpr int HalfEdgeHelper::cell_facet(const int he) const {
 //      assert(he>=0 && he<nhalfedges());
-        return reference_cells[m.cell_type()].facet(cell_halfedge(he));
+        return reference_cells[m.cell_type].facet(cell_halfedge(he));
     }
 
     // local halfedge id
@@ -440,7 +432,7 @@ namespace UM {
     // local halfedge id
     inline constexpr int HalfEdgeHelper::facet_halfedge(const int he) const {
 //      assert(he>=0 && he<nhalfedges());
-        return cell_halfedge(he) - reference_cells[m.cell_type()].corner(cell_facet(he), 0);
+        return cell_halfedge(he) - reference_cells[m.cell_type].corner(cell_facet(he), 0);
     }
 
     // global cell halfedge id
@@ -461,7 +453,7 @@ namespace UM {
 
     inline constexpr int HalfEdgeHelper::opposite_f(const int he) const {
 //      assert(he>=0 && he<nhalfedges());
-        return nhalfedges_per_cell()*cell(he) + reference_cells[m.cell_type()].opposite(cell_halfedge(he));
+        return nhalfedges_per_cell()*cell(he) + reference_cells[m.cell_type].opposite(cell_halfedge(he));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

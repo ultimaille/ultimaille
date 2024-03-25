@@ -237,8 +237,8 @@ namespace UM {
     const int geogram_nb_padding_per_cell_type[5] = {0, 2, 1, 0, 1}; // geogram cell facet padding. AARGH Bruno!
 
     template <typename T> void pad_attribute(const Volume &m, std::vector<T> &tmp) {
-        int fct_per_cell = geogram_nb_facets_per_cell_type[m.cell_type()];
-        int bruno_fct_per_cell = fct_per_cell + geogram_nb_padding_per_cell_type[m.cell_type()];
+        int fct_per_cell = geogram_nb_facets_per_cell_type[m.cell_type];
+        int bruno_fct_per_cell = fct_per_cell + geogram_nb_padding_per_cell_type[m.cell_type];
         int bruno_nfacets = m.ncells() * bruno_fct_per_cell;
 //      std::cerr << "PADDING; bruno_nfacets: " << bruno_nfacets << " nfacets: " << m.nfacets() << std::endl;
         tmp.resize(bruno_nfacets);
@@ -261,7 +261,7 @@ namespace UM {
             writer.addAttributeSize("GEO::Mesh::cells", m.ncells());
 
             std::vector<char> cell_type(m.ncells());
-            for (int c=0; c<m.ncells(); c++) cell_type[c] = m.cell_type();
+            for (int c=0; c<m.ncells(); c++) cell_type[c] = m.cell_type;
             writer.addAttribute("GEO::Mesh::cells", "GEO::Mesh::cells::cell_type", "char", cell_type.data(),  m.ncells(), 1);
 
             std::vector<index_t> cell_ptr(m.ncells());
@@ -277,7 +277,7 @@ namespace UM {
 
             // TODO GEO::Mesh::cell_facets::adjacent_cell
 
-            int bruno_nfacets = m.nfacets()+m.ncells()*geogram_nb_padding_per_cell_type[m.cell_type()]; // AARGH Bruno!
+            int bruno_nfacets = m.nfacets()+m.ncells()*geogram_nb_padding_per_cell_type[m.cell_type]; // AARGH Bruno!
             writer.addAttributeSize("GEO::Mesh::cell_facets", bruno_nfacets);
             std::vector<NamedContainer> A[4] = {attr.points, attr.cells, attr.cell_facets, attr.cell_corners};
             for (int z=0; z<4; z++) {
