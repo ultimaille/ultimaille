@@ -88,7 +88,7 @@ TEST_CASE("Test 1D hbbox", "[hb]") {
 
     BBox1 bbox4({1.9}, {2.5});
 
-    hbbox.intersect(bbox4, primitives, 0);
+    hbbox.intersect(bbox4, primitives);
     CHECK(primitives[1]==1);
     
 
@@ -109,7 +109,7 @@ TEST_CASE("Test 2D hbbox", "[hb]") {
 
     BBox2 bbox4({1.9, 1.9}, {2.5, 2.5});
 
-    hbbox.intersect(bbox4, primitives, 0);
+    hbbox.intersect(bbox4, primitives);
     CHECK(primitives[1]==1);
 
 }
