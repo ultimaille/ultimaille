@@ -83,7 +83,7 @@ namespace UM {
 
     void PolyLine::connect() {
         if (!conn) conn = std::make_unique<Connectivity>(*this);
-        conn->init();
+        else conn->init();
     }
     void PolyLine::disconnect() {
         conn.reset();
