@@ -176,7 +176,7 @@ namespace UM {
             sort(G, m, dest);
         }
         
-        void intersect(BBox<n> const &b, std::vector<int> &primitives, int node) const {
+        void intersect(BBox<n> const &b, std::vector<int> &primitives, int node=0) const {
             if (!node) primitives.resize(0);
             assert(node>=0 && node < static_cast<int>(tree.size()));
             if (!tree[node].intersect(b)) return;

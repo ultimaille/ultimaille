@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cassert>
-
+#include "helpers/disjointset.h"
 #include "volume.h"
 #include "attributes.h"
 
@@ -244,31 +244,45 @@ namespace UM {
 
     EdgeGraph::EdgeGraph(Volume& m) : m(m) {
         points = m.points;
-        for (auto h : m.iter_halfedges()) {
-            bool h_is_resp = true;
-            for (int cir : h.iter_CCW_around_edge())
-                h_is_resp = h_is_resp && h >= cir;
-            if (!h_is_resp) continue;
-            int e = create_edges(1);
+
+        DisjointSet ds(m.conn->heh.nhalfedges());
+        for(auto h:m.iter_halfedges()) 
+            if (h.facet().opposite().active()) 
+                ds.merge(h,h.opposite_c().opposite_f());
+        
+        std::vector<int> edges;
+        int nedges = ds.get_sets_id(edges);
+        create_edges(nedges);
+        m_halfedge_from_edge.resize(nedges,-1);
+        for(auto h:m.iter_halfedges()) {
+            int e = edges[h];
             vert(e, 0) = h.from();
             vert(e, 1) = h.to();
-            m_halfedge_from_edge.push_back(h);
+            m_halfedge_from_edge[e] = h;
         }
         connect();
     }
 
     PolyLine::Edge EdgeGraph::edge_from_halfedge(Volume::Halfedge h) {
-        int p[2] = { h.from(),h.to() };
-        Vertex v = vertex(p[0]);
-        for (auto it : v.iter_edges()) if (p[1] == it.to()) {
-            for (int cir : halfedge_from_edge(it).iter_CCW_around_edge())
-                if (cir == h) return it;
+        Vertex from = vertex(h.from());
+        Vertex to   = vertex(h.to());
+        PolyLine::Edge res(*this,-1);
+        for (auto e_manifold : from.iter_edges()){ 
+            if (e_manifold.to()!=to)
+                continue;
+            if (res==-1){ 
+                res = e_manifold;
+                continue;
+            }
+            // the edge is non manifold, find the one reachable from h
+            for (int cir : h.iter_CCW_around_edge())
+                for (auto e : from.iter_edges())
+                    if (halfedge_from_edge(e)==cir)
+                        return e;
         }
-        um_assert(false);
-        return edge(-1);
+        return res;
     }
 
-    Volume::Halfedge EdgeGraph::halfedge_from_edge(Edge e) { return { m, m_halfedge_from_edge[e] }; }
 
 }
 
