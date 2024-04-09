@@ -6,10 +6,13 @@
 #include "algebra/vec.h"
 #include "attributes.h"
 #include "pointset.h"
+#include "primitive_geometry.h"
 #include "syntactic-sugar/assert.h"
 
 namespace UM {
+
     struct Surface { // polygonal mesh interface
+
         PointSet points{};
         std::vector<int> facets{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
@@ -47,6 +50,7 @@ namespace UM {
             return *this;
         }
 
+        // TODO lbinria: to remove
         struct Util {
             const Surface& m;
             vec3 bary_verts(const int f) const;
@@ -134,6 +138,8 @@ namespace UM {
             Vertex from();
             Vertex to();
 
+            inline Segment3 geom();
+
             auto iter_sector_halfedges();
         };
 
@@ -149,6 +155,7 @@ namespace UM {
             int size();
             bool active();
 
+            template<typename T> T geom();
             auto iter_halfedges();
         };
 
@@ -157,11 +164,30 @@ namespace UM {
         auto iter_facets();
     };
 
+    template<> inline Triangle3 Surface::Facet::geom() {
+        um_assert(size()==3);
+        return Triangle3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos()}};
+    }
+
+    template<> inline Quad3 Surface::Facet::geom() {
+        um_assert(size()==4);
+        return Quad3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
+    }
+
+    template<> inline Poly3 Surface::Facet::geom() {
+        std::vector<vec3> points(size());
+        for (int i = 0; i < size(); i++)
+            points[i] = vertex(i).pos();
+
+        return Poly3{points};
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Triangles : Surface { // simplicial mesh implementation
+        
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -177,6 +203,7 @@ namespace UM {
             return *this;
         }
 
+        // TODO lbinria: to remove
         struct Util : Surface::Util {
             double unsigned_area(const int f) const;
             void project(const int t, vec2& z0, vec2& z1, vec2& z2) const;
@@ -187,6 +214,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Quads : Surface { // quad mesh implementation
+        
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -211,6 +239,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Polygons : Surface { // polygonal mesh implementation
+
         std::vector<int> offset = { 0 };
         Polygons() = default;
         Polygons(const Polygons& m) = default;
@@ -463,6 +492,10 @@ namespace UM {
         return id - m.corner(facet(), 0);
     }
 
+    inline Segment3 Surface::Halfedge::geom() {
+        return {from().pos(), to().pos()};
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline Surface::Facet& Surface::Facet::operator=(Surface::Facet& f) {
@@ -477,6 +510,7 @@ namespace UM {
     inline Surface::Halfedge Surface::Facet::halfedge(int lh) {
         return { m, m.corner(id, lh) };
     }
+
 
     inline int Surface::Facet::size() {
         return m.facet_size(id);
