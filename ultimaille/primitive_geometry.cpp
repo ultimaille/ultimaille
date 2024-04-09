@@ -17,7 +17,7 @@ namespace UM {
 			const vec2 &A = v[(i + 1) % 3];
 			const vec2 &B = v[(i + 2) % 3];
 
-			result[i] = Triangle2{{A, B, G}}.signed_area();
+			result[i] = Triangle2(A, B, G).signed_area();
 			sum += result[i];
 		}
 
@@ -33,7 +33,7 @@ namespace UM {
 			const vec3 &A = v[(i + 1) % 3];
 			const vec3 &B = v[(i + 2) % 3];
 
-			result[i] = Triangle3{{A, B, G}}.cross_product() * n;
+			result[i] = Triangle3(A, B, G).cross_product() * n;
 			sum += result[i];
 		}
 
@@ -51,7 +51,7 @@ namespace UM {
 			const vec3 &B = v[(i + 1) % 4];
 			const vec3 &C = v[(i + 2) % 4];
 
-			result[i] = std::abs(Tetrahedron{{A, B, C, G}}.volume() / vol);
+			result[i] = std::abs(Tetrahedron(A, B, C, G).volume() / vol);
 			sum += result[i];
 		}
 
@@ -72,17 +72,17 @@ namespace UM {
 		const vec2 z1 = vec2((B - A).norm(), 0);
 		const vec2 z2 = vec2((C - A)*X, (C - A)*Y);
 
-		return {{z0, z1, z2}};
+		return Triangle2(z0, z1, z2);
 	}
 
 	Triangle2 Triangle2::dilate(double scale) const {
 		vec2 G = bary_verts();
-		return {{G + scale * (v[0] - G), G + scale * (v[1] - G), G + scale * (v[2] - G)}};
+		return Triangle2(G + scale * (v[0] - G), G + scale * (v[1] - G), G + scale * (v[2] - G));
 	}
 
 	Triangle3 Triangle3::dilate(double scale) const {
 		vec3 G = bary_verts();
-		return {{G + scale * (v[0] - G), G + scale * (v[1] - G), G + scale * (v[2] - G)}};
+		return Triangle3(G + scale * (v[0] - G), G + scale * (v[1] - G), G + scale * (v[2] - G));
 	}
 	
 	mat3x3 Triangle3::tangent_basis() const {

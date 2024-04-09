@@ -166,12 +166,12 @@ namespace UM {
 
     template<> inline Triangle3 Surface::Facet::geom() {
         um_assert(size()==3);
-        return Triangle3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos()}};
+        return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
     }
 
     template<> inline Quad3 Surface::Facet::geom() {
         um_assert(size()==4);
-        return Quad3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
+        return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
     }
 
     template<> inline Poly3 Surface::Facet::geom() {
@@ -661,4 +661,3 @@ namespace UM {
 }
 
 #endif //__SURFACE_H__
-

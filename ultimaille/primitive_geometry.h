@@ -51,6 +51,8 @@ namespace UM {
 	struct Segment3;
 
 	struct Segment2 {
+		Segment2(vec2 x,vec2 y){v[0]=x;v[1]=y;}
+
 		vec2 v[2]{};
 
 		inline vec2 vector();
@@ -63,6 +65,8 @@ namespace UM {
 	};
 
 	struct Segment3 {
+		Segment3(vec3 x,vec3 y){v[0]=x;v[1]=y;}
+
 		vec3 v[2]{};
 
 		inline vec3 vector();
@@ -79,6 +83,8 @@ namespace UM {
 	struct Triangle3;
 
 	struct Triangle2 {
+		Triangle2(vec2 x,vec2 y, vec2 z){v[0]=x;v[1]=y;v[2]=z;}
+
 		vec2 v[3]{};
 
 		inline vec2 bary_verts() const;
@@ -95,6 +101,7 @@ namespace UM {
 	};
 
 	struct Triangle3 {
+		Triangle3(vec3 x,vec3 y, vec3 z){v[0]=x;v[1]=y;v[2]=z;}
 		vec3 v[3]{};
 
 		inline vec3 cross_product() const;
@@ -119,6 +126,8 @@ namespace UM {
 	struct Quad3;
 
 	struct Quad2 {
+		Quad2(vec2 x,vec2 y, vec2 z,vec2 w){v[0]=x;v[1]=y;v[2]=z;v[3]=w;}
+
 		vec2 v[4] = {};
 
 		inline vec2 bary_verts() const;
@@ -131,6 +140,7 @@ namespace UM {
 	};
 
 	struct Quad3 {
+		Quad3(vec3 x,vec3 y, vec3 z,vec3 w){v[0]=x;v[1]=y;v[2]=z;v[3]=w;}
 		vec3 v[4] = {};
 
 		vec3 normal() const;
@@ -154,6 +164,7 @@ namespace UM {
 	};
 
 	struct Tetrahedron {
+		Tetrahedron(vec3 x,vec3 y, vec3 z,vec3 w){v[0]=x;v[1]=y;v[2]=z;v[3]=w;}
 		vec3 v[4] = {};
 
 		vec3 bary_verts() const;
@@ -167,6 +178,7 @@ namespace UM {
 	};
 
 	struct Hexahedron {
+		Hexahedron (vec3 a,vec3 b, vec3 c,vec3 d,vec3 e,vec3 f, vec3 g,vec3 h){v[0]=a;v[1]=b;v[2]=c;v[3]=d;v[4]=e;v[5]=f;v[6]=g;v[7]=h;}
 		vec3 v[8] = {};
 
 		double volume() const;
@@ -178,6 +190,7 @@ namespace UM {
 	};
 
 	struct Pyramid {
+		Pyramid (vec3 a,vec3 b, vec3 c,vec3 d,vec3 e){v[0]=a;v[1]=b;v[2]=c;v[3]=d;v[4]=e;}
 		vec3 v[5] = {};
 
 		double volume() const;
@@ -192,12 +205,12 @@ namespace UM {
 	inline vec2 Segment2::vector() { return v[1] - v[0]; }
 	inline double Segment2::length2() const { return (v[1] - v[0]).norm2(); }
 	inline double Segment2::length() const { return (v[1] - v[0]).norm(); }
-	inline Segment3 Segment2::xy0() const { return {{{v[0].x, v[0].y, 0}, {v[1].x, v[1].y, 0}}}; }
+	inline Segment3 Segment2::xy0() const { return Segment3(vec3(v[0].x, v[0].y, 0),vec3(v[1].x, v[1].y, 0)); }
 
 	inline vec3 Segment3::vector() { return v[1] - v[0]; }
 	inline double Segment3::length2() const { return (v[1] - v[0]).norm2(); }
 	inline double Segment3::length() const { return (v[1] - v[0]).norm(); }
-	inline Segment2 Segment3::xy() const { return {{{v[0].x, v[0].y}, {v[1].x, v[1].y}}}; }
+	inline Segment2 Segment3::xy() const { return Segment2 (vec2(v[0].x, v[0].y),vec2( v[1].x, v[1].y)); }
 
 	inline double Segment3::bary_coords(const vec3 &P) const {
 		if (length2() < 1e-15) return 0.5;
@@ -234,7 +247,7 @@ namespace UM {
 	}
 
 	inline Triangle3 Triangle2::xy0() const {
-		return {{v[0].xy0(), v[1].xy0(), v[2].xy0()}};
+		return Triangle3(v[0].xy0(), v[1].xy0(), v[2].xy0());
 	}
 
 	inline vec3 Triangle3::cross_product() const {
@@ -254,7 +267,7 @@ namespace UM {
 	}
 
 	inline Triangle2 Triangle3::xy() const {
-		return {{v[0].xy(), v[1].xy(), v[2].xy()}};
+		return Triangle2(v[0].xy(), v[1].xy(), v[2].xy());
 	}
 
 	inline mat3x3 Triangle3::as_matrix() const {
@@ -272,11 +285,11 @@ namespace UM {
 	}
 
 	inline Quad3 Quad2::xy0() const {
-		return {{v[0].xy0(), v[1].xy0(), v[2].xy0(), v[3].xy0()}};
+		return Quad3(v[0].xy0(), v[1].xy0(), v[2].xy0(), v[3].xy0());
 	}
 
 	inline Quad2 Quad3::xy() const {
-		return {{v[0].xy(), v[1].xy(), v[2].xy(), v[3].xy()}};
+		return Quad2(v[0].xy(), v[1].xy(), v[2].xy(), v[3].xy());
 	}
 
 	inline vec3 Quad3::bary_verts() const {
@@ -288,7 +301,7 @@ namespace UM {
 	}
 
 	inline Quad3 Pyramid::base() const {
-		return Quad3{{v[0], v[1], v[2], v[3]}};
+		return Quad3(v[0], v[1], v[2], v[3]);
 	}
 
 	inline vec3 Pyramid::apex() const {

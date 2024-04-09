@@ -786,27 +786,27 @@ namespace UM {
 
     template<> inline Tetrahedron Volume::Cell::geom() {
         um_assert(nfacets()==4 && nverts()==4);
-        return Tetrahedron{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
+        return Tetrahedron(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
     }
 
     template<> inline Pyramid Volume::Cell::geom() {
         um_assert(nfacets()==5 && nverts()==5);
-        return Pyramid{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos()}};
+        return Pyramid(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos());
     }
 
     template<> inline Hexahedron Volume::Cell::geom() {
         um_assert(nfacets()==6 && nverts()==8);
-        return Hexahedron{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos()}};
+        return Hexahedron(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos());
     }
 
     template<> inline Triangle3 Volume::Facet::geom() {
         um_assert(nverts()==3);
-        return Triangle3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos()}};
+        return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
     }
 
     template<> inline Quad3 Volume::Facet::geom() {
         um_assert(nverts()==4);
-        return Quad3{{vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos()}};
+        return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -890,4 +890,3 @@ namespace UM {
 }
 
 #endif //__VOLUME_H__
-
