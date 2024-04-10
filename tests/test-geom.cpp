@@ -66,16 +66,16 @@ bool are_vec_equal(vec<n> a, vec<n> b, double eps) {
 
 TEST_CASE("aggregate", "[geom]") {
 
-	CHECK(std::is_aggregate<Segment2>());
-	CHECK(std::is_aggregate<Segment3>());
-	CHECK(std::is_aggregate<Triangle2>());
-	CHECK(std::is_aggregate<Triangle3>());
-	CHECK(std::is_aggregate<Quad2>());
-	CHECK(std::is_aggregate<Quad3>());
-	CHECK(std::is_aggregate<Poly3>());
-	CHECK(std::is_aggregate<Tetrahedron>());
-	CHECK(std::is_aggregate<Hexahedron>());
-	CHECK(std::is_aggregate<Pyramid>());
+	// CHECK(std::is_aggregate<Segment2>());
+	// CHECK(std::is_aggregate<Segment3>());
+	// CHECK(std::is_aggregate<Triangle2>());
+	// CHECK(std::is_aggregate<Triangle3>());
+	// CHECK(std::is_aggregate<Quad2>());
+	// CHECK(std::is_aggregate<Quad3>());
+	// CHECK(std::is_aggregate<Poly3>());
+	// CHECK(std::is_aggregate<Tetrahedron>());
+	// CHECK(std::is_aggregate<Hexahedron>());
+	// CHECK(std::is_aggregate<Pyramid>());
 
 	// CHECK(std::is_aggregate<vec2>());
 }
@@ -134,7 +134,7 @@ TEST_CASE("Test segment geom", "[geom]") {
 	// Create a segment
 	vec3 sa{0,0,0};
 	vec3 sb{1,0,0};
-	Segment3 s{{sa, sb}};
+	Segment3 s(sa, sb);
 
 	INFO("segment: " << s);
 	INFO("length: " << s.length());
@@ -193,7 +193,7 @@ TEST_CASE("Test triangle geom", "[geom]") {
 	// c is somewhere
 
 	// Check projection xy
-	Triangle2 expected_xy_tri{{{tri_f[0].x, tri_f[0].y}, {tri_f[1].x, tri_f[1].y}, {tri_f[2].x, tri_f[2].y}}};
+	Triangle2 expected_xy_tri({tri_f[0].x, tri_f[0].y}, {tri_f[1].x, tri_f[1].y}, {tri_f[2].x, tri_f[2].y});
 	Triangle2 actual_xy_tri = tri_f.xy();
 	INFO("xy projection: " << actual_xy_tri[0] << "," << actual_xy_tri[1] << "," << actual_xy_tri[2]);
 	CHECK(std::abs((expected_xy_tri[0] - actual_xy_tri[0]).norm2()) < 1e-4);
@@ -216,7 +216,7 @@ TEST_CASE("Test triangle geom", "[geom]") {
 	vec3 expected_bary_coords = vec3{1, 1, 1} / 3.;
 	CHECK(std::abs((actual_xy_tri.bary_coords(g) - expected_bary_coords).norm2()) < 1e-4);
 	// Check bary on inversed tri
-	Triangle3 inversed_t{{{0,0,0},{0.5,0.5,0},{1,0,0}}};
+	Triangle3 inversed_t({0,0,0},{0.5,0.5,0},{1,0,0});
 	vec3 g33 = inversed_t.bary_verts();
 	CHECK(std::abs((inversed_t.bary_coords(g33) - expected_bary_coords).norm2()) < 1e-4);
 
@@ -227,7 +227,7 @@ TEST_CASE("Test triangle geom", "[geom]") {
 	// Check gradient on some random 2D triangles
 	for (int i = 0; i < 10000; i++) {
 
-		Triangle2 r_tri{{rand_v2(), rand_v2(), rand_v2()}};
+		Triangle2 r_tri(rand_v2(), rand_v2(), rand_v2());
 		vec3 abc = rand_v3();
 
 		vec2 grad = r_tri.grad(abc);
@@ -336,7 +336,7 @@ TEST_CASE("Test quad geom", "[geom]") {
 
 	// Check signed area of Quad2
 	// Create a rect
-	Quad2 q2{{{0,0}, {2,0}, {2,1}, {0,1}}};
+	Quad2 q2({0,0}, {2,0}, {2,1}, {0,1});
 	double actual_q2_signed_area = q2.signed_area();
 	// Using the rect formula of area: a=l*h
 	double expected_signed_area = (q2[1] - q2[0]).norm() * (q2[3] - q2[0]).norm();
@@ -458,7 +458,7 @@ TEST_CASE("Test tetra geom", "[geom]") {
 	INFO("tangent basis: " << t);
 	CHECK(std::abs((t[1] - vec3{0,-1,0}).norm2()) < 1e-4);
 	// Check tagent basis
-	Triangle3 tri{{{0,0,0},{1,0,0},{0.5,0.5,0}}};
+	Triangle3 tri({0,0,0},{1,0,0},{0.5,0.5,0});
 	t = tri.tangent_basis();
 	INFO("tangent basis: " << t);
 	CHECK(std::abs((t[1] - vec3{0,1,0}).norm2()) < 1e-4);

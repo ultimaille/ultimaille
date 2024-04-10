@@ -285,7 +285,7 @@ inline PolyLine::Vertex PolyLine::Edge::to() {
 }
 
 inline Segment3 PolyLine::Edge::geom() {
-	return {{from().pos(), to().pos()}};
+	return Segment3(from().pos(), to().pos());
 }
 
 
@@ -293,4 +293,3 @@ inline Segment3 PolyLine::Edge::geom() {
 }
 
 #endif //__POLYLINE_H__
-
