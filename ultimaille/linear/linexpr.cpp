@@ -2,6 +2,20 @@
 
 namespace UM {
     namespace Linear {
+        void LinExpr::compact() {
+            std::sort(data.begin(), data.end());
+            int s = 0;
+            for (int i = 0; i < (int)data.size(); ) {
+                data[s] = data[i++];
+                while (i < data.size() && data[i].i == data[s].i)
+                    data[s].a += data[i++].a;
+
+                if (std::abs(data[s].a) > LinExpr::Term::TOL)
+                           s++;
+            }
+            data.resize(s);
+        }
+
         LinExpr operator+(const LinExpr& le1, const LinExpr& le2) {
             LinExpr result;
             int i = 0, j = 0;

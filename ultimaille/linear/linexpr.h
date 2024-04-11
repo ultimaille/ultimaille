@@ -1,5 +1,5 @@
-#ifndef __LINEAR_H__
-#define __LINEAR_H__
+#ifndef __LINEXPR_H__
+#define __LINEXPR_H__
 
 #include <initializer_list>
 #include <algorithm>
@@ -30,16 +30,16 @@ namespace UM {
             LinExpr() = default;
             LinExpr(Term c) : data{c} {}
             LinExpr(double a) : data{{a}} {}
-            LinExpr(std::initializer_list<Term> c) : data{c} {
-                std::sort(data.begin(), data.end());
-                std::unique(data.begin(), data.end());
-            }
+            LinExpr(std::initializer_list<Term> c) : data{c} { compact(); }
 
+            // sort (by i) and aggreate terms
+            void compact();
+
+            // N.B. expressions must be compacted before doing any arithmetics
             LinExpr& operator+=(const LinExpr& e);
             LinExpr& operator-=(const LinExpr& e);
             LinExpr& operator*=(double a);
 
-            // N.B. the terms are ordered by index
             std::vector<Term> data = {}; // TODO initial capacity?
         };
 
@@ -79,19 +79,18 @@ namespace UM {
         }
 
         inline LinExpr& LinExpr::operator+=(const LinExpr& e) {
-            return (*this) = LinExpr(*this) + e;
+            return *this = LinExpr(*this) + e;
         }
 
         inline LinExpr& LinExpr::operator-=(const LinExpr& e) {
-            return (*this) = LinExpr(*this) - e;
+            return *this = LinExpr(*this) - e;
         }
 
         inline LinExpr& LinExpr::operator*=(double c) {
-            return (*this) = LinExpr(*this) * c;
+            return *this = LinExpr(*this) * c;
         }
-
     }
 }
 
-#endif //__LINEAR_H__
+#endif //__LINEXPR_H__
 

@@ -6,6 +6,7 @@
 #include <ultimaille/algebra/covariance.h>
 
 #include <ultimaille/linear/linexpr.h>
+#include <ultimaille/linear/sparsematrix.h>
 
 #include <ultimaille/helpers/colocate.h>
 #include <ultimaille/helpers/constraints.h>
