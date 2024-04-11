@@ -156,7 +156,7 @@ namespace UM {
 	mat<3,4> Tetrahedron::grad_operator() const {
 		mat<4,3>  accum ;
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			const vec3 &P = v[i];
 			const vec3 &A = v[(i + 1) % 4];
 			const vec3 &B = v[(i + 2) % 4];
