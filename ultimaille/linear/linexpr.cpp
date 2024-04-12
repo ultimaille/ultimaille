@@ -1,4 +1,5 @@
 #include "linexpr.h"
+#include <algorithm>
 
 namespace UM {
     namespace Linear {
@@ -7,11 +8,11 @@ namespace UM {
             int s = 0;
             for (int i = 0; i < (int)data.size(); ) {
                 data[s] = data[i++];
-                while (i < data.size() && data[i].i == data[s].i)
+                while (i < (int)data.size() && data[i].i == data[s].i)
                     data[s].a += data[i++].a;
 
                 if (std::abs(data[s].a) > LinExpr::Term::TOL)
-                           s++;
+                    s++;
             }
             data.resize(s);
         }

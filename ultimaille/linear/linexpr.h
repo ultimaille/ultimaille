@@ -2,7 +2,6 @@
 #define __LINEXPR_H__
 
 #include <initializer_list>
-#include <algorithm>
 #include <iostream>
 #include <vector>
 
@@ -32,7 +31,7 @@ namespace UM {
             LinExpr(double a) : data{{a}} {}
             LinExpr(std::initializer_list<Term> c) : data{c} { compact(); }
 
-            // sort (by i) and aggreate terms
+            // sort (by i) and aggreate terms, remove near-zero entries
             void compact();
 
             // N.B. expressions must be compacted before doing any arithmetics
@@ -51,12 +50,12 @@ namespace UM {
             return t1.i < t2.i;
         }
 
-        inline bool operator==(const LinExpr::Term& t1, const LinExpr::Term& t2) {
-            return !(t1 != t2);
-        }
-
         inline bool operator!=(const LinExpr::Term& t1, const LinExpr::Term& t2) {
             return t1.i != t2.i || std::abs(t1.a - t2.a) > LinExpr::Term::TOL;
+        }
+
+        inline bool operator==(const LinExpr::Term& t1, const LinExpr::Term& t2) {
+            return !(t1 != t2);
         }
 
         inline LinExpr::Term operator-(const LinExpr::Term &t) {

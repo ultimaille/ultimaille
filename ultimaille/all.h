@@ -7,6 +7,7 @@
 
 #include <ultimaille/linear/linexpr.h>
 #include <ultimaille/linear/sparsematrix.h>
+#include <ultimaille/linear/rbuilder.h>
 
 #include <ultimaille/helpers/colocate.h>
 #include <ultimaille/helpers/constraints.h>
