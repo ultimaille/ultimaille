@@ -2,7 +2,6 @@
 #define __SPARSEMATRIX_H__
 
 #include "linexpr.h"
-#include <vector>
 
 namespace UM {
     namespace Linear {
@@ -11,6 +10,7 @@ namespace UM {
         struct CRSMatrix {
             // compute Ax+b
             double dot(const std::vector<double> &x) const;
+//          void transpose();
 
             inline int nrows() const { return offset.size()-1; }
             std::vector<LinExpr::Term> mat = {};
@@ -21,6 +21,9 @@ namespace UM {
         struct LOLMatrix {
             CRSMatrix tocrs();
             void drop_zero_columns();
+
+            inline       LinExpr& operator[](int i)       { return rows[i]; }
+            inline const LinExpr& operator[](int i) const { return rows[i]; }
 
             // sort and aggregate terms, remove near-zero entries
             void compact();

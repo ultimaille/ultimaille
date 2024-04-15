@@ -7,9 +7,7 @@ namespace UM {
 
         double CRSMatrix::dot(const std::vector<double> &x) const {
             double result = 0;
-#if defined(_OPENMP) && _OPENMP>=200805
 #pragma omp parallel for
-#endif
             for (int i = 0; i < nrows(); ++i) {
                 for (int j = offset[i-1]; j<offset[i]; ++j)
                     if (mat[j].i>=0)
@@ -20,10 +18,14 @@ namespace UM {
             return result;
         }
 
+        /*
+        void CRSMatrix::transpose() { // TODO drop constant part or not?
+        }
+        */
+
+
         void LOLMatrix::compact() {
-#if defined(_OPENMP) && _OPENMP>=200805
 #pragma omp parallel for
-#endif
             for (int i = 0; i < (int)rows.size(); ++i)
                 rows[i].compact();
 
@@ -37,7 +39,7 @@ namespace UM {
             std::vector<bool> zero_cols(ncols, true);
 
             for (int i = 0; i < (int)rows.size(); ++i) // vector<bool> isn't thread safe
-                for (const LinExpr::Term &t : rows[i].data)
+                for (const LinExpr::Term &t : rows[i])
                     if (t.i>=0) // ignore the affine constant
                         zero_cols[t.i] = false;
 
@@ -49,11 +51,9 @@ namespace UM {
                     old2new[col] = new_col_count++;
 
             // apply the map
-#if defined(_OPENMP) && _OPENMP>=200805
 #pragma omp parallel for
-#endif
             for (int i = 0; i < (int)rows.size(); ++i)
-                for (LinExpr::Term &t : rows[i].data)
+                for (LinExpr::Term &t : rows[i])
                     if (t.i>=0)
                         t.i = old2new[t.i];
         }
@@ -64,18 +64,16 @@ namespace UM {
 #pragma omp parallel for reduction(max:max_index)
 #endif
             for (int i = 0; i < (int)rows.size(); ++i)
-                for (const LinExpr::Term &c : rows[i].data)
+                for (const LinExpr::Term &c : rows[i])
                     max_index = std::max(max_index, c.i);
             return max_index + 1;
         }
 
         int LOLMatrix::count_nnz() const {
             int cnt = 0;
-#if defined(_OPENMP) && _OPENMP>=200805
 #pragma omp parallel for reduction(+:cnt)
-#endif
             for (int i = 0; i < (int)rows.size(); ++i)
-                cnt += rows[i].data.size();
+                cnt += rows[i].size();
             return cnt;
         }
 

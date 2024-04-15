@@ -39,6 +39,18 @@ namespace UM {
             LinExpr& operator-=(const LinExpr& e);
             LinExpr& operator*=(double a);
 
+            // basic wrappers around the container
+            inline int size() const { return data.size(); }
+            inline bool empty() const { return data.empty(); }
+            inline       Term& back()       { return data.back(); }
+            inline const Term& back() const { return data.back(); }
+            inline       Term& operator[](int i)       { return data[i]; }
+            inline const Term& operator[](int i) const { return data[i]; }
+            std::vector<Term>::iterator begin() { return data.begin(); }
+            std::vector<Term>::iterator end()   { return data.end();   }
+            std::vector<Term>::const_iterator begin() const { return data.begin(); }
+            std::vector<Term>::const_iterator end()   const { return data.end();   }
+
             std::vector<Term> data = {}; // TODO initial capacity?
         };
 
@@ -77,7 +89,7 @@ namespace UM {
             return le * c;
         }
 
-        inline LinExpr& LinExpr::operator+=(const LinExpr& e) {
+        inline LinExpr& LinExpr::operator+=(const LinExpr& e) { // TODO measure whether we need to define += or + first
             return *this = LinExpr(*this) + e;
         }
 
