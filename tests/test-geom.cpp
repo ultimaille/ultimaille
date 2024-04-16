@@ -50,7 +50,7 @@ bool are_vec_equal(vec<n> a, vec<n> b, double eps) {
 	for (int i = 0; i < n; i++) {
 
 		// Check NaN / infinity consistency
-		if (std::isnan(a[i]) && std::isnan(b[i]) || std::isinf(a[i]) && std::isinf(b[i]))
+		if ((std::isnan(a[i]) && std::isnan(b[i])) || (std::isinf(a[i]) && std::isinf(b[i])))
 			continue;
 
 		// Use absolute tolerance for very small numbers
@@ -284,7 +284,7 @@ TEST_CASE("Test quad geom", "[geom]") {
 
 	// Check normal
 	for (auto f : m.iter_facets()) {
-		auto n = quad_f.normal().z;
+		auto n = f.geom<Quad3>().normal().z;
 		CHECK(n > 0);
 	}
 

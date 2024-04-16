@@ -116,8 +116,8 @@ namespace UM {
             attr_corners = {};
         }
 
-        Volume(CELL_TYPE cell_type) : cell_type(cell_type), heh(*this), util(*this) {}
-        Volume(const Volume& m) : heh(*this), util(*this) { // TODO re-think copying policy
+        Volume(CELL_TYPE cell_type) : cell_type(cell_type), heh(*this) {}
+        Volume(const Volume& m) : heh(*this) { // TODO re-think copying policy
             um_assert(!m.points.size() && !m.cells.size());
         }
         Volume& operator=(const Volume& m) {
@@ -125,16 +125,6 @@ namespace UM {
             um_assert(!m.points.size() && !m.cells.size());
             return *this;
         }
-
-        // TODO lbinria remove [moved to geom]
-       struct [[deprecated]] Util {
-            Util(const Volume &mesh) : m(mesh) {}
-            virtual double cell_volume(const int c) const;
-            virtual vec3 facet_normal(const int c, const int lf) const;
-            vec3 bary_verts(const int c) const;
-            vec3 bary_facet(const int c, const int lf) const;
-            const Volume &m;
-        } util;
 
         struct Connectivity {
             Volume &m;
@@ -237,6 +227,8 @@ namespace UM {
             int nhalfedges() const;
 
             Halfedge halfedge(int lh);
+            [[deprecated]]
+            Vertex __vertex(int lv);
             Vertex vertex(int lv);
             Corner corner(int lc);
 
@@ -682,10 +674,18 @@ namespace UM {
         return { m, m.conn->heh.halfedge(cell(), id_in_cell(), i) };
     }
 
-    inline Volume::Vertex Volume::Facet::vertex(int i) {
+    // No need to be connected anymore
+    [[deprecated]]
+    inline Volume::Vertex Volume::Facet::__vertex(int i) {
         assert(m.connected());
         return { m, halfedge(i).from() };
     }
+
+    inline Volume::Vertex Volume::Facet::vertex(int i) {
+        return Volume::Vertex(m, m.facet_vert(cell(), id_in_cell(), i));
+    }
+
+            
 
     inline Volume::Corner Volume::Facet::corner(int i) {
         assert(m.connected());
@@ -702,7 +702,7 @@ namespace UM {
     }
 
     inline Volume::Cell Volume::Facet::cell() {
-        assert(m.connected());
+        //assert(m.connected());
         return { m, m.cell_from_facet(id) };
     }
 
@@ -799,6 +799,12 @@ namespace UM {
         return Hexahedron(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos());
     }
 
+    template<> inline Wedge Volume::Cell::geom() {
+        um_assert(nfacets()==5 && nverts()==6);
+        return Wedge(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos());
+    }
+
+    // TODO here, need connectivity to works
     template<> inline Triangle3 Volume::Facet::geom() {
         um_assert(nverts()==3);
         return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());

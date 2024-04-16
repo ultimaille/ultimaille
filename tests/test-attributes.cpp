@@ -26,7 +26,7 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
         vbool[v] = rand()&1;
 
     for (int f : range(m.nfacets()))
-        fvec3[f] = m.util.bary_verts(f);
+        fvec3[f] = Surface::Facet(m, f).geom<Poly3>().bary_verts();
 
     for (int c : range(m.ncorners()))
         cint[c] = rand();

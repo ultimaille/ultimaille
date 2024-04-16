@@ -78,7 +78,7 @@ TEST_CASE("Triangles + SurfaceAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int f : range(m.nfacets()))
-        fvec3[f] = m.util.bary_verts(f);
+        fvec3[f] = Surface::Facet(m, f).geom<Triangle3>().bary_verts();
 
     for (int c : range(m.ncorners()))
         cint[c] = rand();
@@ -124,7 +124,7 @@ TEST_CASE("Quads + SurfaceAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int f : range(m.nfacets()))
-        fvec3[f] = m.util.bary_verts(f);
+        fvec3[f] = Surface::Facet(m, f).geom<Quad3>().bary_verts();
 
     for (int c : range(m.ncorners()))
         cint[c] = rand();
@@ -171,7 +171,7 @@ TEST_CASE("Polygons + SurfaceAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int f : range(m.nfacets()))
-        fvec3[f] = m.util.bary_verts(f);
+        fvec3[f] = Surface::Facet(m, f).geom<Poly3>().bary_verts();
 
     for (int c : range(m.ncorners()))
         cint[c] = rand();
@@ -219,10 +219,10 @@ TEST_CASE("Tetrahedra + VolumeAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int c : range(m.ncells()))
-        cdouble[c] = m.util.cell_volume(c);
+        cdouble[c] = Volume::Cell(m, c).geom<Tetrahedron>().volume();
 
     for (int cf : range(m.nfacets()))
-        cfvec3[cf] = m.util.bary_facet(cf/m.nfacets_per_cell(), cf%m.nfacets_per_cell());
+        cfvec3[cf] = Volume::Facet(m, cf).geom<Triangle3>().bary_verts();
 
     for (int cc : range(m.ncorners()))
         ccint[cc] = rand();
@@ -276,10 +276,10 @@ TEST_CASE("Hexahedra + VolumeAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int c : range(m.ncells()))
-        cdouble[c] = m.util.cell_volume(c);
+        cdouble[c] = Volume::Cell(m, c).geom<Hexahedron>().volume();
 
     for (int cf : range(m.nfacets()))
-        cfvec3[cf] = m.util.bary_facet(cf/m.nfacets_per_cell(), cf%m.nfacets_per_cell());
+        cfvec3[cf] = Volume::Facet(m, cf).geom<Quad3>().bary_verts();
 
     for (int cc : range(m.ncorners()))
         ccint[cc] = rand();
@@ -332,10 +332,12 @@ TEST_CASE("Wedges + VolumeAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int c : range(m.ncells()))
-        cdouble[c] = m.util.cell_volume(c);
+        cdouble[c] = Volume::Cell(m, c).geom<Wedge>().volume();
 
-    for (int cf : range(m.nfacets()))
-        cfvec3[cf] = m.util.bary_facet(cf/m.nfacets_per_cell(), cf%m.nfacets_per_cell());
+    for (int cf : range(m.nfacets())) {
+        Volume::Facet f(m, cf);
+        cfvec3[cf] = f.nverts() == 3 ? f.geom<Triangle3>().bary_verts() : f.geom<Quad3>().bary_verts();
+    }
 
     for (int cc : range(m.ncorners()))
         ccint[cc] = rand();
@@ -388,10 +390,12 @@ TEST_CASE("Pyramids + VolumeAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int c : range(m.ncells()))
-        cdouble[c] = m.util.cell_volume(c);
+        cdouble[c] = Volume::Cell(m, c).geom<Pyramid>().volume();
 
-    for (int cf : range(m.nfacets()))
-        cfvec3[cf] = m.util.bary_facet(cf/m.nfacets_per_cell(), cf%m.nfacets_per_cell());
+    for (int cf : range(m.nfacets())) {
+        Volume::Facet f(m, cf);
+        cfvec3[cf] = f.nverts() == 3 ? f.geom<Triangle3>().bary_verts() : f.geom<Quad3>().bary_verts();
+    }
 
     for (int cc : range(m.ncorners()))
         ccint[cc] = rand();

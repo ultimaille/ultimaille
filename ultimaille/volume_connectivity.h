@@ -5,7 +5,6 @@
 #include <memory>
 #include "syntactic-sugar/assert.h"
 #include "polyline.h"
-//#include "volume.h"
 
 namespace UM {
     struct Volume;
