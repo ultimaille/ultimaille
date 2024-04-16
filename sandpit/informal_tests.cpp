@@ -7,11 +7,13 @@ using namespace UM;
 
 int main(int argc, char** argv) {
 
-	if (argc < 2)
+	if (argc < 2) {
+		std::cerr << "Filename arg was expected." << std::endl;
 		exit(1);
+	}
 
 	// std::cout << "hello " << std::endl;
-    // Triangles m;
+	// Triangles m;
 
 	// m.points.create_points(4);
 	// m.points[0] = vec3(0,0,0);
@@ -29,7 +31,7 @@ int main(int argc, char** argv) {
 	// m.vert(1, 2) = 2;
 
 
-    // write_by_extension(argv[1], m);
+	// write_by_extension(argv[1], m);
 
 	std::string filename = argv[1];
 
@@ -70,6 +72,6 @@ int main(int argc, char** argv) {
 	end = std::chrono::steady_clock::now();
 	std::cout << "time:" << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << std::endl;
 
-    return 0;
+	return 0;
 }
 

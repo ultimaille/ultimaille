@@ -40,43 +40,43 @@ namespace UM {
         const Volume &m;
     };
 
-    struct [[deprecated]] halfedge_around_edge_iter {
-        const OppositeFacet  &of;
-        const HalfEdgeHelper &heh;
-        int start  = -1;
-        int finish = -1;
+    // struct [[deprecated]] halfedge_around_edge_iter {
+    //     const OppositeFacet  &of;
+    //     const HalfEdgeHelper &heh;
+    //     int start  = -1;
+    //     int finish = -1;
 
-        halfedge_around_edge_iter(const OppositeFacet &of, const int he);
+    //     halfedge_around_edge_iter(const OppositeFacet &of, const int he);
 
-        struct iterator {
-            const OppositeFacet  &of;
-            const HalfEdgeHelper &heh;
-            int value;
-            bool circ;
+    //     struct iterator {
+    //         const OppositeFacet  &of;
+    //         const HalfEdgeHelper &heh;
+    //         int value;
+    //         bool circ;
 
-            void operator++() {
-                value = of.opposite_c(heh.opposite_f(value));
-                circ = false;
-            }
+    //         void operator++() {
+    //             value = of.opposite_c(heh.opposite_f(value));
+    //             circ = false;
+    //         }
 
-            int operator*() const {
-                return value;
-            }
+    //         int operator*() const {
+    //             return value;
+    //         }
 
-            bool operator!=(const iterator& rhs) const {
-                return circ || value != rhs.value;
-            }
-        };
+    //         bool operator!=(const iterator& rhs) const {
+    //             return circ || value != rhs.value;
+    //         }
+    //     };
 
-        iterator begin() const { return {of, heh, start, start==finish}; }
-        iterator end()   const { return {of, heh, finish, false}; }
-    };
+    //     iterator begin() const { return {of, heh, start, start==finish}; }
+    //     iterator end()   const { return {of, heh, finish, false}; }
+    // };
 
     struct Volume {
         enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };
         CELL_TYPE cell_type;
 
-        [[deprecated]] HalfEdgeHelper heh;
+        // [[deprecated]] HalfEdgeHelper heh;
         PointSet points{};
         std::vector<int> cells{};
 
@@ -116,8 +116,8 @@ namespace UM {
             attr_corners = {};
         }
 
-        Volume(CELL_TYPE cell_type) : cell_type(cell_type), heh(*this) {}
-        Volume(const Volume& m) : heh(*this) { // TODO re-think copying policy
+        Volume(CELL_TYPE cell_type) : cell_type(cell_type) {}
+        Volume(const Volume& m) { // TODO re-think copying policy
             um_assert(!m.points.size() && !m.cells.size());
         }
         Volume& operator=(const Volume& m) {
@@ -227,7 +227,7 @@ namespace UM {
             int nhalfedges() const;
 
             Halfedge halfedge(int lh);
-            [[deprecated]]
+            //[[deprecated]]
             Vertex __vertex(int lv);
             Vertex vertex(int lv);
             Corner corner(int lc);
@@ -479,9 +479,9 @@ namespace UM {
         return from(next(he));
     }
 
-    inline int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
-        return adj.opposite_c(he);
-    }
+    // inline int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
+    //     return adj.opposite_c(he);
+    // }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -675,7 +675,6 @@ namespace UM {
     }
 
     // No need to be connected anymore
-    [[deprecated]]
     inline Volume::Vertex Volume::Facet::__vertex(int i) {
         assert(m.connected());
         return { m, halfedge(i).from() };

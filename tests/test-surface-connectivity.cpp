@@ -105,7 +105,7 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
         cnt_prev[prev]++;
         cnt_facet[f]++;
 
-        for (Halfedge cur : he.iter_sector_halfedges()) {
+        for (__attribute__((unused)) Halfedge cur : he.iter_sector_halfedges()) {
             val[he]++;
         }
         REQUIRE((val[he]>=1 && val[he]<=5));

@@ -3,3 +3,4 @@ build
 *.bak
 .idea/**
 .vscode/**
+compile_commands.json

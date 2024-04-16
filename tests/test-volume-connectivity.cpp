@@ -64,7 +64,7 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
 	REQUIRE( nbrd==136 );
 
 	int nhalfedges = 0;
-	for (auto h : m.iter_halfedges())
+	for (__attribute__((unused)) auto h : m.iter_halfedges())
 		nhalfedges++;
 
 	REQUIRE(nhalfedges == 24*m.ncells());
@@ -259,7 +259,7 @@ void test_volume(Volume& m) {
 			auto h = edges.halfedge_from_edge(e);
 			int val = 0;
 			
-			for (auto cir : h.iter_CCW_around_edge()) {
+			for (__attribute__((unused)) auto cir : h.iter_CCW_around_edge()) {
 				if (edges.edge_from_halfedge(h) != e)
 					halfedge_to_edge_is_coherent = false;
 				val++;

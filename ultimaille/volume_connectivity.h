@@ -13,11 +13,11 @@ namespace UM {
         OppositeFacet(const Volume &m);
         void reset();
 
-        [[deprecated]] int & operator[](const int i);
+        // [[deprecated]] int & operator[](const int i);
         int   operator[](const int i) const;
 
-        [[deprecated]] int opposite_c(const int he) const;
-        [[deprecated]] std::vector<int> halfedges_around_edge(const int he) const;
+        // [[deprecated]] int opposite_c(const int he) const;
+        // [[deprecated]] std::vector<int> halfedges_around_edge(const int he) const;
 
         const Volume &m;
         std::vector<int> adjacent;

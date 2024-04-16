@@ -226,15 +226,15 @@ namespace UM {
 	}
 
 	vec3 Poly3::bary_verts() const {
-		return UM::bary_verts(v.data(), static_cast<const int>(v.size()));
+		return UM::bary_verts(v.data(), static_cast<int>(v.size()));
 	}
 
 	vec3 Poly3::normal() const {
-		return UM::normal(v.data(), static_cast<const int>(v.size()));
+		return UM::normal(v.data(), static_cast<int>(v.size()));
 	}
 
 	double Poly3::unsigned_area() const {
-		return UM::unsigned_area(v.data(), static_cast<const int>(v.size()));
+		return UM::unsigned_area(v.data(), static_cast<int>(v.size()));
 	}
 
 	vec3 Tetrahedron::bary_verts() const {

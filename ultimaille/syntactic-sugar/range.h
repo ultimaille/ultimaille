@@ -108,9 +108,9 @@ namespace UM {
         return range(m.ncorners());
     }
 
-    inline auto halfedge_iter(const Volume &m) {
-        return range(m.heh.nhalfedges());
-    }
+    // inline auto halfedge_iter(const Volume &m) {
+    //     return range(m.heh.nhalfedges());
+    // }
 }
 #endif // __RANGE_H__
 
