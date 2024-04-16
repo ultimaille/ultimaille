@@ -196,6 +196,8 @@ namespace UM {
 		double volume() const;
 		vec3 bary_verts() const;
 
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
 	struct Pyramid {

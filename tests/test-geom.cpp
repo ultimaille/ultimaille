@@ -19,6 +19,10 @@ struct VerdictResult {
 
 // Some useful functions
 
+double rand_scalar() {
+	return rand()%100 / 100.;
+}
+
 vec2 rand_v2() {
 	return {(rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5};
 }
@@ -627,4 +631,46 @@ TEST_CASE("Test pyramid geom", "[geom]") {
 	INFO("square base area: " << area);
 	INFO("base area: " << base_geom.unsigned_area());
 	CHECK(std::abs(base_geom.unsigned_area() - area) < 1e-4);
+}
+
+TEST_CASE("Test wedge geom", "[geom]") {
+
+	// Random wedge sample
+	for (int i = 0; i < 10000; i++) {
+
+		// Check volume
+
+		// Random parameters
+		double a = rand_scalar(), b = rand_scalar(), h = rand_scalar();
+		// Random start position
+		vec3 p_offset = rand_v3();
+
+		// Create random wedge with a rectangular base
+		Wedge w(
+			p_offset, 
+			p_offset + vec3{0,b,0}, 
+			p_offset + vec3{a*.25/*rand_scalar()*/,b*.5,h}, 
+			p_offset + vec3{a,0,0}, 
+			p_offset + vec3{a,b,0}, 
+			p_offset + vec3{a-a*.25/*rand_scalar()*/,b*.5,h}
+		);
+		
+		// Compute volume of a wedge with a rectangular base with the formula: V = bh((a/3)+(c/6))
+		// ref: https://en.wikipedia.org/wiki/Wedge_(geometry)
+		double c = (w[2] - w[5]).norm();
+		double exp_v = b*h*((a/3.)+(c/6.));
+
+		double act_v = w.volume();
+		
+		INFO("expected volume: " << exp_v);
+		INFO("actual volume: " << act_v);
+		CHECK(std::abs(act_v - exp_v) < 1e-4);
+
+		// Check bary
+		vec3 act_bary = w.bary_verts();
+		vec3 exp_bary = (w[0] + w[1] + w[2] + w[3] + w[4] + w[5]) / 6.;
+		INFO("expected bary: " << exp_bary);
+		INFO("actual bary: " << act_bary);
+		CHECK(std::abs((act_bary - exp_bary).norm2()) < 1e-4);
+	}
 }
