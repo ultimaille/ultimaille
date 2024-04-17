@@ -5,9 +5,10 @@
 #include <ultimaille/algebra/svd.h>
 #include <ultimaille/algebra/covariance.h>
 
-#include <ultimaille/linear/linexpr.h>
-#include <ultimaille/linear/sparsematrix.h>
-#include <ultimaille/linear/rbuilder.h>
+#include <ultimaille/sparse/vector.h>
+#include <ultimaille/sparse/matrix.h>
+#include <ultimaille/sparse/nullspace.h>
+#include <ultimaille/sparse/linexpr.h>
 
 #include <ultimaille/helpers/colocate.h>
 #include <ultimaille/helpers/constraints.h>

@@ -1,0 +1,113 @@
+#ifndef __VECTOR_H_
+#define __VECTOR_H_
+
+#include <cmath>
+#include <vector>
+
+namespace UM {
+    struct SparseElement {
+        int index;
+        double value;
+        inline bool is_null() const { return std::abs(value) < TOL; }
+
+        static constexpr double TOL = 1e-10; // tolerance for the element to be considered null
+    };
+
+    inline SparseElement operator*(const SparseElement& t, double c) {
+        return { t.index, c * t.value };
+    }
+
+    inline SparseElement operator*(double c, const SparseElement& t) {
+        return t*c;
+    }
+
+    inline SparseElement operator-(const SparseElement& t) {
+        return { t.index, -t.value };
+    }
+
+    struct SparseVector {
+        SparseVector(SparseElement e) : data{e} {}
+        SparseVector(std::initializer_list<SparseElement> l) : data{l} { compact(); }
+        SparseVector(std::vector<SparseElement> &&v) : data{std::move(v)} { compact(); }
+
+        // sort by index, sum same-index terms, remove near-zero entries
+        void compact();
+
+        inline SparseVector& operator+=(const SparseVector& other) {
+            data.insert(data.end(), other.begin(), other.end());
+            compact();
+            return *this;
+        }
+
+        inline SparseVector& operator-=(const SparseVector& other) {
+            data.reserve(size() + other.size());
+            for (const SparseElement &e : other)
+                data.push_back(-e);
+            compact();
+            return *this;
+        }
+
+        inline SparseVector& operator*=(double x) {
+            for (SparseElement &e : data)
+                e.value *= x;
+            compact();
+            return *this;
+        }
+
+        // basic wrappers around the container
+        SparseVector() = default;
+        SparseVector(const SparseVector  &) = default;
+        SparseVector(      SparseVector &&) = default;
+        SparseVector& operator=(const SparseVector  &) = default;
+        SparseVector& operator=(      SparseVector &&) = default;
+
+        inline int size() const { return data.size(); }
+        inline bool empty() const { return data.empty(); }
+        inline       SparseElement& front()       { return data.front(); }
+        inline const SparseElement& front() const { return data.front(); }
+        inline       SparseElement& back()       { return data.back(); }
+        inline const SparseElement& back() const { return data.back(); }
+        inline       SparseElement& operator[](int i)       { return data[i]; }
+        inline const SparseElement& operator[](int i) const { return data[i]; }
+
+        inline std::vector<SparseElement>::iterator begin() { return data.begin(); }
+        inline std::vector<SparseElement>::iterator end()   { return data.end();   }
+        inline std::vector<SparseElement>::const_iterator begin() const { return data.begin(); }
+        inline std::vector<SparseElement>::const_iterator end()   const { return data.end();   }
+
+        std::vector<SparseElement> data = {};
+    };
+
+    inline SparseVector operator+(const SparseVector& a, const SparseVector& b) {
+        SparseVector c;
+        c.data.reserve(a.size() + b.size());
+        c.data.insert(c.end(), a.begin(), a.end());
+        c.data.insert(c.end(), b.begin(), b.end());
+        c.compact();
+        return c;
+    }
+
+    inline SparseVector operator-(const SparseVector& a, const SparseVector& b) {
+        SparseVector c;
+        c.data.reserve(a.size() + b.size());
+        c.data.insert(c.end(), a.begin(), a.end());
+        for (const SparseElement &e : b)
+            c.data.push_back(-e);
+        c.compact();
+        return c;
+    }
+
+    inline SparseVector operator*(const SparseVector& v, double a) {
+        SparseVector u = v;
+        u *= a;
+        return u;
+    }
+
+    inline SparseVector operator*(double a, const SparseVector& v) {
+        return v * a;
+    }
+
+}
+
+#endif //__VECTOR_H_
+
