@@ -14,7 +14,7 @@ namespace UM {
         LinExpr(SparseElement e) : SparseVector(e) {}
         LinExpr(std::initializer_list<SparseElement> l) : SparseVector(l) {}
         LinExpr(double v) : SparseVector({-1, v}) {}
-        LinExpr(SparseVector &&v) : SparseVector(std::move(v.data)) {}
+        LinExpr(SparseVector &&v) { data = std::move(v.data); } // N.B. no compact() call here
     };
 
     inline LinExpr operator-(const LinExpr& a, const LinExpr& b) {
@@ -26,7 +26,7 @@ namespace UM {
     }
 
     inline LinExpr operator*(const LinExpr& v, double a) {
-        return ((SparseVector)v)*a;
+        return (SparseVector)v * a;
     }
 
     inline LinExpr operator*(double a, const LinExpr& v) {

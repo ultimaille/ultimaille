@@ -15,11 +15,44 @@ namespace UM {
         return result;
     }
 
-    /*
-       void CRSMatrix::transpose() { // TODO drop constant part or not?
-       }
-       */
+    void CRSMatrix::transpose() {
+/*
+        // Find the number of non-zero elements in each column
+        std::vector<int> colCounts(cols, 0);
+        for (int row = 0; row < rows; ++row) {
+            for (double val : data[row]) {
+                int col = static_cast<int>(&val - &data[row][0]); // Get the index of the value in the row
+                colCounts[col]++;
+            }
+        }
 
+        // Calculate the new row pointers
+        std::vector<int> newRowPointers(cols + 1, 0);
+        for (int col = 0; col < cols; ++col) {
+            newRowPointers[col + 1] = newRowPointers[col] + colCounts[col];
+        }
+
+        // Create a new data structure to hold the transposed matrix
+        std::vector<std::vector<double>> newData(cols);
+        for (int col = 0; col < cols; ++col) {
+            newData[col].resize(newRowPointers[col + 1] - newRowPointers[col]);
+        }
+
+        // Fill in the transposed data
+        std::vector<int> currentIndices(cols, 0);
+        for (int row = 0; row < rows; ++row) {
+            for (double val : data[row]) {
+                int col = static_cast<int>(&val - &data[row][0]); // Get the index of the value in the row
+                newData[col][currentIndices[col]] = val;
+                currentIndices[col]++;
+            }
+        }
+
+        // Update the data and row pointers
+        data = std::move(newData);
+        rowPointers = std::move(newRowPointers);
+*/
+    }
 
     void LOLMatrix::compact() {
 #pragma omp parallel for

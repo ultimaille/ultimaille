@@ -6,9 +6,8 @@
 namespace UM {
     // read-only compressed row storage matrix
     struct CRSMatrix {
-        // compute Ax+b
         double dot(const std::vector<double> &x) const;
-        //          void transpose();
+        void transpose();
 
         inline int nrows() const { return offset.size()-1; }
         std::vector<SparseElement> mat = {};
