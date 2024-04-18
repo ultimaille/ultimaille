@@ -674,3 +674,25 @@ TEST_CASE("Test wedge geom", "[geom]") {
 		CHECK(std::abs((act_bary - exp_bary).norm2()) < 1e-4);
 	}
 }
+
+// TODO complete this test with surface facets / pyramid...
+TEST_CASE("Test poly facet extraction geom", "[geom]") {
+	
+	Wedges w;
+	w.points.create_points(6);
+	w.create_cells(1);
+	w.points[0] = {0,0,0};
+	w.points[1] = {1,0,0};
+	w.points[2] = {0.5,0,1};
+	w.points[3] = {0,1,0};
+	w.points[4] = {1,1,0};
+	w.points[5] = {0.5,1,1};
+
+	for (int i = 0; i < 6; i++)
+		w.vert(0, i) = i;
+
+	// Should be a triangle
+	CHECK(Volume::Facet(w, 0).geom<Poly3>().v.size() == 3);
+	// Should be a quad
+	CHECK(Volume::Facet(w, 2).geom<Poly3>().v.size() == 4);
+}

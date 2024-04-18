@@ -336,7 +336,7 @@ TEST_CASE("Wedges + VolumeAttributes IO test", "[geogram]") {
 
     for (int cf : range(m.nfacets())) {
         Volume::Facet f(m, cf);
-        cfvec3[cf] = f.nverts() == 3 ? f.geom<Triangle3>().bary_verts() : f.geom<Quad3>().bary_verts();
+        cfvec3[cf] = f.geom<Poly3>().bary_verts();
     }
 
     for (int cc : range(m.ncorners()))
@@ -394,7 +394,7 @@ TEST_CASE("Pyramids + VolumeAttributes IO test", "[geogram]") {
 
     for (int cf : range(m.nfacets())) {
         Volume::Facet f(m, cf);
-        cfvec3[cf] = f.nverts() == 3 ? f.geom<Triangle3>().bary_verts() : f.geom<Quad3>().bary_verts();
+        cfvec3[cf] = f.geom<Poly3>().bary_verts();
     }
 
     for (int cc : range(m.ncorners()))

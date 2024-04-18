@@ -83,7 +83,7 @@ TEST_CASE("Wedges numbering convention test", "[numbering convention]") {
     const vec3 ref_nrm[] = {{0,0,-1}, {0,0,1}, {0,-1,0}, {-1,0,0}, {1/std::sqrt(2.),1/std::sqrt(2.),0}};
     for (int f : range(5)) {
         Volume::Facet fa = c0.facet(f);
-        vec3 n = fa.nverts() == 3 ? fa.geom<Triangle3>().normal() : fa.geom<Quad3>().normal();
+        vec3 n = fa.geom<Poly3>().normal();
         REQUIRE( (n-ref_nrm[f]).norm()<ftol );
     }
 
@@ -109,7 +109,7 @@ TEST_CASE("Pyramids numbering convention test", "[numbering convention]") {
     const vec3 ref_nrm[] = {{0,0,-1}, vec3{0,-1,1}.normalized(), vec3{-1,0,1}.normalized(), vec3{0,1,1}.normalized(), vec3{1,0,1}.normalized()};
     for (int f : range(5)) {
         Volume::Facet fa = c0.facet(f);
-        vec3 n = fa.nverts() == 3 ? fa.geom<Triangle3>().normal() : fa.geom<Quad3>().normal();
+        vec3 n = fa.geom<Poly3>().normal();
         REQUIRE( (n-ref_nrm[f]).norm()<ftol );
     }
     // smallest vertex starts each cell facet

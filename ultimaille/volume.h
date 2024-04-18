@@ -363,6 +363,7 @@ namespace UM {
     }
 
     inline int Volume::facet_vert(const int c, const int lf, const int lv) const {
+        // TODO check assert ! facet_size(lf) but facet_size expect a facet index, not local index !
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell() && lv>=0 && lv<facet_size(lf));
         return vert(c, reference_cells[cell_type].vert(lf, lv));
     }
@@ -803,7 +804,6 @@ namespace UM {
         return Wedge(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos());
     }
 
-    // TODO here, need connectivity to works
     template<> inline Triangle3 Volume::Facet::geom() {
         um_assert(nverts()==3);
         return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
@@ -812,6 +812,16 @@ namespace UM {
     template<> inline Quad3 Volume::Facet::geom() {
         um_assert(nverts()==4);
         return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
+    }
+
+    template<> inline Poly3 Volume::Facet::geom() {
+        // TODO replace m.facet_size(id) => size() but we have to add size() on volume facet
+        int size = m.facet_size(id);
+        std::vector<vec3> points(size);
+        for (int i = 0; i < size; i++)
+            points[i] = vertex(i).pos();
+
+        return Poly3{points};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
