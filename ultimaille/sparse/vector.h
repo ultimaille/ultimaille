@@ -6,7 +6,7 @@
 
 namespace UM {
     struct SparseElement {
-//        SparseElement(int index, double value) : index(index), value(value) {}
+        SparseElement(int index, double value) : index(index), value(value) {}
         inline bool is_null() const { return std::abs(value) < TOL; }
 
         int index = 0;
