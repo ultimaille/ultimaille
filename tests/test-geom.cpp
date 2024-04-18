@@ -675,8 +675,9 @@ TEST_CASE("Test wedge geom", "[geom]") {
 	}
 }
 
-// TODO complete this test with surface facets / pyramid...
-TEST_CASE("Test poly facet extraction geom", "[geom]") {
+// This test aims to check that extracting an abstract polygon geometry from a facet 
+// give equivalent computations than computation from facet real shape
+TEST_CASE("Test polygon facet extraction geom", "[geom]") {
 	
 	Wedges w;
 	w.points.create_points(6);
@@ -716,4 +717,98 @@ TEST_CASE("Test poly facet extraction geom", "[geom]") {
 		CHECK(Volume::Facet(p, i).geom<Poly3>().v.size() == 3);
 
 
+}
+
+// This test aims to check that extracting an abstract polyhedron geometry from a cell 
+// give equivalent computations than computation from cell real shape
+TEST_CASE("Test polyhedron cell extraction geom", "[geom]") {
+	
+	// Check Tetrahedra
+	Tetrahedra t;
+	t.points.create_points(7);
+	t.create_cells(1);
+	t.points[0] = {0,0,0};
+	t.points[1] = {1,0,0};
+	t.points[2] = {1,1,0};
+	t.points[3] = {0.5,0.5,1};
+
+	for (int i = 0; i < 4; i++)
+		t.vert(0, i) = i;
+
+	auto tet_c = Volume::Cell(t, 0);
+	auto tet = tet_c.geom<Tetrahedron>();
+	auto tet_as_poly = tet_c.geom<Polyhedron>();
+	// Should have 4 vertices
+	INFO("YOOO:" << t.nverts() << "," << t.cell_type);
+	CHECK(static_cast<int>(tet_as_poly.v.size()) == tet_c.nverts());
+	// Check barycenter of Tetrahedron is equivalent to barycenter of Polyhedron
+	CHECK(std::abs((tet.bary_verts() - tet_as_poly.bary_verts()).norm2()) < 1e-4);
+
+	// Check Hexahedra
+	Hexahedra h;
+	h.points.create_points(8);
+	h.create_cells(1);
+	h.points[0] = {0,0,0};
+	h.points[1] = {1,0,0};
+	h.points[2] = {0,1,0};
+	h.points[3] = {1,1,0};
+	h.points[4] = {0,0,1};
+	h.points[5] = {1,0,1};
+	h.points[6] = {0,1,1};
+	h.points[7] = {1,1,1};
+
+	for (int i = 0; i < 8; i++)
+		h.vert(0, i) = i;
+
+	auto hex_c = Volume::Cell(h, 0);
+	auto hex = hex_c.geom<Hexahedron>();
+	auto hex_as_poly = hex_c.geom<Polyhedron>();
+	// Should have 8 vertices
+	CHECK(static_cast<int>(hex_as_poly.v.size()) == hex_c.nverts());
+	// Check barycenter of Hexahedron is equivalent to barycenter of Polyhedron
+	CHECK(std::abs((hex.bary_verts() - hex_as_poly.bary_verts()).norm2()) < 1e-4);
+
+	// Check Wedges
+	Wedges w;
+	w.points.create_points(6);
+	w.create_cells(1);
+	w.points[0] = {0,0,0};
+	w.points[1] = {1,0,0};
+	w.points[2] = {0.5,0,1};
+	w.points[3] = {0,1,0};
+	w.points[4] = {1,1,0};
+	w.points[5] = {0.5,1,1};
+
+	for (int i = 0; i < 6; i++)
+		w.vert(0, i) = i;
+
+	auto wedge_c = Volume::Cell(w, 0);
+	auto wedge = wedge_c.geom<Wedge>();
+	auto wedge_as_poly = wedge_c.geom<Polyhedron>();
+	// Should have 6 vertices
+	CHECK(static_cast<int>(wedge_as_poly.v.size()) == wedge_c.nverts());
+	// Check barycenter of Wedge is equivalent to barycenter of Polyhedron
+	CHECK(std::abs((wedge.bary_verts() - wedge_as_poly.bary_verts()).norm2()) < 1e-4);
+
+	// Check Pyramids
+	Pyramids p;
+	p.points.create_points(5);
+	p.create_cells(5);
+	p.points[0] = {0,0,0};
+	p.points[1] = {1,0,0};
+	p.points[2] = {1,1,0};
+	p.points[3] = {0,1,0};
+	p.points[4] = {0.5,0.5,1};
+
+	for (int i = 0; i < 5; i++)
+		w.vert(0, i) = i;
+
+	auto pyr_c = Volume::Cell(p, 0);
+	auto pyr = pyr_c.geom<Pyramid>();
+	auto pyr_as_poly = pyr_c.geom<Polyhedron>();
+
+	// Should have 5 vertices
+	CHECK(static_cast<int>(pyr_as_poly.v.size()) == pyr_c.nverts());
+	// Check barycenter of Pyramid is equivalent to barycenter of Polyhedron
+	CHECK(std::abs((pyr.bary_verts() - pyr_as_poly.bary_verts()).norm2()) < 1e-4);
 }

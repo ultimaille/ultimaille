@@ -213,16 +213,15 @@ namespace UM {
 		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
-	// // Abstract 3D cell primitive
-	// struct Polyhedron {
-	// 	std::vector<vec3> v = {};
+	// Abstract 3D cell primitive
+	struct Polyhedron {
+		std::vector<vec3> v = {};
 
-	// 	vec3 bary_verts() const;
-	// 	double volume() const;
+		vec3 bary_verts() const;
 
-	// 	inline vec3& operator[](int i) { return v[i]; }
-	// 	inline vec3 operator[](int i) const { return v[i]; }
-	// };
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
+	};
 
 	inline vec2 Segment2::vector() { return v[1] - v[0]; }
 	inline double Segment2::length2() const { return (v[1] - v[0]).norm2(); }

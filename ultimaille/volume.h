@@ -804,6 +804,14 @@ namespace UM {
         return Wedge(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos());
     }
 
+    template<> inline Polyhedron Volume::Cell::geom() {
+        std::vector<vec3> points(nverts());
+        for (int i = 0; i < nverts(); i++)
+            points[i] = vertex(i).pos();
+
+        return Polyhedron{points};
+    }
+
     template<> inline Triangle3 Volume::Facet::geom() {
         um_assert(nverts()==3);
         return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
