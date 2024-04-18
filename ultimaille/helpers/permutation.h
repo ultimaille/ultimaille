@@ -2,6 +2,7 @@
 #define __PERMUTATION_H__
 
 #include <vector>
+#include <numeric>
 #include <cassert>
 
 namespace UM {

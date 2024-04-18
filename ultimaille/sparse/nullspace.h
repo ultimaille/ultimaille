@@ -8,16 +8,16 @@ namespace UM {
         NullSpaceBuilder(int n, bool free_last=true) : C{lol_identity(n)}, free_last{free_last} { }
 
         // re-express v in terms of free variables
-        // return value is a check whether the constraint is admissible (last variable can be free if needeed)
-        bool reduce(SparseVector &v);
-
+        // after the call (v.empty()) indicates a redundant constraint;
+        // (free_last && !v.empty() && v.front().index == size()-1) indicates an impossible constraint
+        void reduce(SparseVector &v);
         void add_constraint(SparseVector &e);
         void add_constraint(SparseVector &&e) { add_constraint(e); }
 
         // N.B. the builder is destroyed
-        CRSMatrix tocrs() {
+        CRSMatrix to_crs() {
             C.drop_zero_columns();
-            CRSMatrix result = C.tocrs();
+            CRSMatrix result = C.to_crs();
             C = {};
             return result;
         }

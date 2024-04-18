@@ -10,13 +10,15 @@ namespace UM {
         void transpose();
 
         inline int nrows() const { return offset.size()-1; }
+        inline int nnz() const { return offset.back(); }
+
         std::vector<SparseElement> mat = {};
         std::vector<int> offset = { 0 };
     };
 
     // list of lists matrix
     struct LOLMatrix {
-        CRSMatrix tocrs();
+        CRSMatrix to_crs();
         void drop_zero_columns();
 
         inline       SparseVector& operator[](int i)       { return rows[i]; }
@@ -26,6 +28,7 @@ namespace UM {
         // sort and aggregate terms, remove near-zero entries
         void compact();
 
+        // the matrix is supposed to be compacted beforehands
         int count_columns() const;
         int count_nnz() const;
 

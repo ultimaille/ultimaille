@@ -104,17 +104,17 @@ namespace UM {
         return cnt;
     }
 
-    CRSMatrix LOLMatrix::tocrs() {
+    CRSMatrix LOLMatrix::to_crs() {
         compact();
         int nnz = count_nnz();
         CRSMatrix m = {
             std::vector(nnz, SparseElement{}),
-            std::vector<int>(nrows(), 0)
+            std::vector<int>(nrows()+1, 0)
         };
-        for (int i=1; i<=nrows(); ++i) {
-            m.offset[i] = m.offset[i-1];
+        for (int i=0; i<nrows(); ++i) {
+            m.offset[i+1] = m.offset[i];
             for (const SparseElement &e : rows[i].data)
-                m.mat[m.offset[i]++] = e;
+                m.mat[m.offset[i+1]++] = e;
         }
         return m;
     }

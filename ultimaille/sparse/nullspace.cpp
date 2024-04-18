@@ -2,7 +2,7 @@
 #include "../syntactic-sugar/assert.h"
 
 namespace UM {
-    bool NullSpaceBuilder::reduce(SparseVector &v) {
+    void NullSpaceBuilder::reduce(SparseVector &v) {
         SparseVector result;
         for (const SparseElement &e : v) {                             // for each term of the constraint
             SparseVector &row = C[e.index];
@@ -16,18 +16,18 @@ namespace UM {
         }
         result.compact();                                              // do not forget to aggregate terms
         v = std::move(result);
-        return !free_last || v.empty() || v.front().index < size()-1;  // check whether it would be ok to add the constraint
     }
 
-    void NullSpaceBuilder::add_constraint(SparseVector &e) {
-        um_assert(reduce(e));                                          // check for the impossible constraint non-zero constant = 0
-        if (e.empty()) return;
-        SparseElement pivot = free_last && e.back().index==size()-1 ?  // if we need to keep the last variable free,
-                              e[rand() % (e.size()-1)] :               // it cannot be used as a pivot
-                              e[rand() % e.size()];                    // aside this, the choice of pivot is arbitrary
-        e -= SparseVector{pivot};
-        e *= -1. / pivot.value;
-        C[pivot.index] = std::move(e);
+    void NullSpaceBuilder::add_constraint(SparseVector &v) {
+        reduce(v);
+        if (v.empty()) return;
+        um_assert(!free_last || v.front().index < size()-1);           // check for the impossible constraint non-zero constant = 0
+        SparseElement pivot = free_last && v.back().index==size()-1 ?  // if we need to keep the last variable free,
+                              v[rand() % (v.size()-1)] :               // it cannot be used as a pivot
+                              v[rand() % v.size()];                    // aside this, the choice of pivot is arbitrary
+        v -= SparseVector{pivot};
+        v *= -1. / pivot.value;
+        C[pivot.index] = std::move(v);
     }
 }
 
