@@ -29,7 +29,7 @@ namespace UM {
         int ncols = count_columns();
 
         // transposed matrix
-        std::vector newmat(nnz(), SparseElement(0, 0));
+        std::vector newmat(nnz(), SparseElement(0, 0.));
         std::vector newoffset(ncols+1, 0);
 
         // count nnz per column
@@ -104,7 +104,7 @@ namespace UM {
         compact();
         int nnz = count_nnz();
         CRSMatrix m = {
-            std::vector(nnz, SparseElement(0, 0)),
+            std::vector(nnz, SparseElement(0, 0.)),
             std::vector(nrows()+1, 0)
         };
         for (int i=0; i<nrows(); ++i) {
