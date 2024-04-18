@@ -27,7 +27,7 @@ TEST_CASE("SparseVector operations", "[SparseVector]") {
     }
 }
 
-TEST_CASE("LOLMatrix methods", "[LOLMatrix]") {
+TEST_CASE("LOLMatrix/CRSMatrix methods", "[LOLMatrix/CRSMatrix]") {
     LOLMatrix m = {{
         {{0, 1.0}, {2, 2.0}, {3, 3.0}},
         {{1, 1.0}, {7, 2.0}},
@@ -47,8 +47,16 @@ TEST_CASE("LOLMatrix methods", "[LOLMatrix]") {
     REQUIRE( (crs.mat.size() == 8 && crs.nnz() == 8) );
     REQUIRE( crs.nrows() == 3 );
     for (int i=0; i<8; i++) {
-        REQUIRE( crs.mat[i].value == crsv[i] );
-        REQUIRE( crs.mat[i].index == crsi[i] );
+        CHECK( crs.mat[i].value == crsv[i] );
+        CHECK( crs.mat[i].index == crsi[i] );
+    }
+
+    CRSMatrix tt = crs.transpose().transpose();
+    REQUIRE( tt.count_columns() == crs.count_columns() );
+    REQUIRE( tt.nrows() == crs.nrows() );
+    for (int i=0; i<8; i++) {
+        CHECK( tt.mat[i].value == crsv[i] );
+        CHECK( tt.mat[i].index == crsi[i] );
     }
 }
 

@@ -4,7 +4,7 @@ namespace UM {
 
     double CRSMatrix::dot(const std::vector<double> &x) const {
         double result = 0;
-#pragma omp parallel for
+#pragma omp parallel for reduction(+:result)
         for (int i = 0; i < nrows(); ++i) {
             for (int j = offset[i-1]; j<offset[i]; ++j)
                 if (mat[j].index>=0)
@@ -15,43 +15,39 @@ namespace UM {
         return result;
     }
 
-    void CRSMatrix::transpose() {
-/*
-        // Find the number of non-zero elements in each column
-        std::vector<int> colCounts(cols, 0);
-        for (int row = 0; row < rows; ++row) {
-            for (double val : data[row]) {
-                int col = static_cast<int>(&val - &data[row][0]); // Get the index of the value in the row
-                colCounts[col]++;
-            }
-        }
+    int CRSMatrix::count_columns() const {
+        int max_index = -1;
+#if defined(_OPENMP) && _OPENMP>=200805
+#pragma omp parallel for reduction(max:max_index)
+#endif
+        for (int i = 0; i < nnz(); ++i)
+            max_index = std::max(max_index, mat[i].index);
+        return max_index + 1;
+    }
 
-        // Calculate the new row pointers
-        std::vector<int> newRowPointers(cols + 1, 0);
-        for (int col = 0; col < cols; ++col) {
-            newRowPointers[col + 1] = newRowPointers[col] + colCounts[col];
-        }
+    CRSMatrix CRSMatrix::transpose() const {
+        int ncols = count_columns();
 
-        // Create a new data structure to hold the transposed matrix
-        std::vector<std::vector<double>> newData(cols);
-        for (int col = 0; col < cols; ++col) {
-            newData[col].resize(newRowPointers[col + 1] - newRowPointers[col]);
-        }
+        // transposed matrix
+        std::vector newmat(nnz(), SparseElement(0, 0));
+        std::vector newoffset(ncols+1, 0);
 
-        // Fill in the transposed data
-        std::vector<int> currentIndices(cols, 0);
-        for (int row = 0; row < rows; ++row) {
-            for (double val : data[row]) {
-                int col = static_cast<int>(&val - &data[row][0]); // Get the index of the value in the row
-                newData[col][currentIndices[col]] = val;
-                currentIndices[col]++;
-            }
-        }
+        // count nnz per column
+        for (int row = 0; row < nrows(); row++)
+            for (int j = offset[row]; j<offset[row+1]; ++j)
+                newoffset[1+mat[j].index]++;
 
-        // Update the data and row pointers
-        data = std::move(newData);
-        rowPointers = std::move(newRowPointers);
-*/
+        // sum the counts to obtain the column offsets
+        for (int col = 0; col < ncols; col++)
+            newoffset[col+1] += newoffset[col];
+
+        // fill in the transposed data
+        std::vector<int> cur_nnz_per_col(ncols, 0);
+        for (int row = 0; row < nrows(); row++)
+            for (int j = offset[row]; j<offset[row+1]; ++j)
+                newmat[ newoffset[mat[j].index] + cur_nnz_per_col[mat[j].index]++ ] = { row, mat[j].value };
+
+        return { newmat, newoffset };
     }
 
     void LOLMatrix::compact() {
@@ -108,8 +104,8 @@ namespace UM {
         compact();
         int nnz = count_nnz();
         CRSMatrix m = {
-            std::vector(nnz, SparseElement{}),
-            std::vector<int>(nrows()+1, 0)
+            std::vector(nnz, SparseElement(0, 0)),
+            std::vector(nrows()+1, 0)
         };
         for (int i=0; i<nrows(); ++i) {
             m.offset[i+1] = m.offset[i];

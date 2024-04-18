@@ -6,10 +6,11 @@
 
 namespace UM {
     struct SparseElement {
-        int index;
-        double value;
+//        SparseElement(int index, double value) : index(index), value(value) {}
         inline bool is_null() const { return std::abs(value) < TOL; }
 
+        int index = 0;
+        double value = 0.;
         static constexpr double TOL = 1e-10; // tolerance for the element to be considered null
     };
 
