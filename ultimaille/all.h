@@ -5,6 +5,11 @@
 #include <ultimaille/algebra/svd.h>
 #include <ultimaille/algebra/covariance.h>
 
+#include <ultimaille/sparse/vector.h>
+#include <ultimaille/sparse/matrix.h>
+#include <ultimaille/sparse/nullspace.h>
+#include <ultimaille/sparse/linexpr.h>
+
 #include <ultimaille/helpers/colocate.h>
 #include <ultimaille/helpers/constraints.h>
 #include <ultimaille/helpers/disjointset.h>
