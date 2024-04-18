@@ -11,7 +11,7 @@ namespace UM {
             else {                                                     // otherwise
                 reduce(row);                                           // reduce the basic variable constraint itself
                 for (const SparseElement &e2 : row)                    // and push the scaled constraint into the result
-                    result.data.emplace_back(e.index, e.value * e2.value);
+                    result.data.push_back({e.index, e.value * e2.value});
             }
         }
         result.compact();                                              // do not forget to aggregate terms
