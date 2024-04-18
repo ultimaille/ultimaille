@@ -6,7 +6,13 @@
 
 namespace UM {
     struct SparseElement {
+        SparseElement() = default;
+        SparseElement(const SparseElement  &) = default;
+        SparseElement(      SparseElement &&) = default;
+        SparseElement& operator=(const SparseElement  &) = default;
+        SparseElement& operator=(      SparseElement &&) = default;
         SparseElement(int index, double value) : index(index), value(value) {}
+
         inline bool is_null() const { return std::abs(value) < TOL; }
 
         int index = 0;
