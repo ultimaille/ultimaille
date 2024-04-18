@@ -695,4 +695,25 @@ TEST_CASE("Test poly facet extraction geom", "[geom]") {
 	CHECK(Volume::Facet(w, 0).geom<Poly3>().v.size() == 3);
 	// Should be a quad
 	CHECK(Volume::Facet(w, 2).geom<Poly3>().v.size() == 4);
+
+
+	Pyramids p;
+	p.points.create_points(5);
+	p.create_cells(5);
+	p.points[0] = {0,0,0};
+	p.points[1] = {1,0,0};
+	p.points[2] = {1,1,0};
+	p.points[3] = {0,1,0};
+	p.points[4] = {0.5,0.5,1};
+
+	for (int i = 0; i < 5; i++)
+		w.vert(0, i) = i;
+
+	// Should be a quad
+	CHECK(Volume::Facet(p, 0).geom<Poly3>().v.size() == 4);
+	// Should be triangles
+	for (int i = 1; i < 5; i++)
+		CHECK(Volume::Facet(p, i).geom<Poly3>().v.size() == 3);
+
+
 }
