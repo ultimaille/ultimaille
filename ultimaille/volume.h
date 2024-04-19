@@ -823,7 +823,7 @@ namespace UM {
             auto begin() { return iterator{ Cell(m,0) }; }
             auto end() { return iterator{ Cell(m,m.ncells()) }; }
         };
-        return wrapper{ *this};
+        return wrapper{ *this };
     }
 
 }

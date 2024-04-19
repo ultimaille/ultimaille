@@ -13,9 +13,27 @@ namespace UM {
         inline int nnz() const { return offset.back(); }
         int count_columns() const;
 
+        inline SparseVector row(int i) const {
+            return SparseVector(std::vector<SparseElement>(mat.begin() + offset[i], mat.begin() + offset[i+1]));
+        }
+
+        inline auto iter_row(int i) const {
+            struct wrapper {
+                typedef std::vector<SparseElement>::const_iterator it;
+                it a, b;
+                it begin() { return a; }
+                it end()   { return b; }
+            };
+            return wrapper{ mat.begin() + offset[i], mat.begin() + offset[i+1] };
+        }
+
         std::vector<SparseElement> mat = {};
         std::vector<int> offset = { 0 };
     };
+
+    SparseVector operator*(const SparseVector& v, const CRSMatrix& m);
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
 
     // list of lists matrix
     struct LOLMatrix {

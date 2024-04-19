@@ -1,5 +1,5 @@
-#ifndef __VECTOR_H_
-#define __VECTOR_H_
+#ifndef __VECTOR_H__
+#define __VECTOR_H__
 
 #include <cmath>
 #include <vector>
@@ -31,6 +31,8 @@ namespace UM {
     inline SparseElement operator-(const SparseElement& t) {
         return { t.index, -t.value };
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct SparseVector {
         SparseVector(SparseElement e) : data{e} {}
@@ -114,7 +116,15 @@ namespace UM {
         return v * a;
     }
 
+    inline double operator*(const SparseVector& v1, std::vector<double>& v2) {
+        double dot = 0;
+        for (const SparseElement &e : v1)
+            dot += e.value * v2[e.index];
+        return dot;
+    }
+
+
 }
 
-#endif //__VECTOR_H_
+#endif //__VECTOR_H__
 
