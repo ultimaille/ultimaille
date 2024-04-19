@@ -1,7 +1,6 @@
 #include <OpenNL_psm/OpenNL_psm.h>
 #include "least_squares.h"
 #include "../syntactic-sugar/assert.h"
-#include <iostream>
 
 namespace UM {
     LeastSquares::LeastSquares(int nvars, bool verbose, double threshold, int nb_max_iter) : X(nvars, 0.) {
@@ -66,10 +65,8 @@ namespace UM {
     static SparseVector le2sp(const LinExpr& le, int const_id) {
         SparseVector v = le;
         v.compact();
-        if (!v.empty() && v.front().index<0) {
-            v.front().index = const_id;
-            v.compact();
-        }
+        if (!v.empty() && v.front().index<0)
+            v.front().index = const_id; // N.B. it is not sorted anymore
         return v;
     }
 
@@ -85,11 +82,7 @@ namespace UM {
             lsptr = std::make_unique<LeastSquares>(nfree+1, verbose, threshold, nb_max_iter);
             lsptr->fix(nfree, 1.);
         }
-        SparseVector v = le;
-        v.compact();
-        if (!v.empty() && v.front().index<0)
-            v.front().index = M.nrows()-1;
-        lsptr->add_to_energy(v * M);
+        lsptr->add_to_energy(le2sp(le, M.nrows()-1) * M);
     }
 
     void ConstrainedLeastSquares::solve() {
