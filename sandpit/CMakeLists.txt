@@ -7,12 +7,6 @@ IF (NOT WIN32)
 	target_link_libraries(helloworld m)
 ENDIF()
 
-add_executable(informal_tests informal_tests.cpp)
-target_link_libraries(informal_tests  ${CMAKE_DL_LIBS} ultimaille)
-IF (NOT WIN32)
-	target_link_libraries(informal_tests m)
-ENDIF()
-
 OPTION (BIN_PGP "2d PGP binary" Off)
 OPTION (BIN_EMBED "Embeding  binaries" Off)
 OPTION (BIN_TEST "Basic tests binary" Off)
