@@ -1,6 +1,7 @@
 #ifndef __SPARSE_H__
 #define __SPARSE_H__
 
+#include <iostream>
 #include "vector.h"
 
 namespace UM {
@@ -32,6 +33,7 @@ namespace UM {
     };
 
     SparseVector operator*(const SparseVector& v, const CRSMatrix& m);
+    std::ostream& operator<<(std::ostream& out, const CRSMatrix& m);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -58,7 +60,7 @@ namespace UM {
         LOLMatrix m;
         m.rows.reserve(n);
         for (int i=0; i<n; i++)
-            m.rows.push_back({{1, 1.}});
+            m.rows.push_back({{i, 1.}});
         return m;
     }
 }

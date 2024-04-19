@@ -60,6 +60,16 @@ namespace UM {
         return SparseVector(std::move(data));
     }
 
+    std::ostream& operator<<(std::ostream& out, const CRSMatrix& m) {
+        for (int i=0; i<m.nrows(); i++) {
+            for (const SparseElement &e: m.iter_row(i)) {
+                out << "{" << e.index << ", " << e.value << "} ";
+            }
+            out << std::endl;
+        }
+        return out;
+    }
+
     void LOLMatrix::compact() {
 #pragma omp parallel for
         for (int i = 0; i < nrows(); ++i)
@@ -124,5 +134,6 @@ namespace UM {
         }
         return m;
     }
+
 }
 

@@ -9,6 +9,7 @@
 #include <ultimaille/sparse/matrix.h>
 #include <ultimaille/sparse/nullspace.h>
 #include <ultimaille/sparse/linexpr.h>
+#include <ultimaille/sparse/least_squares.h>
 
 #include <ultimaille/helpers/colocate.h>
 #include <ultimaille/helpers/constraints.h>

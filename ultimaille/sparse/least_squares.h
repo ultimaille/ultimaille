@@ -1,5 +1,6 @@
 #ifndef __LEASTSQUARES_H__
 #define __LEASTSQUARES_H__
+#include <memory>
 
 #include "linexpr.h"
 #include "nullspace.h"
@@ -34,7 +35,7 @@ namespace UM {
         double value(int i) {
             double dot = 0;
             for (const SparseElement &e : M.iter_row(i))
-                dot += e.value * ls.X[e.index];
+                dot += e.value * lsptr->X[e.index];
             return dot;
         }
 
@@ -42,7 +43,7 @@ namespace UM {
         double threshold;
         int nb_max_iter;
         int nfree;
-        LeastSquares ls;
+        std::unique_ptr<LeastSquares> lsptr;
         CRSMatrix M;
         NullSpaceBuilder rb;
     };
