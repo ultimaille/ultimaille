@@ -106,6 +106,7 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
         cnt_facet[f]++;
 
         for (Halfedge cur : he.iter_sector_halfedges()) {
+            (void)cur;
             val[he]++;
         }
         REQUIRE((val[he]>=1 && val[he]<=5));

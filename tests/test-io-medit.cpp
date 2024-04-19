@@ -107,7 +107,8 @@ TEST_CASE("Medit Triangles IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==3 );
         REQUIRE( m[i].nfacets()==1 );
-        CHECK( std::abs(m[i].util.unsigned_area(0)-.5)<ftol );
+
+        CHECK( std::abs(Surface::Facet(m[i], 0).geom<Triangle3>().unsigned_area()-.5)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -145,7 +146,7 @@ TEST_CASE("Medit Quads IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].nfacets()==1 );
-        CHECK( std::abs(m[i].util.unsigned_area(0)-1.)<ftol );
+        CHECK( std::abs(Surface::Facet(m[i], 0).geom<Quad3>().unsigned_area()-1.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -227,7 +228,7 @@ TEST_CASE("Medit Tetrahedra IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].ncells()==1 );
-        CHECK( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
+        CHECK( std::abs(Volume::Cell(m[i], 0).geom<Tetrahedron>().volume()-1./6.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -269,7 +270,7 @@ TEST_CASE("Medit Hexahedra IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==8 );
         REQUIRE( m[i].ncells()==1 );
-        CHECK( std::abs(m[i].util.cell_volume(0)-1.)<ftol );
+        CHECK( std::abs(Volume::Cell(m[i], 0).geom<Hexahedron>().volume()-1.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -309,7 +310,7 @@ TEST_CASE("Medit Wedges IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==6 );
         REQUIRE( m[i].ncells()==1 );
-        CHECK( std::abs(m[i].util.cell_volume(0)-.5)<ftol );
+        CHECK( std::abs(Volume::Cell(m[i], 0).geom<Wedge>().volume()-.5)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -348,7 +349,7 @@ TEST_CASE("Medit Pyramids IO test", "[Medit]") {
 
         REQUIRE( m[i].nverts()==5 );
         REQUIRE( m[i].ncells()==1 );
-        CHECK( std::abs(m[i].util.cell_volume(0)-1./6.)<ftol );
+        CHECK( std::abs(Volume::Cell(m[i], 0).geom<Pyramid>().volume()-1./6.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }

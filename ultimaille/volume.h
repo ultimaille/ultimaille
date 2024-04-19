@@ -40,43 +40,43 @@ namespace UM {
         const Volume &m;
     };
 
-    struct [[deprecated]] halfedge_around_edge_iter {
-        const OppositeFacet  &of;
-        const HalfEdgeHelper &heh;
-        int start  = -1;
-        int finish = -1;
+    // struct [[deprecated]] halfedge_around_edge_iter {
+    //     const OppositeFacet  &of;
+    //     const HalfEdgeHelper &heh;
+    //     int start  = -1;
+    //     int finish = -1;
 
-        halfedge_around_edge_iter(const OppositeFacet &of, const int he);
+    //     halfedge_around_edge_iter(const OppositeFacet &of, const int he);
 
-        struct iterator {
-            const OppositeFacet  &of;
-            const HalfEdgeHelper &heh;
-            int value;
-            bool circ;
+    //     struct iterator {
+    //         const OppositeFacet  &of;
+    //         const HalfEdgeHelper &heh;
+    //         int value;
+    //         bool circ;
 
-            void operator++() {
-                value = of.opposite_c(heh.opposite_f(value));
-                circ = false;
-            }
+    //         void operator++() {
+    //             value = of.opposite_c(heh.opposite_f(value));
+    //             circ = false;
+    //         }
 
-            int operator*() const {
-                return value;
-            }
+    //         int operator*() const {
+    //             return value;
+    //         }
 
-            bool operator!=(const iterator& rhs) const {
-                return circ || value != rhs.value;
-            }
-        };
+    //         bool operator!=(const iterator& rhs) const {
+    //             return circ || value != rhs.value;
+    //         }
+    //     };
 
-        iterator begin() const { return {of, heh, start, start==finish}; }
-        iterator end()   const { return {of, heh, finish, false}; }
-    };
+    //     iterator begin() const { return {of, heh, start, start==finish}; }
+    //     iterator end()   const { return {of, heh, finish, false}; }
+    // };
 
     struct Volume {
         enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };
         CELL_TYPE cell_type;
 
-        [[deprecated]] HalfEdgeHelper heh;
+        // [[deprecated]] HalfEdgeHelper heh;
         PointSet points{};
         std::vector<int> cells{};
 
@@ -116,8 +116,8 @@ namespace UM {
             attr_corners = {};
         }
 
-        Volume(CELL_TYPE cell_type) : cell_type(cell_type), heh(*this), util(*this) {}
-        Volume(const Volume& m) : heh(*this), util(*this) { // TODO re-think copying policy
+        Volume(CELL_TYPE cell_type) : cell_type(cell_type) {}
+        Volume(const Volume& m) { // TODO re-think copying policy
             um_assert(!m.points.size() && !m.cells.size());
         }
         Volume& operator=(const Volume& m) {
@@ -125,16 +125,6 @@ namespace UM {
             um_assert(!m.points.size() && !m.cells.size());
             return *this;
         }
-
-        // TODO lbinria remove [moved to geom]
-       struct [[deprecated]] Util {
-            Util(const Volume &mesh) : m(mesh) {}
-            virtual double cell_volume(const int c) const;
-            virtual vec3 facet_normal(const int c, const int lf) const;
-            vec3 bary_verts(const int c) const;
-            vec3 bary_facet(const int c, const int lf) const;
-            const Volume &m;
-        } util;
 
         struct Connectivity {
             Volume &m;
@@ -237,6 +227,8 @@ namespace UM {
             int nhalfedges() const;
 
             Halfedge halfedge(int lh);
+            //[[deprecated]]
+            Vertex __vertex(int lv);
             Vertex vertex(int lv);
             Corner corner(int lc);
 
@@ -371,6 +363,7 @@ namespace UM {
     }
 
     inline int Volume::facet_vert(const int c, const int lf, const int lv) const {
+        // TODO check assert ! facet_size(lf) but facet_size expect a facet index, not local index !
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell() && lv>=0 && lv<facet_size(lf));
         return vert(c, reference_cells[cell_type].vert(lf, lv));
     }
@@ -487,9 +480,9 @@ namespace UM {
         return from(next(he));
     }
 
-    inline int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
-        return adj.opposite_c(he);
-    }
+    // inline int HalfEdgeHelper::opposite_c(const OppositeFacet &adj, const int he) const {
+    //     return adj.opposite_c(he);
+    // }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -682,10 +675,17 @@ namespace UM {
         return { m, m.conn->heh.halfedge(cell(), id_in_cell(), i) };
     }
 
-    inline Volume::Vertex Volume::Facet::vertex(int i) {
+    // No need to be connected anymore
+    inline Volume::Vertex Volume::Facet::__vertex(int i) {
         assert(m.connected());
         return { m, halfedge(i).from() };
     }
+
+    inline Volume::Vertex Volume::Facet::vertex(int i) {
+        return Volume::Vertex(m, m.facet_vert(cell(), id_in_cell(), i));
+    }
+
+            
 
     inline Volume::Corner Volume::Facet::corner(int i) {
         assert(m.connected());
@@ -702,7 +702,7 @@ namespace UM {
     }
 
     inline Volume::Cell Volume::Facet::cell() {
-        assert(m.connected());
+        //assert(m.connected());
         return { m, m.cell_from_facet(id) };
     }
 
@@ -799,6 +799,19 @@ namespace UM {
         return Hexahedron(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos());
     }
 
+    template<> inline Wedge Volume::Cell::geom() {
+        um_assert(nfacets()==5 && nverts()==6);
+        return Wedge(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos());
+    }
+
+    template<> inline Polyhedron Volume::Cell::geom() {
+        std::vector<vec3> points(nverts());
+        for (int i = 0; i < nverts(); i++)
+            points[i] = vertex(i).pos();
+
+        return Polyhedron{points};
+    }
+
     template<> inline Triangle3 Volume::Facet::geom() {
         um_assert(nverts()==3);
         return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
@@ -807,6 +820,16 @@ namespace UM {
     template<> inline Quad3 Volume::Facet::geom() {
         um_assert(nverts()==4);
         return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
+    }
+
+    template<> inline Poly3 Volume::Facet::geom() {
+        // TODO replace m.facet_size(id) => size() but we have to add size() on volume facet
+        int size = m.facet_size(id);
+        std::vector<vec3> points(size);
+        for (int i = 0; i < size; i++)
+            points[i] = vertex(i).pos();
+
+        return Poly3{points};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

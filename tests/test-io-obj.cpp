@@ -107,7 +107,7 @@ TEST_CASE("tex_coord per vertex IO test#1", "[OBJ]") {
         CHECK( cnt==1 );
 
         for (int f : range(2))
-            CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
+            CHECK( std::abs(Surface::Facet(m[i], f).geom<Triangle3>().unsigned_area()-2.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0], attr);
     }
@@ -132,7 +132,7 @@ TEST_CASE("tex_coord per vertex IO test#2", "[OBJ]") {
         CHECK( cnt==1 );
 
         for (int f : range(2))
-            CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
+            CHECK( std::abs(Surface::Facet(m[i], f).geom<Triangle3>().unsigned_area()-2.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0], attr);
     }
@@ -157,7 +157,7 @@ TEST_CASE("tex_coord per corner IO test", "[OBJ]") {
         CHECK( cnt==1 );
 
         for (int f : range(2))
-            CHECK( std::abs(m[i].util.unsigned_area(f)-2.)<ftol );
+            CHECK( std::abs(Surface::Facet(m[i], f).geom<Triangle3>().unsigned_area()-2.)<ftol );
 
         if (!i)
             write_by_extension(filename[1], m[0], attr);

@@ -189,6 +189,17 @@ namespace UM {
 		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
+	struct Wedge {
+		Wedge(vec3 a, vec3 b, vec3 c, vec3 d, vec3 e, vec3 f) { v[0]=a;v[1]=b;v[2]=c;v[3]=d;v[4]=e;v[5]=f; }
+		vec3 v[6] = {};
+
+		double volume() const;
+		vec3 bary_verts() const;
+
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
+	};
+
 	struct Pyramid {
 		Pyramid (vec3 a,vec3 b, vec3 c,vec3 d,vec3 e){v[0]=a;v[1]=b;v[2]=c;v[3]=d;v[4]=e;}
 		vec3 v[5] = {};
@@ -197,6 +208,16 @@ namespace UM {
 		vec3 bary_verts() const;
 		inline Quad3 base() const;
 		inline vec3 apex() const;
+
+		inline vec3& operator[](int i) { return v[i]; }
+		inline vec3 operator[](int i) const { return v[i]; }
+	};
+
+	// Abstract 3D cell primitive
+	struct Polyhedron {
+		std::vector<vec3> v = {};
+
+		vec3 bary_verts() const;
 
 		inline vec3& operator[](int i) { return v[i]; }
 		inline vec3 operator[](int i) const { return v[i]; }

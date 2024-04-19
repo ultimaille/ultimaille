@@ -226,15 +226,15 @@ namespace UM {
 	}
 
 	vec3 Poly3::bary_verts() const {
-		return UM::bary_verts(v.data(), static_cast<const int>(v.size()));
+		return UM::bary_verts(v.data(), static_cast<int>(v.size()));
 	}
 
 	vec3 Poly3::normal() const {
-		return UM::normal(v.data(), static_cast<const int>(v.size()));
+		return UM::normal(v.data(), static_cast<int>(v.size()));
 	}
 
 	double Poly3::unsigned_area() const {
-		return UM::unsigned_area(v.data(), static_cast<const int>(v.size()));
+		return UM::unsigned_area(v.data(), static_cast<int>(v.size()));
 	}
 
 	vec3 Tetrahedron::bary_verts() const {
@@ -330,6 +330,53 @@ namespace UM {
 		}
 
 		return vol;
+	}
+
+	vec3 Wedge::bary_verts() const {
+		return UM::bary_verts(v, 6);
+	}
+
+	double Wedge::volume() const {
+		const vec3 bary = bary_verts();
+		double vol = 0;
+
+		// Indexes of hex faces
+		// Vertices numbering convention is very IMPORTANT (and respected in volume_reference.h)
+		// as well as counter-clock wise convention for facet orientation
+		auto rc = reference_cells[Volume::CELL_TYPE::WEDGE];
+		const auto &indexes = rc.facets;
+
+		vol += tet_volume(
+			bary,
+			v[indexes[0]],
+			v[indexes[1]],
+			v[indexes[2]]
+		);
+
+		vol += tet_volume(
+			bary,
+			v[indexes[3]],
+			v[indexes[4]],
+			v[indexes[5]]
+		);
+
+		for (int f=0; f<rc.nf-2; f++) {
+
+			for (int i=0; i<4; i++) {
+				const int offset = 6+4*f;
+				vol += tet_volume(
+						bary,
+						v[indexes[i + offset]],
+						v[indexes[(i+1)%4 + offset]],
+						v[indexes[(i+2)%4 + offset]]
+						)*.5;
+			}
+		}
+		return vol;
+	}
+
+	vec3 Polyhedron::bary_verts() const {
+		return UM::bary_verts(v.data(), static_cast<int>(v.size()));
 	}
 
 }
