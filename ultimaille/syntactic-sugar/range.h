@@ -62,23 +62,23 @@ namespace UM {
             return wrapper{std::forward<T>(t), std::forward<U>(u)};
         }
 
-    inline auto vert_iter(const Surface &m) {
+    [[deprecated]] inline auto vert_iter(const Surface &m) {
         return range(m.nverts());
     }
 
-    inline auto vert_iter(const Volume &m) {
+    [[deprecated]] inline auto vert_iter(const Volume &m) {
         return range(m.nverts());
     }
 
-    inline auto corner_iter(const Surface &m) {
+    [[deprecated]] inline auto corner_iter(const Surface &m) {
         return range(m.ncorners());
     }
 
-    inline auto facet_iter(const Surface &m) {
+    [[deprecated]] inline auto facet_iter(const Surface &m) {
         return range(m.nfacets());
     }
 
-    struct facet_vert_iter { // TODO provide a non-const version?
+    struct [[deprecated]] facet_vert_iter { // TODO provide a non-const version?
         const Surface &m_;
         const int facet_;
         facet_vert_iter(const Surface &m, const int facet) : m_(m), facet_(facet) {}
@@ -96,21 +96,18 @@ namespace UM {
         iterator end()   const { return iterator{m_, facet_, m_.facet_size(facet_)}; }
     };
 
-    inline auto cell_iter(const Volume &m) {
+    [[deprecated]] inline auto cell_iter(const Volume &m) {
         return range(m.ncells());
     }
 
-    inline auto facet_iter(const Volume &m) {
+    [[deprecated]] inline auto facet_iter(const Volume &m) {
         return range(m.nfacets());
     }
 
-    inline auto corner_iter(const Volume &m) {
+    [[deprecated]] inline auto corner_iter(const Volume &m) {
         return range(m.ncorners());
     }
 
-    // inline auto halfedge_iter(const Volume &m) {
-    //     return range(m.heh.nhalfedges());
-    // }
 }
 #endif // __RANGE_H__
 
