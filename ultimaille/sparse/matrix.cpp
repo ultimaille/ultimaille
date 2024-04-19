@@ -5,12 +5,9 @@ namespace UM {
     double CRSMatrix::dot(const std::vector<double> &x) const {
         double result = 0;
 #pragma omp parallel for reduction(+:result)
-        for (int i = 0; i < nrows(); ++i) {
-            for (int j = offset[i-1]; j<offset[i]; ++j)
-                if (mat[j].index>=0)
-                    result += mat[j].value * x[mat[j].index];
-                else
-                    result += mat[j].value;
+        for (int row = 0; row < nrows(); ++row) {
+            for (const SparseElement &e : iter_row(row))
+                result += e.value * x[e.index];
         }
         return result;
     }
@@ -34,8 +31,8 @@ namespace UM {
 
         // count nnz per column
         for (int row = 0; row < nrows(); row++)
-            for (int j = offset[row]; j<offset[row+1]; ++j)
-                newoffset[1+mat[j].index]++;
+            for (const SparseElement &e : iter_row(row))
+                newoffset[1+e.index]++;
 
         // sum the counts to obtain the column offsets
         for (int col = 0; col < ncols; col++)
@@ -44,10 +41,33 @@ namespace UM {
         // fill in the transposed data
         std::vector<int> cur_nnz_per_col(ncols, 0);
         for (int row = 0; row < nrows(); row++)
-            for (int j = offset[row]; j<offset[row+1]; ++j)
-                newmat[ newoffset[mat[j].index] + cur_nnz_per_col[mat[j].index]++ ] = { row, mat[j].value };
+            for (const SparseElement &e : iter_row(row))
+                newmat[ newoffset[e.index] + cur_nnz_per_col[e.index]++ ] = { row, e.value };
 
         return { newmat, newoffset };
+    }
+
+    // given a n-component row vector X, multiply it by a m x n matrix M : Y = X M
+    // usually it can be computed as Y = sum_{j=0}^{m-1} (0 0 0 0 0 ... sum_{i=0}^{n-1} Xi Mij ... 0 0 0 0)
+    // but we can refactor it as Y = sum_{j=0}^{m-1} sum_{i=0}^{n-1} Xi (0 0 0 0 0 ... Mij ... 0 0 0 0)
+    // and further Y = sum_{i=0}^{n-1} Xi sum_{j=0}^{m-1} (0 0 0 0 0 ... Mij ... 0 0 0 0)
+
+    SparseVector operator*(const SparseVector& X, const CRSMatrix& M) {
+        std::vector<SparseElement> data;
+        for (const SparseElement &Xi : X)
+            for (const SparseElement &Mij : M.iter_row(Xi.index))
+                data.push_back(Mij * Xi.value);
+        return SparseVector(std::move(data));
+    }
+
+    std::ostream& operator<<(std::ostream& out, const CRSMatrix& m) {
+        for (int i=0; i<m.nrows(); i++) {
+            for (const SparseElement &e: m.iter_row(i)) {
+                out << "{" << e.index << ", " << e.value << "} ";
+            }
+            out << std::endl;
+        }
+        return out;
     }
 
     void LOLMatrix::compact() {
@@ -114,5 +134,6 @@ namespace UM {
         }
         return m;
     }
+
 }
 

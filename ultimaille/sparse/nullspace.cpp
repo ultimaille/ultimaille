@@ -11,7 +11,7 @@ namespace UM {
             else {                                                     // otherwise
                 reduce(row);                                           // reduce the basic variable constraint itself
                 for (const SparseElement &e2 : row)                    // and push the scaled constraint into the result
-                    result.data.push_back({e.index, e.value * e2.value});
+                    result.data.push_back(e2 * e.value);
             }
         }
         result.compact();                                              // do not forget to aggregate terms
@@ -20,6 +20,7 @@ namespace UM {
 
     void NullSpaceBuilder::add_constraint(SparseVector &v) {
         reduce(v);
+
         if (v.empty()) return;
         um_assert(!free_last || v.front().index < size()-1);           // check for the impossible constraint non-zero constant = 0
         SparseElement pivot = free_last && v.back().index==size()-1 ?  // if we need to keep the last variable free,

@@ -1,7 +1,7 @@
 #ifndef __LINEXPR_H__
 #define __LINEXPR_H__
 
-#include "../sparse/vector.h"
+#include "vector.h"
 
 namespace UM {
 
@@ -11,6 +11,7 @@ namespace UM {
     // They are temporary objects that typically have short lifespans.
 
     struct LinExpr : SparseVector {
+        LinExpr() : SparseVector() {}
         LinExpr(SparseElement e) : SparseVector(e) {}
         LinExpr(std::initializer_list<SparseElement> l) : SparseVector(l) {}
         LinExpr(double v) : SparseVector({-1, v}) {}
