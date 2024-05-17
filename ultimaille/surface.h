@@ -429,7 +429,37 @@ namespace UM {
     }
 
     inline bool Surface::Halfedge::on_boundary() {
-        return !opposite().active();
+        assert(m.connected());
+        assert(active());
+
+        int result = -1; // not found
+        Halfedge cir = from().halfedge();
+        while (cir != -1) {
+            Halfedge candidate = cir.prev();
+            if (cir.active()) {
+                if (candidate.from() == to() && candidate.to() == from()) {
+                    if (result == -1) result = candidate;
+                    else {
+                        // found more than one (non manifold)
+                        result = -2;
+                        break;
+                    }
+                }
+                if (cir != *this && to() == cir.to()) {
+                    // the edge is non manifold (non-orientable)
+                    result = -2;
+                }
+            }
+            do {
+                cir = m.conn->c2c[cir];
+            } while (cir != -1 && !cir.active());
+        }
+
+        // Assert that halfedge is manyfold (no duplicate, orientable)
+        assert(result != -2);
+
+        // Found an opposite
+        return result < 0;
     }
 
     inline Surface::Facet Surface::Halfedge::facet() {

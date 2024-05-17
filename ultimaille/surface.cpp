@@ -31,6 +31,7 @@ namespace UM {
         connect();
     }
 
+    // Does it works on non-manifold ?
     bool Surface::Vertex::on_boundary() {
         assert(m.connected());
         for (Halfedge &he : iter_halfedges())
