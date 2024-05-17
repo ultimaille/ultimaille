@@ -62,14 +62,6 @@ namespace UM {
             return wrapper{std::forward<T>(t), std::forward<U>(u)};
         }
 
-    [[deprecated]] inline auto vert_iter(const Surface &m) {
-        return range(m.nverts());
-    }
-
-    [[deprecated]] inline auto vert_iter(const Volume &m) {
-        return range(m.nverts());
-    }
-
     [[deprecated]] inline auto corner_iter(const Surface &m) {
         return range(m.ncorners());
     }
