@@ -805,11 +805,11 @@ namespace UM {
     }
 
     template<> inline Polyhedron Volume::Cell::geom() {
-        std::vector<vec3> points(nverts());
+        std::vector<vec3> pts(nverts());
         for (int i = 0; i < nverts(); i++)
-            points[i] = vertex(i).pos();
+            pts[i] = vertex(i).pos();
 
-        return Polyhedron{points};
+        return Polyhedron{pts};
     }
 
     template<> inline Triangle3 Volume::Facet::geom() {
@@ -825,11 +825,11 @@ namespace UM {
     template<> inline Poly3 Volume::Facet::geom() {
         // TODO replace m.facet_size(id) => size() but we have to add size() on volume facet
         int size = m.facet_size(id);
-        std::vector<vec3> points(size);
+        std::vector<vec3> pts(size);
         for (int i = 0; i < size; i++)
-            points[i] = vertex(i).pos();
+            pts[i] = vertex(i).pos();
 
-        return Poly3{points};
+        return Poly3{pts};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

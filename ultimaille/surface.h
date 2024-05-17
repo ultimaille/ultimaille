@@ -169,11 +169,11 @@ namespace UM {
     }
 
     template<> inline Poly3 Surface::Facet::geom() {
-        std::vector<vec3> points(size());
+        std::vector<vec3> pts(size());
         for (int i = 0; i < size(); i++)
-            points[i] = vertex(i).pos();
+            pts[i] = vertex(i).pos();
 
-        return Poly3{points};
+        return Poly3{pts};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
