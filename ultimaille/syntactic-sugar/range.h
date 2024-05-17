@@ -96,10 +96,6 @@ namespace UM {
         iterator end()   const { return iterator{m_, facet_, m_.facet_size(facet_)}; }
     };
 
-    [[deprecated]] inline auto cell_iter(const Volume &m) {
-        return range(m.ncells());
-    }
-
     [[deprecated]] inline auto facet_iter(const Volume &m) {
         return range(m.nfacets());
     }

@@ -50,12 +50,6 @@ namespace UM {
             return *this;
         }
 
-        // TODO lbinria: to remove
-        struct Util {
-            const Surface& m;
-            vec3 bary_verts(const int f) const;
-        } util = { *this };
-
         struct Vertex;
         struct Halfedge;
         struct Facet;
@@ -202,13 +196,6 @@ namespace UM {
             Surface::operator=(m);
             return *this;
         }
-
-        // TODO lbinria: to remove
-        struct Util : Surface::Util {
-            double unsigned_area(const int f) const;
-            void project(const int t, vec2& z0, vec2& z1, vec2& z2) const;
-            vec3 normal(const int f) const;
-        } util = { *this };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -229,11 +216,6 @@ namespace UM {
             Surface::operator=(m);
             return *this;
         }
-
-        struct Util : Surface::Util {
-            double unsigned_area(const int f) const;
-            vec3 normal(const int f) const;
-        } util = { *this };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,9 +244,6 @@ namespace UM {
         int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
         int& vert(const int fi, const int lv);
-
-        struct Util : Surface::Util {
-        } util = { *this };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
