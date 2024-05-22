@@ -675,7 +675,7 @@ namespace UM {
         return { m, m.conn->heh.halfedge(cell(), id_in_cell(), i) };
     }
 
-    // No need to be connected anymore
+    // No need to be connected anymore (TO REMOVE! replaced vertex)
     inline Volume::Vertex Volume::Facet::__vertex(int i) {
         assert(m.connected());
         return { m, halfedge(i).from() };
@@ -802,14 +802,6 @@ namespace UM {
     template<> inline Wedge Volume::Cell::geom() {
         um_assert(nfacets()==5 && nverts()==6);
         return Wedge(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos());
-    }
-
-    template<> inline Polyhedron Volume::Cell::geom() {
-        std::vector<vec3> pts(nverts());
-        for (int i = 0; i < nverts(); i++)
-            pts[i] = vertex(i).pos();
-
-        return Polyhedron{pts};
     }
 
     template<> inline Triangle3 Volume::Facet::geom() {
