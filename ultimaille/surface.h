@@ -418,25 +418,19 @@ namespace UM {
             if (cir.active()) {
                 if (candidate.from() == to() && candidate.to() == from()) {
                     if (result == -1) result = candidate;
-                    else {
-                        // found more than one (non manifold)
-                        result = -2;
-                        break;
-                    }
+                    // found more than one (non manifold)
+                    else
+                        assert(false);
                 }
-                if (cir != *this && to() == cir.to()) {
-                    // the edge is non manifold (non-orientable)
-                    result = -2;
-                }
+                // the edge is non manifold (non-orientable)
+                if (cir != *this && to() == cir.to())
+                    assert(false);
             }
             do {
                 cir = m.conn->c2c[cir];
             } while (cir != -1 && !cir.active());
         }
-
-        // Assert that halfedge is manyfold (no duplicate, orientable)
-        assert(result != -2);
-
+        
         // Found an opposite
         return result < 0;
     }
