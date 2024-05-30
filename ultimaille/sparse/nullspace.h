@@ -16,6 +16,8 @@ namespace UM {
 
         // N.B. the builder is destroyed
         CRSMatrix to_crs() {
+            for (SparseVector &r : C.rows)
+                reduce(r);
             C.drop_zero_columns();
             CRSMatrix result = C.to_crs();
             C = {};

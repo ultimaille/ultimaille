@@ -7,7 +7,6 @@
 namespace UM {
     // read-only compressed row storage matrix
     struct CRSMatrix {
-        double dot(const std::vector<double> &x) const;
         CRSMatrix transpose() const;
 
         inline int nrows() const { return offset.size()-1; }
@@ -32,6 +31,7 @@ namespace UM {
         std::vector<int> offset = { 0 };
     };
 
+    std::vector<double> operator*(const CRSMatrix& m, const std::vector<double> &x);
     SparseVector operator*(const SparseVector& v, const CRSMatrix& m);
     std::ostream& operator<<(std::ostream& out, const CRSMatrix& m);
 

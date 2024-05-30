@@ -2,13 +2,12 @@
 
 namespace UM {
 
-    double CRSMatrix::dot(const std::vector<double> &x) const {
-        double result = 0;
-#pragma omp parallel for reduction(+:result)
-        for (int row = 0; row < nrows(); ++row) {
-            for (const SparseElement &e : iter_row(row))
-                result += e.value * x[e.index];
-        }
+    std::vector<double> operator*(const CRSMatrix& m, const std::vector<double> &x) {
+        std::vector<double> result(m.nrows(), 0.);
+#pragma omp parallel for
+        for (int row = 0; row < m.nrows(); ++row)
+            for (const SparseElement &e : m.iter_row(row))
+                result[row] += e.value * x[e.index];
         return result;
     }
 
@@ -134,6 +133,5 @@ namespace UM {
         }
         return m;
     }
-
 }
 

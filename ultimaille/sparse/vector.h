@@ -123,7 +123,6 @@ namespace UM {
         return dot;
     }
 
-
 }
 
 #endif //__VECTOR_H__
