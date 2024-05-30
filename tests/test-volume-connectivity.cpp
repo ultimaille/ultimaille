@@ -45,7 +45,7 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
 		std::vector<int> old2new;
 		colocate(*m.points.data, old2new, 1e-3);
 
-		for (int c : cell_iter(m))
+		for (int c : m.iter_cells())
 			for (int lv : range(8))
 				m.vert(c, lv) = old2new[m.vert(c, lv)];
 	}

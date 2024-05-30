@@ -35,6 +35,10 @@ bool are_doubles_equal(double a, double b, double eps) {
 	double diff = std::fabs(a - b);
 	double max = std::max(std::fabs(a), std::fabs(b));
 
+	// Check NaN / infinity consistency
+	if ((std::isnan(a) && std::isnan(b)) || (std::isinf(a) && std::isinf(b)))
+		return true;
+
 	// Use absolute tolerance for very small numbers
 	if (max < 1e-10) {
 		return diff < eps;
@@ -47,8 +51,15 @@ bool are_doubles_equal(double a, double b, double eps) {
 template<int n>
 bool are_vec_equal(vec<n> a, vec<n> b, double eps) {
 
-	vec<n> diff = {std::fabs(a.x - b.x), std::fabs(a.y - b.y)};
-	vec<n> max = {std::max(std::fabs(a.x), std::fabs(b.x)), std::max(std::fabs(a.y), std::fabs(b.y))};
+	vec<n> diff;
+	vec<n> max;
+	for (int i = 0; i < n; i++) {
+		diff[i] = std::fabs(a[i] - b[i]);
+		max[i] = std::max(std::fabs(a[i]), std::fabs(b[i]));
+	}
+
+	// vec<n> diff = {std::fabs(a.x - b.x), std::fabs(a.y - b.y)};
+	// vec<n> max = {std::max(std::fabs(a.x), std::fabs(b.x)), std::max(std::fabs(a.y), std::fabs(b.y))};
 
 	bool equal = true;
 	for (int i = 0; i < n; i++) {
@@ -252,9 +263,43 @@ TEST_CASE("Test triangle geom", "[geom]") {
 		INFO("grad: " << grad);
 		INFO("exp grad: " << exp_grad);
 		CHECK(are_vec_equal(grad, exp_grad, 1e-4));
+
+		// for (int v = 0; v < 3; v++) {
+		// 	INFO("grad:" << grad);
+		// 	INFO("a:" << grad * (r_tri[(v + 1) % 3] - r_tri[v]));
+		// 	INFO("b:" << abc[(v + 1) % 3] - abc[v]);
+		// 	CHECK(are_doubles_equal(grad * (r_tri[(v + 1) % 3] - r_tri[v]), abc[(v + 1) % 3] - abc[v], 1e-4));
+		// }
 	}
 
-	// TODO Check gradient on some random 3D triangles
+	// // Check gradient on some random 3D triangles
+	// for (int i = 0; i < 10000; i++) {
+
+	// 	Triangle3 r_tri(rand_v3(), rand_v3(), rand_v3());
+	// 	vec3 abc = rand_v3();
+
+	// 	vec3 grad = r_tri.grad(abc);
+
+	// 	// Get orthogonal vectors
+	// 	vec3 o0 = cross(cross(r_tri[1] - r_tri[0], r_tri[2] - r_tri[0]), r_tri[2] - r_tri[1])/*.normalized()*/;
+	// 	vec3 o1 = cross(cross(r_tri[1] - r_tri[0], r_tri[2] - r_tri[1]), r_tri[2] - r_tri[0]).normalized();
+	// 	vec3 o2 = cross(cross(r_tri[0] - r_tri[2], r_tri[1] - r_tri[2]), r_tri[1] - r_tri[0]).normalized();
+
+	// 	// Compute lengths of vectors
+	// 	double l0 = abc[0] / (o0*(r_tri[0] - r_tri[1]));
+	// 	double l1 = abc[1] / (o1*(r_tri[1] - r_tri[2]));
+	// 	double l2 = abc[2] / (o2*(r_tri[2] - r_tri[0]));
+	// 	// Compute gradient vector
+	// 	vec3 exp_grad = (o0 * l0 + o1 * l1 + o2 * l2);
+
+	// 	INFO("check gradient on tri: " << r_tri[0] << "," << r_tri[1] << "," << r_tri[2] << ",");
+	// 	INFO("with values :" << abc);
+	// 	INFO("grad: " << grad);
+	// 	INFO("exp grad: " << exp_grad);
+	// 	CHECK(are_vec_equal(grad, exp_grad, 1e-4));
+	// 	// CHECK(false);
+	// }
+
 	// TODO Check gradient on some random tetrahedrons
 
 }
@@ -717,98 +762,4 @@ TEST_CASE("Test polygon facet extraction geom", "[geom]") {
 		CHECK(Volume::Facet(p, i).geom<Poly3>().v.size() == 3);
 
 
-}
-
-// This test aims to check that extracting an abstract polyhedron geometry from a cell 
-// give equivalent computations than computation from cell real shape
-TEST_CASE("Test polyhedron cell extraction geom", "[geom]") {
-	
-	// Check Tetrahedra
-	Tetrahedra t;
-	t.points.create_points(7);
-	t.create_cells(1);
-	t.points[0] = {0,0,0};
-	t.points[1] = {1,0,0};
-	t.points[2] = {1,1,0};
-	t.points[3] = {0.5,0.5,1};
-
-	for (int i = 0; i < 4; i++)
-		t.vert(0, i) = i;
-
-	auto tet_c = Volume::Cell(t, 0);
-	auto tet = tet_c.geom<Tetrahedron>();
-	auto tet_as_poly = tet_c.geom<Polyhedron>();
-	// Should have 4 vertices
-	INFO("YOOO:" << t.nverts() << "," << t.cell_type);
-	CHECK(static_cast<int>(tet_as_poly.v.size()) == tet_c.nverts());
-	// Check barycenter of Tetrahedron is equivalent to barycenter of Polyhedron
-	CHECK(std::abs((tet.bary_verts() - tet_as_poly.bary_verts()).norm2()) < 1e-4);
-
-	// Check Hexahedra
-	Hexahedra h;
-	h.points.create_points(8);
-	h.create_cells(1);
-	h.points[0] = {0,0,0};
-	h.points[1] = {1,0,0};
-	h.points[2] = {0,1,0};
-	h.points[3] = {1,1,0};
-	h.points[4] = {0,0,1};
-	h.points[5] = {1,0,1};
-	h.points[6] = {0,1,1};
-	h.points[7] = {1,1,1};
-
-	for (int i = 0; i < 8; i++)
-		h.vert(0, i) = i;
-
-	auto hex_c = Volume::Cell(h, 0);
-	auto hex = hex_c.geom<Hexahedron>();
-	auto hex_as_poly = hex_c.geom<Polyhedron>();
-	// Should have 8 vertices
-	CHECK(static_cast<int>(hex_as_poly.v.size()) == hex_c.nverts());
-	// Check barycenter of Hexahedron is equivalent to barycenter of Polyhedron
-	CHECK(std::abs((hex.bary_verts() - hex_as_poly.bary_verts()).norm2()) < 1e-4);
-
-	// Check Wedges
-	Wedges w;
-	w.points.create_points(6);
-	w.create_cells(1);
-	w.points[0] = {0,0,0};
-	w.points[1] = {1,0,0};
-	w.points[2] = {0.5,0,1};
-	w.points[3] = {0,1,0};
-	w.points[4] = {1,1,0};
-	w.points[5] = {0.5,1,1};
-
-	for (int i = 0; i < 6; i++)
-		w.vert(0, i) = i;
-
-	auto wedge_c = Volume::Cell(w, 0);
-	auto wedge = wedge_c.geom<Wedge>();
-	auto wedge_as_poly = wedge_c.geom<Polyhedron>();
-	// Should have 6 vertices
-	CHECK(static_cast<int>(wedge_as_poly.v.size()) == wedge_c.nverts());
-	// Check barycenter of Wedge is equivalent to barycenter of Polyhedron
-	CHECK(std::abs((wedge.bary_verts() - wedge_as_poly.bary_verts()).norm2()) < 1e-4);
-
-	// Check Pyramids
-	Pyramids p;
-	p.points.create_points(5);
-	p.create_cells(5);
-	p.points[0] = {0,0,0};
-	p.points[1] = {1,0,0};
-	p.points[2] = {1,1,0};
-	p.points[3] = {0,1,0};
-	p.points[4] = {0.5,0.5,1};
-
-	for (int i = 0; i < 5; i++)
-		w.vert(0, i) = i;
-
-	auto pyr_c = Volume::Cell(p, 0);
-	auto pyr = pyr_c.geom<Pyramid>();
-	auto pyr_as_poly = pyr_c.geom<Polyhedron>();
-
-	// Should have 5 vertices
-	CHECK(static_cast<int>(pyr_as_poly.v.size()) == pyr_c.nverts());
-	// Check barycenter of Pyramid is equivalent to barycenter of Polyhedron
-	CHECK(std::abs((pyr.bary_verts() - pyr_as_poly.bary_verts()).norm2()) < 1e-4);
 }

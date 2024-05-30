@@ -62,14 +62,6 @@ namespace UM {
             return wrapper{std::forward<T>(t), std::forward<U>(u)};
         }
 
-    [[deprecated]] inline auto vert_iter(const Surface &m) {
-        return range(m.nverts());
-    }
-
-    [[deprecated]] inline auto vert_iter(const Volume &m) {
-        return range(m.nverts());
-    }
-
     [[deprecated]] inline auto corner_iter(const Surface &m) {
         return range(m.ncorners());
     }
@@ -95,10 +87,6 @@ namespace UM {
         iterator begin() const { return iterator{m_, facet_, 0}; }
         iterator end()   const { return iterator{m_, facet_, m_.facet_size(facet_)}; }
     };
-
-    [[deprecated]] inline auto cell_iter(const Volume &m) {
-        return range(m.ncells());
-    }
 
     [[deprecated]] inline auto facet_iter(const Volume &m) {
         return range(m.nfacets());

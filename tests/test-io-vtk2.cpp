@@ -27,7 +27,7 @@ TEST_CASE("VTK + attributes IO test", "[VTK]") {
                 for (int lv : range(3))
                     b2[m[0].facet_vert(f/4, f%4, lv)] = true;
             }
-            for (int v : vert_iter(m[1]))
+            for (int v : m[1].iter_vertices())
                 CHECK ( b1[v]==b2[v] );
         } else {
            write_by_extension(filename[1], m[0], attr[0]);

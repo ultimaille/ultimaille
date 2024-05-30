@@ -50,12 +50,6 @@ namespace UM {
             return *this;
         }
 
-        // TODO lbinria: to remove
-        struct Util {
-            const Surface& m;
-            vec3 bary_verts(const int f) const;
-        } util = { *this };
-
         struct Vertex;
         struct Halfedge;
         struct Facet;
@@ -175,11 +169,11 @@ namespace UM {
     }
 
     template<> inline Poly3 Surface::Facet::geom() {
-        std::vector<vec3> points(size());
+        std::vector<vec3> pts(size());
         for (int i = 0; i < size(); i++)
-            points[i] = vertex(i).pos();
+            pts[i] = vertex(i).pos();
 
-        return Poly3{points};
+        return Poly3{pts};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,13 +196,6 @@ namespace UM {
             Surface::operator=(m);
             return *this;
         }
-
-        // TODO lbinria: to remove
-        struct Util : Surface::Util {
-            double unsigned_area(const int f) const;
-            void project(const int t, vec2& z0, vec2& z1, vec2& z2) const;
-            vec3 normal(const int f) const;
-        } util = { *this };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -229,11 +216,6 @@ namespace UM {
             Surface::operator=(m);
             return *this;
         }
-
-        struct Util : Surface::Util {
-            double unsigned_area(const int f) const;
-            vec3 normal(const int f) const;
-        } util = { *this };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,9 +244,6 @@ namespace UM {
         int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
         int& vert(const int fi, const int lv);
-
-        struct Util : Surface::Util {
-        } util = { *this };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -429,7 +408,31 @@ namespace UM {
     }
 
     inline bool Surface::Halfedge::on_boundary() {
-        return !opposite().active();
+        assert(m.connected());
+        assert(active());
+
+        int result = -1; // not found
+        Halfedge cir = from().halfedge();
+        while (cir != -1) {
+            Halfedge candidate = cir.prev();
+            if (cir.active()) {
+                if (candidate.from() == to() && candidate.to() == from()) {
+                    if (result == -1) result = candidate;
+                    // found more than one (non manifold)
+                    else
+                        assert(false);
+                }
+                // the edge is non manifold (non-orientable)
+                if (cir != *this && to() == cir.to())
+                    assert(false);
+            }
+            do {
+                cir = m.conn->c2c[cir];
+            } while (cir != -1 && !cir.active());
+        }
+        
+        // Found an opposite
+        return result < 0;
     }
 
     inline Surface::Facet Surface::Halfedge::facet() {

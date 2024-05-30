@@ -675,7 +675,7 @@ namespace UM {
         return { m, m.conn->heh.halfedge(cell(), id_in_cell(), i) };
     }
 
-    // No need to be connected anymore
+    // No need to be connected anymore (TO REMOVE! replaced vertex)
     inline Volume::Vertex Volume::Facet::__vertex(int i) {
         assert(m.connected());
         return { m, halfedge(i).from() };
@@ -804,14 +804,6 @@ namespace UM {
         return Wedge(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos());
     }
 
-    template<> inline Polyhedron Volume::Cell::geom() {
-        std::vector<vec3> points(nverts());
-        for (int i = 0; i < nverts(); i++)
-            points[i] = vertex(i).pos();
-
-        return Polyhedron{points};
-    }
-
     template<> inline Triangle3 Volume::Facet::geom() {
         um_assert(nverts()==3);
         return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
@@ -825,11 +817,11 @@ namespace UM {
     template<> inline Poly3 Volume::Facet::geom() {
         // TODO replace m.facet_size(id) => size() but we have to add size() on volume facet
         int size = m.facet_size(id);
-        std::vector<vec3> points(size);
+        std::vector<vec3> pts(size);
         for (int i = 0; i < size; i++)
-            points[i] = vertex(i).pos();
+            pts[i] = vertex(i).pos();
 
-        return Poly3{points};
+        return Poly3{pts};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

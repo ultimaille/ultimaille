@@ -375,8 +375,4 @@ namespace UM {
 		return vol;
 	}
 
-	vec3 Polyhedron::bary_verts() const {
-		return UM::bary_verts(v.data(), static_cast<int>(v.size()));
-	}
-
 }
