@@ -60,6 +60,8 @@ namespace UM {
 		inline double length() const;
 		inline Segment3 xy0() const;
 
+        double distance(const vec2 &p) const;
+
 		inline vec2& operator[](int i) { return v[i]; }
 		inline vec2 operator[](int i)const { return v[i]; }
 	};
