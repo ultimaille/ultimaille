@@ -263,6 +263,7 @@ namespace UM {
             template<typename T> T geom();
 
             auto iter_facets();
+            auto iter_corners();
         };
 
         auto iter_vertices();
@@ -780,6 +781,21 @@ namespace UM {
             Cell c;
             auto begin() { return iterator{ c.facet(0) }; }
             auto end()   { return iterator{ c.facet(c.nfacets()) }; }
+        };
+        return wrapper{ *this };
+    }
+
+    inline auto Volume::Cell::iter_corners() {
+        struct iterator {
+            Corner data;
+            void operator++() { ++(data.id); }
+            bool operator!=(iterator& rhs) { return data != rhs.data; }
+            Corner& operator*() { return data; }
+        };
+        struct wrapper {
+            Cell c;
+            auto begin() { return iterator{ c.corner(0) }; }
+            auto end()   { return iterator{ c.corner(c.ncorners()-1) }; }
         };
         return wrapper{ *this };
     }
