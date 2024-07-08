@@ -31,11 +31,11 @@ namespace UM {
         connect();
     }
 
-    // Does it works on non-manifold ?
     bool Surface::Vertex::on_boundary() {
         assert(m.connected());
         for (Halfedge &he : iter_halfedges())
-            if (!he.opposite().active()) return true;
+            if (he.on_boundary()) return true;
+
         return false;
     }
 
