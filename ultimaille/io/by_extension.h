@@ -24,7 +24,7 @@ namespace UM {
             if (ext == ".geogram")
                 write_geogram(path, m, a);
             if (ext == ".mesh")
-                write_medit(path, m);
+                write_medit(path, m, a);
             if (ext == ".vtk")
                 write_vtk(path, m, a);
             if constexpr (std::is_same_v<decltype(empty_attr(m)), PointSetAttributes>) {
