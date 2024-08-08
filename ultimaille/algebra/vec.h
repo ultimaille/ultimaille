@@ -96,8 +96,8 @@ namespace UM {
     template<> struct vec<3>;
 
     template<> struct vec<2> {
-        vec() =  default;
-        constexpr vec(double X, double Y) : x(X), y(Y) {}
+        // vec() =  default;
+        // constexpr vec(double X, double Y) : x(X), y(Y) {}
         double& operator[](const int i)       { assert(i>=0 && i<2); return i==0 ? x : y; }
         double  operator[](const int i) const { assert(i>=0 && i<2); return i==0 ? x : y; }
         double norm2() const { return (*this)*(*this) ; }
@@ -113,8 +113,8 @@ namespace UM {
     /////////////////////////////////////////////////////////////////////////////////
 
     template<> struct vec<3> {
-        vec() = default;
-        constexpr vec(double X, double Y, double Z) : x(X), y(Y), z(Z) {}
+        // vec() = default;
+        // constexpr vec(double X, double Y, double Z) : x(X), y(Y), z(Z) {}
         double& operator[](const int i)       { assert(i>=0 && i<3); return i==0 ? x : (1==i ? y : z); }
         double  operator[](const int i) const { assert(i>=0 && i<3); return i==0 ? x : (1==i ? y : z); }
         double norm2() const { return (*this)*(*this) ; }
