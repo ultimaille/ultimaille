@@ -96,7 +96,7 @@ TEST_CASE("Triangles IO test", "[VTK]") {
 
         REQUIRE( m[i].nverts()==3 );
         REQUIRE( m[i].nfacets()==1 );
-        CHECK( std::abs(Surface::Facet(m[i], 0).geom<Triangle3>().unsigned_area()-.5)<ftol );
+        CHECK( std::abs(Triangle3(Surface::Facet(m[i], 0)).unsigned_area()-.5)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -129,7 +129,7 @@ TEST_CASE("Quads IO test", "[VTK]") {
 
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].nfacets()==1 );
-        CHECK( std::abs(Surface::Facet(m[i], 0).geom<Quad3>().unsigned_area()-1.)<ftol );
+        CHECK( std::abs(Quad3(Surface::Facet(m[i], 0)).unsigned_area()-1.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }

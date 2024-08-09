@@ -78,7 +78,7 @@ TEST_CASE("Triangles + SurfaceAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int f : range(m.nfacets()))
-        fvec3[f] = Surface::Facet(m, f).geom<Triangle3>().bary_verts();
+        fvec3[f] = Triangle3(Surface::Facet(m, f)).bary_verts();
 
     for (int c : range(m.ncorners()))
         cint[c] = rand();
@@ -124,7 +124,7 @@ TEST_CASE("Quads + SurfaceAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int f : range(m.nfacets()))
-        fvec3[f] = Surface::Facet(m, f).geom<Quad3>().bary_verts();
+        fvec3[f] = Quad3(Surface::Facet(m, f)).bary_verts();
 
     for (int c : range(m.ncorners()))
         cint[c] = rand();
@@ -171,7 +171,7 @@ TEST_CASE("Polygons + SurfaceAttributes IO test", "[geogram]") {
         vbool[v] = rand()&1;
 
     for (int f : range(m.nfacets()))
-        fvec3[f] = Surface::Facet(m, f).geom<Poly3>().bary_verts();
+        fvec3[f] = Poly3(Surface::Facet(m, f)).bary_verts();
 
     for (int c : range(m.ncorners()))
         cint[c] = rand();

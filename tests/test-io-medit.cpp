@@ -137,8 +137,7 @@ TEST_CASE("Medit Triangles IO test", "[Medit]") {
             CHECK(fint[f]==f*f);
         }
 
-
-        CHECK( std::abs(Surface::Facet(m[i], 0).geom<Triangle3>().unsigned_area()-.5)<ftol );
+        CHECK( std::abs(Triangle3(Surface::Facet(m[i], 0)).unsigned_area()-.5)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0], {{{"region", vint.ptr}}, {{"region", fint.ptr}}, {}});
     }
@@ -187,7 +186,7 @@ TEST_CASE("Medit Quads IO test", "[Medit]") {
             CHECK(fint[f]==f*f);
         }
 
-        CHECK( std::abs(Surface::Facet(m[i], 0).geom<Quad3>().unsigned_area()-1.)<ftol );
+        CHECK( std::abs(Quad3(Surface::Facet(m[i], 0)).unsigned_area()-1.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0], {{{"region", vint.ptr}}, {{"region", fint.ptr}}, {}});
     }

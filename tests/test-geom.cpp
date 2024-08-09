@@ -178,12 +178,12 @@ TEST_CASE("Test triangle geom", "[geom]") {
 
 	// Check normal
 	for (auto f : m.iter_facets()) {
-		CHECK(f.geom<Triangle3>().normal().z > 0);
+		CHECK(Triangle3(f).normal().z > 0);
 	}
 
 	// Check bary
 	auto f = m.iter_facets().begin().f;
-	auto tri_f = f.geom<Triangle3>();
+	Triangle3 tri_f = f;
 	CHECK(std::abs((tri_f.bary_verts() - vec3{0.5,0.5/3.,0}).norm()) < 1e-4);
 
 	// Check area comparing with formula A = bh / 2
@@ -322,13 +322,13 @@ TEST_CASE("Test quad geom", "[geom]") {
 
 	// Get geometry of first face
 	auto f = m.iter_facets().begin().f;
-	auto quad_f = f.geom<Quad3>();
+	Quad3 quad_f = f;
 
 	INFO("quad: " << quad_f.normal());
 
 	// Check normal
 	for (auto f : m.iter_facets()) {
-		auto n = f.geom<Quad3>().normal().z;
+		auto n = Quad3(f).normal().z;
 		CHECK(n > 0);
 	}
 
@@ -369,7 +369,7 @@ TEST_CASE("Test quad geom", "[geom]") {
 
 		// Get geometry of first face
 		auto custom_m_f = custom_m.iter_facets().begin().f;
-		auto custom_quad = custom_m_f.geom<Quad3>().xy();
+		auto custom_quad = Quad3(custom_m_f).xy();
 
 		// Check consistency between verdict result & ultimaille result
 		double scaled_jacobian = custom_quad.scaled_jacobian();
@@ -410,11 +410,11 @@ TEST_CASE("Test poly geom", "[geom]") {
 
 	// // Get geometry of first face
 	auto f = m.iter_facets().begin().f;
-	auto poly_f = f.geom<Poly3>();
+	Poly3 poly_f = f;
 
 	// // Check normal
 	for (auto f : m.iter_facets()) {
-		CHECK(f.geom<Poly3>().normal().z > 0);
+		CHECK(Poly3(f).normal().z > 0);
 	}
 
 	// Check bary
