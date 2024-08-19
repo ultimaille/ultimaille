@@ -130,7 +130,7 @@ TEST_CASE("Test segment geom", "[geom]") {
 	// Get first half-edge and extract segment
 	for (int hi = 0; hi < 3; hi++) {
 		auto h = Surface::Halfedge(m, hi);
-		auto s = h.geom();
+		Segment3 s = h;
 
 		// Check that segment references points correctly
 		CHECK(std::abs((s[0] - m.points[hi % 3]).norm2()) < 1e-4);

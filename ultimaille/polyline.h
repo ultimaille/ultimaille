@@ -108,9 +108,10 @@ namespace UM {
 
             bool active();
             Edge opposite();
-            Vertex from();
-            Vertex to();
-            inline Segment3 geom();
+            Vertex from() const;
+            Vertex to() const;
+            operator Segment3() const;
+
             friend struct Vertex;
         };
 
@@ -276,16 +277,16 @@ inline PolyLine::Edge PolyLine::Edge::opposite() {
 	return result;
 }
 
-inline PolyLine::Vertex PolyLine::Edge::from() {
+inline PolyLine::Vertex PolyLine::Edge::from() const {
 	return { m, m.vert(id, 0) };
 }
 
-inline PolyLine::Vertex PolyLine::Edge::to() {
+inline PolyLine::Vertex PolyLine::Edge::to() const {
 	return { m, m.vert(id, 1) };
 }
 
-inline Segment3 PolyLine::Edge::geom() {
-	return Segment3(from().pos(), to().pos());
+inline PolyLine::Edge::operator Segment3() const {
+	return {from().pos(), to().pos()};
 }
 
 

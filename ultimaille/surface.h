@@ -120,7 +120,7 @@ namespace UM {
 
             bool active();
             bool on_boundary();
-            Facet facet();
+            Facet facet() const;
 
             Halfedge next();
             Halfedge prev();
@@ -129,10 +129,10 @@ namespace UM {
             int id_in_facet();
 
             friend struct Vertex;
-            Vertex from();
-            Vertex to();
+            Vertex from() const;
+            Vertex to() const;
 
-            inline Segment3 geom();
+            inline operator Segment3() const;
 
             auto iter_sector_halfedges();
         };
@@ -419,7 +419,7 @@ namespace UM {
         return result < 0;
     }
 
-    inline Surface::Facet Surface::Halfedge::facet() {
+    inline Surface::Facet Surface::Halfedge::facet() const {
         assert(m.connected());
         return { m, m.conn->c2f[id] };
     }
@@ -462,13 +462,13 @@ namespace UM {
 
     }
 
-    inline Surface::Vertex Surface::Halfedge::from() {
+    inline Surface::Vertex Surface::Halfedge::from() const {
         auto f = facet();
         int lh = id - f.halfedge();
         return { m, m.vert(f, lh) };
     }
 
-    inline Surface::Vertex Surface::Halfedge::to() {
+    inline Surface::Vertex Surface::Halfedge::to() const {
         auto f = facet();
         int lh = id - f.halfedge();
         int n = f.size();
@@ -479,7 +479,7 @@ namespace UM {
         return id - m.corner(facet(), 0);
     }
 
-    inline Segment3 Surface::Halfedge::geom() {
+    inline Surface::Halfedge::operator Segment3() const {
         return {from().pos(), to().pos()};
     }
 
