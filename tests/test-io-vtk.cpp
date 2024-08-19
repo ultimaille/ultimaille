@@ -203,7 +203,7 @@ TEST_CASE("Tetrahedra IO test", "[VTK]") {
 
         REQUIRE( m[i].nverts()==4 );
         REQUIRE( m[i].ncells()==1 );
-        CHECK( std::abs(Volume::Cell(m[i], 0).geom<Tetrahedron>().volume()-1./6.)<ftol );
+        CHECK( std::abs(Tetrahedron(Volume::Cell(m[i], 0)).volume()-1./6.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -237,7 +237,7 @@ TEST_CASE("Hexahedra IO test", "[VTK]") {
 
         REQUIRE( m[i].nverts()==8 );
         REQUIRE( m[i].ncells()==1 );
-        CHECK( std::abs(Volume::Cell(m[i], 0).geom<Hexahedron>().volume()-1.)<ftol );
+        CHECK( std::abs(Hexahedron(Volume::Cell(m[i], 0)).volume()-1.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -271,7 +271,7 @@ TEST_CASE("Wedges IO test", "[VTK]") {
 
         REQUIRE( m[i].nverts()==6 );
         REQUIRE( m[i].ncells()==1 );
-        CHECK( std::abs(Volume::Cell(m[i], 0).geom<Wedge>().volume()-.5)<ftol );
+        CHECK( std::abs(Wedge(Volume::Cell(m[i], 0)).volume()-.5)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }
@@ -305,7 +305,7 @@ TEST_CASE("Pyramids IO test", "[VTK]") {
 
         REQUIRE( m[i].nverts()==5 );
         REQUIRE( m[i].ncells()==1 );
-        CHECK( std::abs(Volume::Cell(m[i], 0).geom<Pyramid>().volume()-1./6.)<ftol );
+        CHECK( std::abs(Pyramid(Volume::Cell(m[i], 0)).volume()-1./6.)<ftol );
         if (!i)
             write_by_extension(filename[1], m[0]);
     }

@@ -453,7 +453,7 @@ TEST_CASE("Test tetra geom", "[geom]") {
 
 	// Check bary
 	auto c = m.iter_cells().begin().data;
-	auto tet_c = c.geom<Tetrahedron>();
+	Tetrahedron tet_c = c;
 
 	vec3 bary{0,0,sqrt(6.0)/12.0};
 	INFO("tet bary: " << tet_c.bary_verts());
@@ -536,7 +536,7 @@ TEST_CASE("Test hexa geom", "[geom]") {
 
 	// Check bary
 	auto c = m.iter_cells().begin().data;
-	auto hex_c = c.geom<Hexahedron>();
+	Hexahedron hex_c = c;
 
 	INFO("hex bary: " << hex_c.bary_verts());
 	CHECK(std::abs((hex_c.bary_verts() - vec3{0,0,0}).norm2()) < 1e-4);
@@ -605,7 +605,7 @@ TEST_CASE("Test hexa geom", "[geom]") {
 
 		// Get geometry of first face
 		auto custom_m_f = custom_m.iter_cells().begin().data;
-		auto custom_quad = custom_m_f.geom<Hexahedron>();
+		Hexahedron custom_quad = custom_m_f;
 
 		// Check consistency between verdict result & ultimaille result
 		double scaled_jacobian = custom_quad.scaled_jacobian();
@@ -641,7 +641,7 @@ TEST_CASE("Test pyramid geom", "[geom]") {
 
 	// Check bary
 	auto c = m.iter_cells().begin().data;
-	auto pyr_c = c.geom<Pyramid>();
+	Pyramid pyr_c = c;
 
 	INFO("pyramid bary: " << pyr_c.bary_verts());
 	// All distances from apex should be equal to 1

@@ -260,7 +260,10 @@ namespace UM {
             Vertex vertex(int lv);
             Halfedge halfedge(int lh);
 
-            template<typename T> T geom();
+            operator Tetrahedron();
+            operator Hexahedron();
+            operator Pyramid();
+            operator Wedge();
 
             auto iter_facets();
             auto iter_corners();
@@ -800,24 +803,24 @@ namespace UM {
         return wrapper{ *this };
     }
 
-    template<> inline Tetrahedron Volume::Cell::geom() {
+    inline Volume::Cell::operator Tetrahedron() {
         um_assert(nfacets()==4 && nverts()==4);
-        return Tetrahedron(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos() };
     }
 
-    template<> inline Pyramid Volume::Cell::geom() {
+    inline Volume::Cell::operator Pyramid() {
         um_assert(nfacets()==5 && nverts()==5);
-        return Pyramid(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos());
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos() };
     }
 
-    template<> inline Hexahedron Volume::Cell::geom() {
+    inline Volume::Cell::operator Hexahedron() {
         um_assert(nfacets()==6 && nverts()==8);
-        return Hexahedron(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos());
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos() };
     }
 
-    template<> inline Wedge Volume::Cell::geom() {
+    inline Volume::Cell::operator Wedge() {
         um_assert(nfacets()==5 && nverts()==6);
-        return Wedge(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos());
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos() };
     }
 
     template<> inline Triangle3 Volume::Facet::geom() {
