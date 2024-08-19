@@ -7,9 +7,10 @@ jobs:
   linux-mac:
     strategy:
       matrix:
-        cfg: [{os: ubuntu-latest, cxx: g++-12},
-              {os: ubuntu-latest, cxx: g++-9},
-              {os: macos-latest, cxx: clang++}]
+        cfg: [{os: ubuntu-latest, cxx: g++},
+              # {os: ubuntu-latest, cxx: g++-9},
+              # get clang 16 ! because we need C++20 support
+              {os: macos-latest, cxx: /opt/homebrew/opt/llvm@16/bin/clang++}] 
         config: [Release, Debug]
 
     runs-on:  ${{ matrix.cfg.os }}
@@ -22,6 +23,11 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Install Clang 16 (macOS)
+      if: matrix.cfg.os == 'macos-latest'
+      run: |
+        brew install llvm@16
+
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DUM_UNIT_TESTS=ON
 
@@ -30,7 +36,6 @@ jobs:
 
     - name: CTest
       run: ctest --test-dir build -V
-
 
   windows-msvc:
     runs-on: windows-latest
