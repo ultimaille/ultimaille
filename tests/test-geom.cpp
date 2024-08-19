@@ -92,13 +92,14 @@ TEST_CASE("aggregate", "[geom]") {
 	// CHECK(std::is_aggregate<Hexahedron>());
 	// CHECK(std::is_aggregate<Pyramid>());
 
-	// CHECK(std::is_aggregate<vec2>());
+	CHECK(std::is_aggregate<vec2>());
+	CHECK(std::is_aggregate<vec3>());
 }
 
 // TEST_CASE("vec benchmark", "[geom]") {
 
 //     auto start = std::chrono::high_resolution_clock::now();
-// 	for (int i = 0; i < 100000000; i++) {
+// 	for (int i = 0; i < 1000000000; i++) {
 // 		vec2 v{rand()%100, rand()%100};
 // 	}
 //     // Capture the end time
@@ -108,12 +109,6 @@ TEST_CASE("aggregate", "[geom]") {
 //     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
 //     // Output the duration
-//     INFO("DURATION: " << duration.count() << " milliseconds");
-//     INFO("DURATION: " << duration.count() << " milliseconds");
-//     INFO("DURATION: " << duration.count() << " milliseconds");
-//     INFO("DURATION: " << duration.count() << " milliseconds");
-//     INFO("DURATION: " << duration.count() << " milliseconds");
-//     INFO("DURATION: " << duration.count() << " milliseconds");
 //     INFO("DURATION: " << duration.count() << " milliseconds");
 // 	CHECK(false);
 // }
