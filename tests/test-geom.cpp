@@ -474,7 +474,7 @@ TEST_CASE("Test tetra geom", "[geom]") {
 	// It's the surface on plane x, y
 	m.connect();
 	auto f = c.iter_facets().begin().data;
-	auto tet_f = f.geom<Triangle3>();
+	Triangle3 tet_f = f;
 	INFO("facet points: " << tet_f[0] << "," << tet_f[1] << "," << tet_f[2]);
 
 	// Check normal
@@ -551,7 +551,7 @@ TEST_CASE("Test hexa geom", "[geom]") {
 	// It's the left of the cube
 	m.connect();
 	auto f = c.iter_facets().begin().data;
-	auto hex_f = f.geom<Quad3>();
+	Quad3 hex_f = f;
 	INFO("facet points: " << hex_f[0] << "," << hex_f[1] << "," << hex_f[2] << "," << hex_f[3]);
 
 	// Check normal
@@ -733,9 +733,9 @@ TEST_CASE("Test polygon facet extraction geom", "[geom]") {
 		w.vert(0, i) = i;
 
 	// Should be a triangle
-	CHECK(Volume::Facet(w, 0).geom<Poly3>().v.size() == 3);
+	CHECK(Poly3(Volume::Facet(w, 0)).v.size() == 3);
 	// Should be a quad
-	CHECK(Volume::Facet(w, 2).geom<Poly3>().v.size() == 4);
+	CHECK(Poly3(Volume::Facet(w, 2)).v.size() == 4);
 
 
 	Pyramids p;
@@ -751,10 +751,10 @@ TEST_CASE("Test polygon facet extraction geom", "[geom]") {
 		w.vert(0, i) = i;
 
 	// Should be a quad
-	CHECK(Volume::Facet(p, 0).geom<Poly3>().v.size() == 4);
+	CHECK(Poly3(Volume::Facet(p, 0)).v.size() == 4);
 	// Should be triangles
 	for (int i = 1; i < 5; i++)
-		CHECK(Volume::Facet(p, i).geom<Poly3>().v.size() == 3);
+		CHECK(Poly3(Volume::Facet(p, i)).v.size() == 3);
 
 
 }

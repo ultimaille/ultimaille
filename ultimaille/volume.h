@@ -238,7 +238,9 @@ namespace UM {
             Cell cell();
             int id_in_cell();
 
-            template<typename T> T geom();
+            operator Triangle3();
+            operator Quad3();
+            operator Poly3();
 
             auto iter_halfedges();
         };
@@ -823,24 +825,24 @@ namespace UM {
         return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos() };
     }
 
-    template<> inline Triangle3 Volume::Facet::geom() {
+    inline Volume::Facet::operator Triangle3() {
         um_assert(nverts()==3);
-        return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos() };
     }
 
-    template<> inline Quad3 Volume::Facet::geom() {
+    inline Volume::Facet::operator Quad3() {
         um_assert(nverts()==4);
-        return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos() };
     }
 
-    template<> inline Poly3 Volume::Facet::geom() {
+    inline Volume::Facet::operator Poly3() {
         // TODO replace m.facet_size(id) => size() but we have to add size() on volume facet
         int size = m.facet_size(id);
         std::vector<vec3> pts(size);
         for (int i = 0; i < size; i++)
             pts[i] = vertex(i).pos();
 
-        return Poly3{pts};
+        return {pts};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
