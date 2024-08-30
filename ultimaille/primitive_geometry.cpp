@@ -53,40 +53,40 @@ namespace UM {
 		return result / sum;
 	}
 
-	// vec4 Tetrahedron::bary_coords(vec3 G) const {
-	// 	vec4 result;
-	// 	double sum = 0;
-		
-	// 	double vol = volume();
-
-	// 	for (int i = 0; i < 4; i++) {
-	// 		const vec3 &A = v[i % 4];
-	// 		const vec3 &B = v[(i + 1) % 4];
-	// 		const vec3 &C = v[(i + 2) % 4];
-
-	// 		result[i] = std::abs(Tetrahedron(A, B, C, G).volume() / vol);
-	// 		sum += result[i];
-	// 	}
-
-	// 	return result / sum;
-	// }
-
 	vec4 Tetrahedron::bary_coords(vec3 G) const {
 		vec4 result;
 		double sum = 0;
 		
-		for(int coord=0;coord< 4;coord++) {
-			vec3 P = v[coord];
-			vec3 A = v[(coord + 1) % 4];
-			vec3 B = v[(coord + 2) % 4];
-			vec3 C = v[(coord + 3) % 4];
-			result[coord] = Tetrahedron(A, B, C, G).volume() / Tetrahedron(A, B, C, P).volume();
+		double vol = volume();
+
+		for (int coord = 0; coord < 4; coord++) {
+			const vec3 &A = v[(coord + 1) % 4];
+			const vec3 &B = v[(coord + 2) % 4];
+			const vec3 &C = v[(coord + 3) % 4];
+
+			result[coord] = std::abs(Tetrahedron(A, B, C, G).volume() / vol);
 			sum += result[coord];
 		}
 
-		result /= sum;
-		return result;
+		return result / sum;
 	}
+
+	// vec4 Tetrahedron::bary_coords(vec3 G) const {
+	// 	vec4 result;
+	// 	double sum = 0;
+		
+	// 	for(int coord=0;coord< 4;coord++) {
+	// 		vec3 P = v[coord];
+	// 		vec3 A = v[(coord + 1) % 4];
+	// 		vec3 B = v[(coord + 2) % 4];
+	// 		vec3 C = v[(coord + 3) % 4];
+	// 		result[coord] = Tetrahedron(A, B, C, G).volume() / Tetrahedron(A, B, C, P).volume();
+	// 		sum += result[coord];
+	// 	}
+
+	// 	result /= sum;
+	// 	return result;
+	// }
 
 	Triangle2 Triangle3::project() const {
 		const vec3 &A = v[0];

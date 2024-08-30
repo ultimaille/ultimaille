@@ -23,12 +23,20 @@ double rand_scalar() {
 	return rand()%100 / 100.;
 }
 
+double rand_scalar(float from, float to) {
+	return from + rand()%100 / 100. * (to - from);
+}
+
 vec2 rand_v2() {
 	return {(rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5};
 }
 
 vec3 rand_v3() {
 	return {(rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5};
+}
+
+vec4 rand_v4() {
+	return {(rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5};
 }
 
 bool are_doubles_equal(double a, double b, double eps) {
@@ -476,10 +484,53 @@ TEST_CASE("Test tetra geom", "[geom]") {
 	INFO("tet volume: " << tet_c.volume());
 	CHECK(std::abs(tet_c.volume() - v) < 1e-4);
 
-	// Check bary coordinates
-	vec3 tet_c_g = tet_c.bary_verts();
-	vec4 expected_tet_bary_coords = vec4{1, 1, 1, 1} / 4.;
-	CHECK(std::abs((tet_c.bary_coords(tet_c_g) - expected_tet_bary_coords).norm2()) < 1e-4);
+	// // Check bary coordinates
+	// {
+	// 	vec3 tet_c_g = tet_c.bary_verts();
+	// 	vec4 expected_tet_bary_coords = vec4{1, 1, 1, 1} / 4.;
+	// 	CHECK(std::abs((tet_c.bary_coords(tet_c_g) - expected_tet_bary_coords).norm2()) < 1e-4);
+	// }
+
+	{
+
+		for (int i = 0; i < 10000; i++) {
+			// Compute random vec4 that sum up to 1 !
+			float a = 1.;
+			float u = rand_scalar(0., 1.);
+			a -= u;
+			float v = rand_scalar(0., a);
+			a -= v;
+			float w = rand_scalar(0., a);
+			float w2 =  1. - (u + v + w);
+
+			// vec4 expected_bary_coords{0.2, 0.4, 0.15, 0.25};
+			vec4 expected_bary_coords{u, v, w, w2};
+			// Barycentric coordinates must sum up to 1 (here this checking shouldn't be necessary because of computation of u,v,w,w' above)
+			REQUIRE(std::abs(expected_bary_coords[0] + expected_bary_coords[1] + expected_bary_coords[2] + expected_bary_coords[3] - 1) < 1e-4);
+
+			// Compute point from barycentric coordinates
+			// Doesn't want a flat tet with volume = 0
+			vec3 A = vec3{0,0,0} + rand_v3() * .5;
+			vec3 B = vec3{1,0,0} + rand_v3() * .5;
+			vec3 C = vec3{0,1,0} + rand_v3() * .5;
+			vec3 D = vec3{1,1,0} + rand_v3() * .5;
+			// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html
+			// u, v, w, w' the barycentric coordinates
+			// u = 0.2, v = 0.4, w = 0.15, w' = 0.25
+			// P = A + u * AB + v * AC + w * AD 
+			// so w'= (1 - u - v - w) then P = (1 - u - v - w) * A + u * B + v * C + w * D
+			// match with P = w' * A + u * B + v * C + w * D instead of P = u * A + v * B + w * C + w' * D
+			// so I shift bary coordinates to get the right order in coordinates components...
+			vec3 P =  A + expected_bary_coords[1] * (B - A) + expected_bary_coords[2] * (C - A) + expected_bary_coords[3] * (D - A);
+
+			// Compute barycentric coordinates from point
+			Tetrahedron tet_c2(A, B, C, D);
+			vec3 tet_c_g = tet_c2.bary_verts();
+			vec4 actual_bary_coords = tet_c2.bary_coords(P);
+
+			CHECK(std::abs((expected_bary_coords - actual_bary_coords).norm2()) < 1e-4);
+		}
+	}
 
 	// Get first cell facet (match with points at indexes {3,2,1})
 	// It's the surface on plane x, y
