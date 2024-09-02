@@ -10,15 +10,15 @@
 namespace UM {
     double Segment2::distance(const vec2 &p) const {
         const double l2 = length2();
-        if (l2 < 1e-15) return (p-v[0]).norm(); // degenerate segment
+        if (l2 < 1e-15) return (p-a).norm(); // degenerate segment
         /**
           Consider the line extending the segment, parameterized as a + t (b - a).
           We find projection of point p onto the line.
           It falls where t = [(p-a) . (b-a)] / |b-a|^2
           We clamp t from [0,1] to handle points outside the segment ab.
          **/
-        const double t = std::max(0., std::min(1., (p - v[0])*(v[1] - v[0]) / l2));
-        const vec2 projection = v[0] + t * (v[1] - v[0]);  // projection falls on the segment
+        const double t = std::max(0., std::min(1., (p - a)*(b - a) / l2));
+        const vec2 projection = a + t * (b - a);  // projection falls on the segment
         return (p-projection).norm();
     }
 

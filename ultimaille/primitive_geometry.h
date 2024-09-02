@@ -51,9 +51,10 @@ namespace UM {
 	struct Segment3;
 
 	struct Segment2 {
-		Segment2(vec2 x,vec2 y){v[0]=x;v[1]=y;}
+		// Segment2(vec2 x,vec2 y){v[0]=x;v[1]=y;}
 
-		vec2 v[2]{};
+		// vec2 v[2]{};
+		vec2 a{}, b{};
 
 		inline vec2 vector();
 		inline double length2() const;
@@ -62,14 +63,14 @@ namespace UM {
 
         double distance(const vec2 &p) const;
 
-		inline vec2& operator[](int i) { return v[i]; }
-		inline vec2 operator[](int i)const { return v[i]; }
+		inline vec2& operator[](int i) { return i == 0 ? a : b; }
+		inline vec2 operator[](int i)const { return i == 0 ? a : b; }
 	};
 
 	struct Segment3 {
-		Segment3(vec3 x,vec3 y){v[0]=x;v[1]=y;}
+		// Segment3(vec3 x,vec3 y){a=x;v[1]=y;}
 
-		vec3 v[2]{};
+		vec3 a{}, b{};
 
 		inline vec3 vector();
 		inline double length2() const;
@@ -78,8 +79,8 @@ namespace UM {
 		inline double bary_coords(const vec3 &P) const;
 		inline vec3 nearest_point(const vec3 &P) const;
 
-		inline vec3& operator[](int i) { return v[i]; }
-		inline vec3 operator[](int i) const { return v[i]; }
+		inline vec3& operator[](int i) { return i == 0 ? a : b; }
+		inline vec3 operator[](int i) const { return i == 0 ? a : b; }
 	};
 
 	struct Triangle3;
@@ -95,7 +96,6 @@ namespace UM {
 		Triangle2 dilate(double scale) const;
 		vec3 bary_coords(vec2 G) const;
 		mat<2,3> grad_operator() const;
-		mat<2,3> grad_operator2() const;
 		vec2 grad(vec3 u) const;
 
 		inline vec2& operator[](int i) { return v[i]; }
@@ -117,7 +117,7 @@ namespace UM {
 		mat3x3 tangent_basis() const;
 		mat3x3 tangent_basis(vec3 first_axis) const;
 		mat3x3 grad_operator() const;
-		mat3x3 grad_operator2() const;
+
 		vec3 grad(vec3 u) const;
 		inline mat3x3 as_matrix() const;
 		inline vec3 nearest_point(const vec3 &p) const;
@@ -216,28 +216,27 @@ namespace UM {
 		inline vec3 operator[](int i) const { return v[i]; }
 	};
 
-	inline vec2 Segment2::vector() { return v[1] - v[0]; }
-	inline double Segment2::length2() const { return (v[1] - v[0]).norm2(); }
-	inline double Segment2::length() const { return (v[1] - v[0]).norm(); }
-	inline Segment3 Segment2::xy0() const { return Segment3(vec3(v[0].x, v[0].y, 0),vec3(v[1].x, v[1].y, 0)); }
+	inline vec2 Segment2::vector() { return b - a; }
+	inline double Segment2::length2() const { return (b - a).norm2(); }
+	inline double Segment2::length() const { return (b - a).norm(); }
+	inline Segment3 Segment2::xy0() const { return Segment3(vec3(a.x, a.y, 0),vec3(b.x, b.y, 0)); }
 
-	inline vec3 Segment3::vector() { return v[1] - v[0]; }
-	inline double Segment3::length2() const { return (v[1] - v[0]).norm2(); }
-	inline double Segment3::length() const { return (v[1] - v[0]).norm(); }
-	inline Segment2 Segment3::xy() const { return Segment2 (vec2(v[0].x, v[0].y),vec2( v[1].x, v[1].y)); }
+	inline vec3 Segment3::vector() { return b - a; }
+	inline double Segment3::length2() const { return (b - a).norm2(); }
+	inline double Segment3::length() const { return (b - a).norm(); }
+	inline Segment2 Segment3::xy() const { return Segment2 (vec2(a.x, a.y),vec2(b.x, b.y)); }
 
 	inline double Segment3::bary_coords(const vec3 &P) const {
 		if (length2() < 1e-15) return 0.5;
-		return (v[1] - P) * (v[1] - v[0]) / (v[1] - v[0]).norm2();
+		return (b - P) * (b - a) / (b - a).norm2();
 	}
 
 	inline vec3 Segment3::nearest_point(const vec3 &P) const {
 		double c = bary_coords(P);
-		if (c < 0) return v[1];
-		if (c > 1) return v[0];
-		return c * v[0] + (1. - c) * v[1];
+		if (c < 0) return b;
+		if (c > 1) return a;
+		return c * a + (1. - c) * b;
 	}
-
 
 	inline std::ostream& operator<<(std::ostream& out, const Segment2& s) {
 		for (int i=0; i<2; i++) out << s[i] << std::endl;

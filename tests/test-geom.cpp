@@ -89,8 +89,8 @@ bool are_vec_equal(vec<n> a, vec<n> b, double eps) {
 
 TEST_CASE("aggregate", "[geom]") {
 
-	// CHECK(std::is_aggregate<Segment2>());
-	// CHECK(std::is_aggregate<Segment3>());
+	CHECK(std::is_aggregate<Segment2>());
+	CHECK(std::is_aggregate<Segment3>());
 	// CHECK(std::is_aggregate<Triangle2>());
 	// CHECK(std::is_aggregate<Triangle3>());
 	// CHECK(std::is_aggregate<Quad2>());
@@ -525,7 +525,6 @@ TEST_CASE("Test tetra geom", "[geom]") {
 
 			// Compute barycentric coordinates from point
 			Tetrahedron tet_c2(A, B, C, D);
-			vec3 tet_c_g = tet_c2.bary_verts();
 			vec4 actual_bary_coords = tet_c2.bary_coords(P);
 
 			CHECK(std::abs((expected_bary_coords - actual_bary_coords).norm2()) < 1e-4);
@@ -819,4 +818,111 @@ TEST_CASE("Test polygon facet extraction geom", "[geom]") {
 		CHECK(Poly3(Volume::Facet(p, i)).v.size() == 3);
 
 
+}
+
+TEST_CASE("Test segment 2", "[geom][segment]") {
+	for (int i = 0; i < 100; i++) {
+		vec2 a{0,0};
+		vec2 b{rand_scalar(), 0};
+
+		Segment2 s{a, b};
+		REQUIRE(std::abs((s.a - a).norm2()) < 1e-4);
+
+		CHECK(std::abs(s.length() - (b.x - a.x)) < 1e-4);
+		CHECK(std::abs(s.length() * s.length() - s.length2()) < 1e-4);
+
+		CHECK(std::abs((s.vector() - (b - a)).norm2()) < 1e-4);
+
+		Segment3 s3{{a.x, a.y, 0}, {b.x, b.y, 0}};
+		CHECK(std::abs((s.xy0().vector() - s3.vector()).norm2()) < 1e-4);
+
+		// Case: point between segment bounds
+		{
+			// A point between a and b on x coords and random y coords
+			// Should be at distance of y from segment
+			double d = rand_scalar();
+			vec2 p{rand_scalar(0, b.x), d};
+			CHECK(std::abs(s.distance(p) - d) < 1e-4);
+		}
+
+		// Case: point out of segment bounds
+		{
+			double d = rand_scalar();
+			vec2 p{rand_scalar(b.x, b.x + d), b.y};
+			CHECK(std::abs(s.distance(p) - (p.x - b.x)) < 1e-4);
+		}
+		{
+			double d = rand_scalar();
+			vec2 p{rand_scalar(-d, 0), b.y};
+			CHECK(std::abs(s.distance(p) - (-p.x)) < 1e-4);
+		}
+
+		// Case: degenerated segment
+		{
+			// Distance of degenerated segment to a point 
+			// is distance from point to point
+			vec2 p = rand_v2();
+			vec2 a = rand_v2();
+			vec2 b = a + vec2{0, 1e-16};
+			Segment2 degenerated_s{a, b};
+			vec2 v = p - a;
+			double dist = sqrt(v * v);
+
+			double actual_dist = degenerated_s.distance(p);
+
+			INFO("expected dist: " << dist << ", from: " << degenerated_s << ", to: " << p);
+			INFO("actual dist: " << actual_dist);
+			CHECK(std::abs(actual_dist - dist) < 1e-4);
+		}
+	}
+}
+
+TEST_CASE("Test segment 3", "[geom][segment]") {
+	for (int i = 0; i < 100; i++) {
+		vec3 a{0,0,0};
+		vec3 b{rand_scalar(), 0, 0};
+
+		Segment3 s{a, b};
+		REQUIRE(std::abs((s.a - a).norm2()) < 1e-4);
+
+		CHECK(std::abs(s.length() - (b.x - a.x)) < 1e-4);
+		CHECK(std::abs(s.length() * s.length() - s.length2()) < 1e-4);
+
+		CHECK(std::abs((s.vector() - (b - a)).norm2()) < 1e-4);
+
+		Segment2 s2{{a.x, a.y}, {b.x, b.y}};
+		CHECK(std::abs((s.xy().vector() - s2.vector()).norm2()) < 1e-4);
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		// Compute random u, v that sum up to 1 !
+		float u = rand_scalar(-2., 2.);
+		float v =  1. - u;
+		vec2 expected_bary_coords{u, v};
+		
+		vec3 A = vec3{0,0,0} + rand_v3() * .5;
+		vec3 B = vec3{1,0,0} + rand_v3() * .5;
+		// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html
+		// u, v the barycentric coordinates
+		// P = A + u * AB
+		// so v = (1 - u) then P = (1 - u) * A + u * B
+		Segment3 s{A, B};
+		vec3 P =  A + v * (B - A);
+
+		double actual_u = s.bary_coords(P);
+		INFO("u:" << actual_u << ", " << u << "," << v);
+
+		CHECK(std::abs((actual_u - u) < 1e-4));
+
+		vec3 actual_closest = s.closest_point(P);
+		vec3 expected_closest = s.a;
+		if (u < 0.)
+			expected_closest = s.b;
+		else if (u > 1)
+			expected_closest = s.a;
+		else 
+			expected_closest = s.b + u * (s.a - s.b);
+			
+		CHECK(std::abs((expected_closest - actual_closest).norm2()) < 1e-4);
+	}
 }
