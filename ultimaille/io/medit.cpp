@@ -250,7 +250,7 @@ namespace UM {
         const int nb_facets = nb_of_tri + nb_of_quads;
         if (nb_facets > 0) {    
             GenericAttribute<int> facet_region_attr(nb_facets);
-            for (int i = 0; i < facet_region.size(); i++) {
+            for (int i = 0; i < static_cast<int>(facet_region.size()); i++) {
                 facet_region_attr[i] = facet_region[i];
             }
 
@@ -260,7 +260,7 @@ namespace UM {
         const int nb_cells = nb_of_tets + nb_of_hexs + nb_of_prisms + nb_of_pyramids;
         if (nb_cells > 0) {    
             GenericAttribute<int> cell_region_attr(nb_cells);
-            for (int i = 0; i < cell_region.size(); i++) {
+            for (int i = 0; i < static_cast<int>(cell_region.size()); i++) {
                 cell_region_attr[i] = cell_region[i];
             }
 

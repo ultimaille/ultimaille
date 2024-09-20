@@ -130,7 +130,7 @@ TEST_CASE("Test segment geom", "[geom]") {
 	// Get first half-edge and extract segment
 	for (int hi = 0; hi < 3; hi++) {
 		auto h = Surface::Halfedge(m, hi);
-		auto s = h.geom();
+		Segment3 s = h;
 
 		// Check that segment references points correctly
 		CHECK(std::abs((s[0] - m.points[hi % 3]).norm2()) < 1e-4);
@@ -189,12 +189,12 @@ TEST_CASE("Test triangle geom", "[geom]") {
 
 	// Check normal
 	for (auto f : m.iter_facets()) {
-		CHECK(f.geom<Triangle3>().normal().z > 0);
+		CHECK(Triangle3(f).normal().z > 0);
 	}
 
 	// Check bary
 	auto f = m.iter_facets().begin().f;
-	auto tri_f = f.geom<Triangle3>();
+	Triangle3 tri_f = f;
 	CHECK(std::abs((tri_f.bary_verts() - vec3{0.5,0.5/3.,0}).norm()) < 1e-4);
 
 	// Check area comparing with formula A = bh / 2
@@ -333,13 +333,13 @@ TEST_CASE("Test quad geom", "[geom]") {
 
 	// Get geometry of first face
 	auto f = m.iter_facets().begin().f;
-	auto quad_f = f.geom<Quad3>();
+	Quad3 quad_f = f;
 
 	INFO("quad: " << quad_f.normal());
 
 	// Check normal
 	for (auto f : m.iter_facets()) {
-		auto n = f.geom<Quad3>().normal().z;
+		auto n = Quad3(f).normal().z;
 		CHECK(n > 0);
 	}
 
@@ -380,7 +380,7 @@ TEST_CASE("Test quad geom", "[geom]") {
 
 		// Get geometry of first face
 		auto custom_m_f = custom_m.iter_facets().begin().f;
-		auto custom_quad = custom_m_f.geom<Quad3>().xy();
+		auto custom_quad = Quad3(custom_m_f).xy();
 
 		// Check consistency between verdict result & ultimaille result
 		double scaled_jacobian = custom_quad.scaled_jacobian();
@@ -421,11 +421,11 @@ TEST_CASE("Test poly geom", "[geom]") {
 
 	// // Get geometry of first face
 	auto f = m.iter_facets().begin().f;
-	auto poly_f = f.geom<Poly3>();
+	Poly3 poly_f = f;
 
 	// // Check normal
 	for (auto f : m.iter_facets()) {
-		CHECK(f.geom<Poly3>().normal().z > 0);
+		CHECK(Poly3(f).normal().z > 0);
 	}
 
 	// Check bary
@@ -464,7 +464,7 @@ TEST_CASE("Test tetra geom", "[geom]") {
 
 	// Check bary
 	auto c = m.iter_cells().begin().data;
-	auto tet_c = c.geom<Tetrahedron>();
+	Tetrahedron tet_c = c;
 
 	vec3 bary{0,0,sqrt(6.0)/12.0};
 	INFO("tet bary: " << tet_c.bary_verts());
@@ -485,7 +485,7 @@ TEST_CASE("Test tetra geom", "[geom]") {
 	// It's the surface on plane x, y
 	m.connect();
 	auto f = c.iter_facets().begin().data;
-	auto tet_f = f.geom<Triangle3>();
+	Triangle3 tet_f = f;
 	INFO("facet points: " << tet_f[0] << "," << tet_f[1] << "," << tet_f[2]);
 
 	// Check normal
@@ -547,7 +547,7 @@ TEST_CASE("Test hexa geom", "[geom]") {
 
 	// Check bary
 	auto c = m.iter_cells().begin().data;
-	auto hex_c = c.geom<Hexahedron>();
+	Hexahedron hex_c = c;
 
 	INFO("hex bary: " << hex_c.bary_verts());
 	CHECK(std::abs((hex_c.bary_verts() - vec3{0,0,0}).norm2()) < 1e-4);
@@ -562,7 +562,7 @@ TEST_CASE("Test hexa geom", "[geom]") {
 	// It's the left of the cube
 	m.connect();
 	auto f = c.iter_facets().begin().data;
-	auto hex_f = f.geom<Quad3>();
+	Quad3 hex_f = f;
 	INFO("facet points: " << hex_f[0] << "," << hex_f[1] << "," << hex_f[2] << "," << hex_f[3]);
 
 	// Check normal
@@ -616,7 +616,7 @@ TEST_CASE("Test hexa geom", "[geom]") {
 
 		// Get geometry of first face
 		auto custom_m_f = custom_m.iter_cells().begin().data;
-		auto custom_quad = custom_m_f.geom<Hexahedron>();
+		Hexahedron custom_quad = custom_m_f;
 
 		// Check consistency between verdict result & ultimaille result
 		double scaled_jacobian = custom_quad.scaled_jacobian();
@@ -652,7 +652,7 @@ TEST_CASE("Test pyramid geom", "[geom]") {
 
 	// Check bary
 	auto c = m.iter_cells().begin().data;
-	auto pyr_c = c.geom<Pyramid>();
+	Pyramid pyr_c = c;
 
 	INFO("pyramid bary: " << pyr_c.bary_verts());
 	// All distances from apex should be equal to 1
@@ -744,9 +744,9 @@ TEST_CASE("Test polygon facet extraction geom", "[geom]") {
 		w.vert(0, i) = i;
 
 	// Should be a triangle
-	CHECK(Volume::Facet(w, 0).geom<Poly3>().v.size() == 3);
+	CHECK(Poly3(Volume::Facet(w, 0)).v.size() == 3);
 	// Should be a quad
-	CHECK(Volume::Facet(w, 2).geom<Poly3>().v.size() == 4);
+	CHECK(Poly3(Volume::Facet(w, 2)).v.size() == 4);
 
 
 	Pyramids p;
@@ -762,10 +762,10 @@ TEST_CASE("Test polygon facet extraction geom", "[geom]") {
 		w.vert(0, i) = i;
 
 	// Should be a quad
-	CHECK(Volume::Facet(p, 0).geom<Poly3>().v.size() == 4);
+	CHECK(Poly3(Volume::Facet(p, 0)).v.size() == 4);
 	// Should be triangles
 	for (int i = 1; i < 5; i++)
-		CHECK(Volume::Facet(p, i).geom<Poly3>().v.size() == 3);
+		CHECK(Poly3(Volume::Facet(p, i)).v.size() == 3);
 
 
 }
