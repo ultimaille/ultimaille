@@ -239,7 +239,7 @@ namespace UM {
         return c * a + (1. - c) * b;
     }
 
-    [[deprecated]] inline vec3 Segment3::closest_point(const vec3 &P) const {
+    inline vec3 Segment3::closest_point(const vec3 &P) const {
         double c = bary_coords(P);
         if (c < 0) return b;
         if (c > 1) return a;
