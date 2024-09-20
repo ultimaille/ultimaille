@@ -92,6 +92,9 @@ namespace UM {
      * Store bounding boxes as hierarchical tree of boxes
     */
     template<int n> struct HBoxes {
+        
+        HBoxes() {}
+
         HBoxes(std::vector<BBox<n>> const &boxes) {
             init(boxes);
         }
