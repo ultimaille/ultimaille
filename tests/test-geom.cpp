@@ -448,7 +448,7 @@ TEST_CASE("Test poly geom", "[geom]") {
     // Considering the polygon is regular we have the formula: A = r²n*sin(360/n)*0.5
     double r = 1.;
     int n = nbv;
-    double computed_area = (r*r)*n*sin(360/n*0.01745329)*0.5;
+    double computed_area = (r*r)*n*sin(360./n*0.01745329)*0.5;
     INFO("regular polygon area is: " << computed_area);
     CHECK(std::abs(area - computed_area) < 1e-2);
 }
