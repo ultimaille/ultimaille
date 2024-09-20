@@ -142,65 +142,65 @@ namespace UM {
 
 
 inline auto PolyLine::iter_vertices() {
-	struct iterator {
-		Vertex v;
-		void operator++() { ++v.id; }
-		bool operator!=(const iterator& rhs) const { return v != rhs.v; }
-		Vertex& operator*() { return v; }
-	};
-	struct wrapper {
-		PolyLine& m;
-		auto begin() { return iterator{ {m,0} }; }
-		auto end() { return iterator{ {m,m.nverts()} }; }
-	};
-	return wrapper{ *this };
+    struct iterator {
+        Vertex v;
+        void operator++() { ++v.id; }
+        bool operator!=(const iterator& rhs) const { return v != rhs.v; }
+        Vertex& operator*() { return v; }
+    };
+    struct wrapper {
+        PolyLine& m;
+        auto begin() { return iterator{ {m,0} }; }
+        auto end() { return iterator{ {m,m.nverts()} }; }
+    };
+    return wrapper{ *this };
 }
 
 inline auto PolyLine::iter_edges() {
-	struct iterator {
-		Edge h;
-		void operator++() {
-			++h.id;
-			if (h.m.connected())
-				while (h.id < h.m.nedges() && !h.active()) ++h.id;
-		}
-		bool operator!=(const iterator& rhs) const { return h != rhs.h; }
-		Edge& operator*() { return h; }
-	};
-	struct wrapper {
-		PolyLine& m;
-		auto begin() {
-			iterator res{ {m,0} };
-			if (m.connected())
-				if (m.nedges() > 0 && !res.h.active()) ++res;
-			return res;
-		}
-		auto end() { return iterator{ {m,m.nedges()} }; }
-	};
-	return wrapper{ *this };
+    struct iterator {
+        Edge h;
+        void operator++() {
+            ++h.id;
+            if (h.m.connected())
+                while (h.id < h.m.nedges() && !h.active()) ++h.id;
+        }
+        bool operator!=(const iterator& rhs) const { return h != rhs.h; }
+        Edge& operator*() { return h; }
+    };
+    struct wrapper {
+        PolyLine& m;
+        auto begin() {
+            iterator res{ {m,0} };
+            if (m.connected())
+                if (m.nedges() > 0 && !res.h.active()) ++res;
+            return res;
+        }
+        auto end() { return iterator{ {m,m.nedges()} }; }
+    };
+    return wrapper{ *this };
 }
 
 
 inline auto PolyLine::Vertex::iter_edges() {
-	assert(m.connected());
-	struct iterator {
-		PolyLine::Edge he;
-		void operator++() {
-			const auto& c2c = he.m.conn->e2e;
-			do {
-				he = c2c[he];
-				if (he == -1) return;
-			} while (!he.active());
-		}
-		bool operator!=(const iterator& rhs) const { return he != rhs.he; }
-		PolyLine::Edge& operator*() { return he; }
-	};
-	struct wrapper {
-		Vertex v;
-		iterator begin() { return { v.edge() }; }
-		iterator end() { return { {v.m, -1} }; }
-	};
-	return wrapper{ *this };
+    assert(m.connected());
+    struct iterator {
+        PolyLine::Edge he;
+        void operator++() {
+            const auto& c2c = he.m.conn->e2e;
+            do {
+                he = c2c[he];
+                if (he == -1) return;
+            } while (!he.active());
+        }
+        bool operator!=(const iterator& rhs) const { return he != rhs.he; }
+        PolyLine::Edge& operator*() { return he; }
+    };
+    struct wrapper {
+        Vertex v;
+        iterator begin() { return { v.edge() }; }
+        iterator end() { return { {v.m, -1} }; }
+    };
+    return wrapper{ *this };
 }
 
 
@@ -216,14 +216,14 @@ inline auto PolyLine::Vertex::iter_edges() {
 inline PolyLine::Primitive::Primitive(PolyLine& m, int id) : m(m), id(id) {}
 
 inline PolyLine::Primitive& PolyLine::Primitive::operator=(PolyLine::Primitive& p) {
-	assert(&m == &p.m);
-	id = p.id;
-	return *this;
+    assert(&m == &p.m);
+    id = p.id;
+    return *this;
 }
 
 inline PolyLine::Primitive& PolyLine::Primitive::operator=(int i) {
-	id = i;
-	return *this;
+    id = i;
+    return *this;
 }
 
 inline PolyLine::Primitive::operator int() const { return id; }
@@ -232,67 +232,67 @@ inline PolyLine::Primitive::operator int& () { return id; }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 inline PolyLine::Vertex& PolyLine::Vertex::operator=(PolyLine::Vertex& v) {
-	Primitive::operator=(v);
-	return *this;
+    Primitive::operator=(v);
+    return *this;
 }
 
 inline vec3  PolyLine::Vertex::pos() const { return m.points[id]; }
 inline vec3& PolyLine::Vertex::pos() { return m.points[id]; }
 
 inline PolyLine::Edge PolyLine::Vertex::edge() {
-	assert(m.connected());
-	PolyLine::Edge res{m, m.conn->v2e[id]};
-	while (res >= 0 && !res.active()) {
-		res = m.conn->e2e[res];
-	}
-	return res;
+    assert(m.connected());
+    PolyLine::Edge res{m, m.conn->v2e[id]};
+    while (res >= 0 && !res.active()) {
+        res = m.conn->e2e[res];
+    }
+    return res;
 }
 
 inline bool PolyLine::Vertex::active() {
-	return id >= 0;
+    return id >= 0;
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 inline PolyLine::Edge& PolyLine::Edge::operator=(PolyLine::Edge& he) {
-	Primitive::operator=(he);
-	return *this;
+    Primitive::operator=(he);
+    return *this;
 }
 
 inline bool PolyLine::Edge::active() {
-	return id >= 0 && m.conn->active[id];
+    return id >= 0 && m.conn->active[id];
 }
 
 
 inline PolyLine::Edge PolyLine::Edge::opposite() {
-	assert(m.connected());
-	assert(active());
-	Edge result = { m, -1 }; // not found        
-	for (auto candidate : to().iter_edges()) {
-		um_assert(candidate.from() == to());
-		if (candidate.to() == from()) {
-			if (result == -1) result = candidate;
-			else return { m, -1 }; // found more than one
-		}
-	}
-	return result;
+    assert(m.connected());
+    assert(active());
+    Edge result = { m, -1 }; // not found        
+    for (auto candidate : to().iter_edges()) {
+        um_assert(candidate.from() == to());
+        if (candidate.to() == from()) {
+            if (result == -1) result = candidate;
+            else return { m, -1 }; // found more than one
+        }
+    }
+    return result;
 }
 
 inline PolyLine::Vertex PolyLine::Edge::from() const {
-	return { m, m.vert(id, 0) };
+    return { m, m.vert(id, 0) };
 }
 
 inline PolyLine::Vertex PolyLine::Edge::to() const {
-	return { m, m.vert(id, 1) };
+    return { m, m.vert(id, 1) };
 }
 
 inline Segment3 PolyLine::Edge::geom() {
-	return Segment3(from().pos(), to().pos());
+    return Segment3(from().pos(), to().pos());
 }
 
 inline PolyLine::Edge::operator Segment3() const {
-	return {from().pos(), to().pos()};
+    return {from().pos(), to().pos()};
 }
 
 
