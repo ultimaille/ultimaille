@@ -120,7 +120,7 @@ namespace UM {
 
             bool active();
             bool on_boundary();
-            Facet facet();
+            Facet facet() const;
 
             Halfedge next();
             Halfedge prev();
@@ -129,10 +129,11 @@ namespace UM {
             int id_in_facet();
 
             friend struct Vertex;
-            Vertex from();
-            Vertex to();
+            Vertex from() const;
+            Vertex to() const;
 
-            inline Segment3 geom();
+            [[deprecated]] inline Segment3 geom();
+            inline operator Segment3() const;
 
             auto iter_sector_halfedges();
         };
@@ -146,10 +147,14 @@ namespace UM {
 
             Vertex vertex(int lv);
             Halfedge halfedge(int lh = 0);
-            int size();
+            int size() const;
             bool active();
 
-            template<typename T> T geom();
+            template<typename T> [[deprecated]] T geom();
+            operator Triangle3() const;
+            operator Quad3() const;
+            operator Poly3() const;
+
             auto iter_halfedges();
         };
 
@@ -158,30 +163,12 @@ namespace UM {
         auto iter_facets();
     };
 
-    template<> inline Triangle3 Surface::Facet::geom() {
-        um_assert(size()==3);
-        return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
-    }
-
-    template<> inline Quad3 Surface::Facet::geom() {
-        um_assert(size()==4);
-        return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
-    }
-
-    template<> inline Poly3 Surface::Facet::geom() {
-        std::vector<vec3> pts(size());
-        for (int i = 0; i < size(); i++)
-            pts[i] = vertex(i).pos();
-
-        return Poly3{pts};
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Triangles : Surface { // simplicial mesh implementation
-        
+
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -201,7 +188,6 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Quads : Surface { // quad mesh implementation
-        
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -430,12 +416,12 @@ namespace UM {
                 cir = m.conn->c2c[cir];
             } while (cir != -1 && !cir.active());
         }
-        
+
         // Found an opposite
         return result < 0;
     }
 
-    inline Surface::Facet Surface::Halfedge::facet() {
+    inline Surface::Facet Surface::Halfedge::facet() const {
         assert(m.connected());
         return { m, m.conn->c2f[id] };
     }
@@ -478,13 +464,13 @@ namespace UM {
 
     }
 
-    inline Surface::Vertex Surface::Halfedge::from() {
+    inline Surface::Vertex Surface::Halfedge::from() const {
         auto f = facet();
         int lh = id - f.halfedge();
         return { m, m.vert(f, lh) };
     }
 
-    inline Surface::Vertex Surface::Halfedge::to() {
+    inline Surface::Vertex Surface::Halfedge::to() const {
         auto f = facet();
         int lh = id - f.halfedge();
         int n = f.size();
@@ -496,6 +482,10 @@ namespace UM {
     }
 
     inline Segment3 Surface::Halfedge::geom() {
+        return {from().pos(), to().pos()};
+    }
+
+    inline Surface::Halfedge::operator Segment3() const {
         return {from().pos(), to().pos()};
     }
 
@@ -515,12 +505,47 @@ namespace UM {
     }
 
 
-    inline int Surface::Facet::size() {
+    inline int Surface::Facet::size() const {
         return m.facet_size(id);
     }
 
     inline bool Surface::Facet::active() {
         return id>=0 && (!m.connected() || m.conn->active[id]);
+    }
+
+    template<> inline Triangle3 Surface::Facet::geom() {
+        um_assert(size()==3);
+        return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
+    }
+
+    template<> inline Quad3 Surface::Facet::geom() {
+        um_assert(size()==4);
+        return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
+    }
+
+    template<> inline Poly3 Surface::Facet::geom() {
+        std::vector<vec3> pts(size());
+        for (int i = 0; i < size(); i++)
+            pts[i] = vertex(i).pos();
+
+        return Poly3{pts};
+    }
+
+    inline Surface::Facet::operator Triangle3() const {
+        um_assert(size()==3);
+        return { m.points[m.vert(id, 0)], m.points[m.vert(id, 1)], m.points[m.vert(id, 2)] };
+    }
+
+    inline Surface::Facet::operator Quad3() const {
+        um_assert(size()==4);
+        return { m.points[m.vert(id, 0)], m.points[m.vert(id, 1)], m.points[m.vert(id, 2)], m.points[m.vert(id, 3)] };
+    }
+
+    inline Surface::Facet::operator Poly3() const {
+        std::vector<vec3> pts(size());
+        for (int i = 0; i < size(); i++)
+            pts[i] = m.points[m.vert(id, i)];
+        return {pts};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

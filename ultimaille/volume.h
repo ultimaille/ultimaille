@@ -199,8 +199,8 @@ namespace UM {
 
             Facet facet();
             int id_in_facet();
-            Vertex from();
-            Vertex to();
+            Vertex from() const;
+            Vertex to() const;
             Corner from_corner();
             Corner to_corner();
             Halfedge next();
@@ -210,7 +210,8 @@ namespace UM {
             Halfedge opposite_f();
             Halfedge opposite_c();
 
-            inline Segment3 geom();
+            [[deprecated]] inline Segment3 geom();
+            operator Segment3() const;
 
             auto iter_CCW_around_edge();
         };
@@ -238,7 +239,10 @@ namespace UM {
             Cell cell();
             int id_in_cell();
 
-            template<typename T> T geom();
+            template<typename T> [[deprecated]] T geom();
+            operator Triangle3();
+            operator Quad3();
+            operator Poly3();
 
             auto iter_halfedges();
         };
@@ -260,7 +264,11 @@ namespace UM {
             Vertex vertex(int lv);
             Halfedge halfedge(int lh);
 
-            template<typename T> T geom();
+            template<typename T> [[deprecated]] T geom();
+            operator Tetrahedron();
+            operator Hexahedron();
+            operator Pyramid();
+            operator Wedge();
 
             auto iter_facets();
             auto iter_corners();
@@ -552,12 +560,12 @@ namespace UM {
         return *this;
     }
 
-    inline Volume::Vertex Volume::Halfedge::from() {
+    inline Volume::Vertex Volume::Halfedge::from() const {
         assert(m.connected());
         return { m, m.conn->heh.from(id) };
     }
 
-    inline Volume::Vertex Volume::Halfedge::to() {
+    inline Volume::Vertex Volume::Halfedge::to() const {
         assert(m.connected());
         return { m, m.conn->heh.to(id) };
     }
@@ -620,6 +628,10 @@ namespace UM {
     }
 
     inline Segment3 Volume::Halfedge::geom() {
+        return {from().pos(), to().pos()};
+    }
+
+    inline Volume::Halfedge::operator Segment3() const {
         return {from().pos(), to().pos()};
     }
 
@@ -820,6 +832,26 @@ namespace UM {
         return Wedge(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos());
     }
 
+    inline Volume::Cell::operator Tetrahedron() {
+        um_assert(nfacets()==4 && nverts()==4);
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos() };
+    }
+
+    inline Volume::Cell::operator Pyramid() {
+        um_assert(nfacets()==5 && nverts()==5);
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos() };
+    }
+
+    inline Volume::Cell::operator Hexahedron() {
+        um_assert(nfacets()==6 && nverts()==8);
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos() };
+    }
+
+    inline Volume::Cell::operator Wedge() {
+        um_assert(nfacets()==5 && nverts()==6);
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos() };
+    }
+
     template<> inline Triangle3 Volume::Facet::geom() {
         um_assert(nverts()==3);
         return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
@@ -838,6 +870,26 @@ namespace UM {
             pts[i] = vertex(i).pos();
 
         return Poly3{pts};
+    }
+
+    inline Volume::Facet::operator Triangle3() {
+        um_assert(nverts()==3);
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos() };
+    }
+
+    inline Volume::Facet::operator Quad3() {
+        um_assert(nverts()==4);
+        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos() };
+    }
+
+    inline Volume::Facet::operator Poly3() {
+        // TODO replace m.facet_size(id) => size() but we have to add size() on volume facet
+        int size = m.facet_size(id);
+        std::vector<vec3> pts(size);
+        for (int i = 0; i < size; i++)
+            pts[i] = vertex(i).pos();
+
+        return {pts};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
