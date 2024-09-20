@@ -92,21 +92,14 @@ namespace UM {
      * Store bounding boxes as hierarchical tree of boxes
     */
     template<int n> struct HBoxes {
-
-        HBoxes() {
-        }
-
-
         HBoxes(std::vector<BBox<n>> const &boxes) {
             init(boxes);
         }
 
-
-
         void init(std::vector<BBox<n>> const &boxes) {
             int nboxes = boxes.size();
             std::vector<vec<n>> G(nboxes);
-            // Implicit binary tree: 
+            // Implicit binary tree:
             // https://opendatastructures.org/ods-cpp/10_1_Implicit_Binary_Tree.html
             // Use indirection map
             tree_pos_to_org.resize(nboxes);
@@ -121,7 +114,7 @@ namespace UM {
     #endif
             sort(G, 0, nboxes);
 
-            // Compute the offset that mark the end index of nodes boxes 
+            // Compute the offset that mark the end index of nodes boxes
             // and the start index of leaves boxes
             offset = static_cast<int>(std::pow(2., 1. + mylog2(nboxes))) - 1;
             // Tree is resized to the number of boxes (leaves) 
@@ -138,9 +131,10 @@ namespace UM {
                         tree[i].add(tree[son]);
             }
         }
+
         // Sort a slice of the indirection array
         void sort(std::vector<vec<n>> &G, int org, int dest) const {
-            // Create a bounding box that encompass underlying bounding boxes 
+            // Create a bounding box that encompass underlying bounding boxes
             // (found in the selected slice of indirection array)
             BBox<n> b;
             for (int i=org; i<dest; i++)
@@ -175,7 +169,7 @@ namespace UM {
             // Sort leaves boxes
             sort(G, m, dest);
         }
-        
+
         void intersect(BBox<n> const &b, std::vector<int> &primitives, int node=0) const {
             if (!node) primitives.resize(0);
             assert(node>=0 && node < static_cast<int>(tree.size()));

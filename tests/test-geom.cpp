@@ -153,11 +153,22 @@ TEST_CASE("Test segment geom", "[geom]") {
 	vec3 p1{-3.8, 0.2, 0.5};
 	
 	// Check closest point
-	INFO("closest point of p0: " << p0 << " is " << s.closest_point(p0));
-	INFO("closest point of p1: " << p1 << " is " << s.closest_point(p1));
-	CHECK(std::abs((s.closest_point(p0) - sb).norm2()) < 1e-4);
-	CHECK(std::abs((s.closest_point(p1) - sa).norm2()) < 1e-4);
+	INFO("closest point of p0: " << p0 << " is " << s.nearest_point(p0));
+	INFO("closest point of p1: " << p1 << " is " << s.nearest_point(p1));
+	CHECK(std::abs((s.nearest_point(p0) - sb).norm2()) < 1e-4);
+	CHECK(std::abs((s.nearest_point(p1) - sa).norm2()) < 1e-4);
 }
+
+TEST_CASE("Test triangle3 nearest point", "[geom]") {
+    Triangle3 t = {{-1, 5, 0}, {2, 2, -3}, {5, 5, 0}};
+    std::vector<vec3> pts = {{1, 1, 1}, {-1, -3, -4}, {2, 4, -1}, {-2.732051, 6.732051, 1.732051}, {3, 7, -4}};
+    std::vector<vec3> prj = {{1, 3.5, -1.5}, {2, 2, -3}, {2, 4, -1}, {-1, 5, 0}, {3, 4, -0.9999995}};
+    for (auto [p,q] : zip(pts, prj)) {
+        vec3 nearest = t.nearest_point(p);
+        CHECK( (nearest-q).norm() < 1e-4 );
+    }
+}
+
 
 TEST_CASE("Test triangle geom", "[geom]") {
 

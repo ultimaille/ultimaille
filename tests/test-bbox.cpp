@@ -59,7 +59,7 @@ TEST_CASE("Test 2D bbox", "[bb]") {
     CHECK(std::abs((bbox1.size() - vec2{1., 1.}).norm()) < 1e-4);
 
     vec2 v;
-    std::cout <<v.x << std::endl;
+//  std::cout <<v.x << std::endl;
 
     // Dilate BBox
     bbox1.dilate(1.);

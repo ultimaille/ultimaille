@@ -76,7 +76,7 @@ namespace UM {
 		inline double length() const;
 		inline Segment2 xy() const;
 		inline double bary_coords(const vec3 &P) const;
-		inline vec3 closest_point(const vec3 &P) const;
+		inline vec3 nearest_point(const vec3 &P) const;
 
 		inline vec3& operator[](int i) { return v[i]; }
 		inline vec3 operator[](int i) const { return v[i]; }
@@ -120,6 +120,7 @@ namespace UM {
 		mat3x3 grad_operator2() const;
 		vec3 grad(vec3 u) const;
 		inline mat3x3 as_matrix() const;
+		inline vec3 nearest_point(const vec3 &p) const;
 
 		inline vec3& operator[](int i) { return v[i]; }
 		inline vec3 operator[](int i)const { return v[i]; }
@@ -230,7 +231,7 @@ namespace UM {
 		return (v[1] - P) * (v[1] - v[0]) / (v[1] - v[0]).norm2();
 	}
 
-	inline vec3 Segment3::closest_point(const vec3 &P) const {
+	inline vec3 Segment3::nearest_point(const vec3 &P) const {
 		double c = bary_coords(P);
 		if (c < 0) return v[1];
 		if (c > 1) return v[0];
@@ -286,6 +287,43 @@ namespace UM {
 	inline mat3x3 Triangle3::as_matrix() const {
 		return {{v[0], v[1], v[2]}};
 	}
+
+    inline vec3 Triangle3::nearest_point(const vec3 &p) const {
+        vec3 ab = v[1] - v[0];
+        vec3 ac = v[2] - v[0];
+        vec3 ap = p - v[0];
+
+        double d1 = ab*ap;
+        double d2 = ac*ap;                       //                            3    .
+        if (d1 <= 0 && d2 <= 0) return v[0];     // region 1, vertex a            .
+                                                 //                          ...c
+        vec3 bp = p - v[1];                      //                             ..
+        double d3 = ab*bp;                       //                             . .   6
+        double d4 = ac*bp;                       //                             .  .
+        if (d3 >= 0 && d4 <= d3) return v[1];    // region 2, vertex b       5  . 0 .     .
+                                                 //                             .    .  .
+        vec3 cp = p - v[2];                      //                          ...a.....b
+        double d5 = ab*cp;                       //                             .     .  2
+        double d6 = ac*cp;                       //                           1 .  4  .
+        if (d6 >= 0 && d5 <= d6) return v[2];    // region 3, vertex c          .     .
+
+        double vc = d1 * d4 - d3 * d2;
+        if (vc <= 0 && d1 >= 0 && d3 <= 0)
+            return v[0] + ab * (d1 / (d1 - d3)); // region 4, edge ab
+
+        double vb = d5 * d2 - d1 * d6;
+        if (vb <= 0 && d2 >= 0 && d6 <= 0)
+            return v[0] + ac * (d2 / (d2 - d6)); // region 5, edge ac
+
+        double va = d3 * d6 - d5 * d4;
+        if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) // region 6, edge bc
+            return v[1] + (v[2] - v[1]) * ((d4 - d3) / ((d4 - d3) + (d5 - d6)));
+
+        double denom = 1 / (va + vb + vc);
+        double t = vb * denom;
+        double s = vc * denom;
+        return v[0] + t * ab + s * ac;           // region 0, triangle abc
+    }
 
 	inline vec2 Quad2::bary_verts() const {
 		return (v[0] + v[1] + v[2] + v[3]) / 4;
