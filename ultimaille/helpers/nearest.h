@@ -1,7 +1,6 @@
 #ifndef __NEAREST_H__
 #define __NEAREST_H__
 
-#include <vector>
 #include "ultimaille/algebra/vec.h"
 #include "ultimaille/helpers/hboxes.h"
 #include "ultimaille/surface.h"
@@ -14,12 +13,11 @@ namespace UM {
         vec3 p;
     };
 
-    struct NearestPointOnMesh : HBoxes<3> {
-        NearestPointOnMesh(const Triangles &m);
-        PointOnMesh query(vec3 p);
+    struct BVHTriangles : HBoxes<3> {
+        BVHTriangles(const Triangles &m);
+        PointOnMesh nearest_point(vec3 p);
 
         Triangles &m; // TODO convert it to const ref
-        std::vector<BBox3> bboxes;
     };
 
 }

@@ -5,7 +5,8 @@
 
 namespace UM {
 
-    NearestPointOnMesh::NearestPointOnMesh(const Triangles &mesh) : m(const_cast<Triangles &>(mesh)), bboxes(m.nfacets()) {
+    BVHTriangles::BVHTriangles(const Triangles &mesh) : m(const_cast<Triangles &>(mesh)) {
+        std::vector<BBox3> bboxes(m.nfacets());
         for (int f=0; f<m.nfacets(); f++)               // create boxes bounding
             for (int lv=0; lv<m.facet_size(f); lv++)    // individual faces
                 bboxes[f].add(m.points[m.vert(f, lv)]);
@@ -24,7 +25,7 @@ namespace UM {
                 ).norm2();
     }
 
-    PointOnMesh NearestPointOnMesh::query(vec3 p) {
+    PointOnMesh BVHTriangles::nearest_point(vec3 p) {
         double best_dist2 = std::numeric_limits<double>::max();
         PointOnMesh best_point = {{m, 0}, {0,0,0}};
 
