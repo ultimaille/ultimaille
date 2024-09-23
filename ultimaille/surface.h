@@ -81,6 +81,7 @@ namespace UM {
             Primitive(Primitive& p) = default;
             Primitive(Primitive&& p) = default;
 
+            Primitive& operator=(Primitive&& p);
             Primitive& operator=(Primitive& p);
             Primitive& operator=(int i);
 
@@ -101,6 +102,7 @@ namespace UM {
             Vertex(Vertex&& v) = default;
             Vertex& operator=(Vertex& v);
 
+//          inline operator vec3() const;
             vec3  pos() const;
             vec3& pos();
             Halfedge halfedge();
@@ -338,6 +340,10 @@ namespace UM {
 
     inline Surface::Primitive::Primitive(Surface& m, int id) : m(m), id(id) {}
 
+    inline Surface::Primitive& Surface::Primitive::operator=(Surface::Primitive&& p) {
+        return Primitive::operator=(p);
+    }
+
     inline Surface::Primitive& Surface::Primitive::operator=(Surface::Primitive& p) {
         assert(&m == &p.m);
         id = p.id;
@@ -358,6 +364,10 @@ namespace UM {
         Primitive::operator=(v);
         return *this;
     }
+
+//  inline Surface::Vertex::operator vec3() const {
+//      return { m.points[id] };
+//  }
 
     inline vec3  Surface::Vertex::pos() const { return m.points[id]; }
     inline vec3& Surface::Vertex::pos() { return m.points[id]; }
