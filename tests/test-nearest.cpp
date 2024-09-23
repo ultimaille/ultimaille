@@ -20,6 +20,6 @@ TEST_CASE("projection to a 3d triangulated surface", "[nearest]") {
 
     auto p3 = npm.query({1.2124, -0.118379, 0.194748});
     CHECK( ((p3.f == 1) || (p3.f == 2) || (p3.f == 3)) ); // nearest is on the vertex between facets 1, 2 and 3
-    CHECK( (vec3{1, 0, 0} - static_cast<vec3>(p1)).norm() < 1e-5 );
+    CHECK( (vec3{1, 0, 0} - static_cast<vec3>(p3)).norm() < 1e-5 );
 }
 
