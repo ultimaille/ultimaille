@@ -1,5 +1,5 @@
-#ifndef __NEAREST_H__
-#define __NEAREST_H__
+#ifndef __BVH_H__
+#define __BVH_H__
 
 #include "ultimaille/algebra/vec.h"
 #include "ultimaille/helpers/hboxes.h"
@@ -13,7 +13,7 @@ namespace UM {
         vec3 p;
     };
 
-    struct BVHTriangles : HBoxes<3> {
+    struct BVHTriangles : HBoxes<3> { // bounding volume hierarchy
         BVHTriangles(const Triangles &m);
         PointOnMesh nearest_point(vec3 p);
 
@@ -22,5 +22,5 @@ namespace UM {
 
 }
 
-#endif //__NEAREST_H__
+#endif //__BVH_H__
 

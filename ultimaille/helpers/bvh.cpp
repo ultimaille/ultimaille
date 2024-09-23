@@ -1,7 +1,7 @@
 #include <limits>
 #include <queue>
 #include "ultimaille/primitive_geometry.h"
-#include "ultimaille/helpers/nearest.h"
+#include "ultimaille/helpers/bvh.h"
 
 namespace UM {
 

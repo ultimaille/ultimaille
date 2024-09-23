@@ -18,7 +18,7 @@
 #include <ultimaille/helpers/hilbert_sort.h>
 #include <ultimaille/helpers/hboxes.h>
 #include <ultimaille/helpers/knn.h>
-#include <ultimaille/helpers/nearest.h>
+#include <ultimaille/helpers/bvh.h>
 
 #include <ultimaille/io/xyz.h>
 #include <ultimaille/io/obj.h>
