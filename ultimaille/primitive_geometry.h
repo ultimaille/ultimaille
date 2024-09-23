@@ -56,7 +56,7 @@ namespace UM {
         // vec2 v[2]{};
         vec2 a{}, b{};
 
-        inline vec2 vector();
+        inline vec2 vector() const;
         inline double length2() const;
         inline double length() const;
         inline Segment3 xy0() const;
@@ -72,7 +72,7 @@ namespace UM {
 
         vec3 a{}, b{};
 
-		inline vec3 vector();
+		inline vec3 vector() const;
 		inline double length2() const;
 		inline double length() const;
 		inline Segment2 xy() const;
@@ -217,12 +217,12 @@ namespace UM {
         inline vec3 operator[](int i) const { return v[i]; }
     };
 
-    inline vec2 Segment2::vector() { return b - a; }
+    inline vec2 Segment2::vector() const { return b - a; }
     inline double Segment2::length2() const { return (b - a).norm2(); }
     inline double Segment2::length() const { return (b - a).norm(); }
     inline Segment3 Segment2::xy0() const { return Segment3(vec3(a.x, a.y, 0),vec3(b.x, b.y, 0)); }
 
-    inline vec3 Segment3::vector() { return b - a; }
+    inline vec3 Segment3::vector() const { return b - a; }
     inline double Segment3::length2() const { return (b - a).norm2(); }
     inline double Segment3::length() const { return (b - a).norm(); }
     inline Segment2 Segment3::xy() const { return Segment2 (vec2(a.x, a.y),vec2(b.x, b.y)); }
