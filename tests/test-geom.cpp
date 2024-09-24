@@ -22,24 +22,24 @@ double rand_scalar() {
     return rand()%100 / 100.;
 }
 
+double rand_signed_scalar() {
+    return (rand()%100) / 100. - .5;
+}
+
 double rand_scalar(float from, float to) {
     return from + rand()%100 / 100. * (to - from);
 }
 
-// vec2 rand_v2() {
-//     return {(rand()%100) / 100. - .5, (rand()%100) / 100. - .5};
-// }
-
 vec2 rand_v2() {
-    return {(rand()%100 - 50) / 100., (rand()%100 - 50) / 100.};
+    return {rand_signed_scalar(), rand_signed_scalar()};
 }
 
 vec3 rand_v3() {
-    return {(rand()%100 - 50) / 100., (rand()%100 - 50) / 100., (rand()%100 - 50) / 100.};
+    return {rand_signed_scalar(), rand_signed_scalar(), rand_signed_scalar()};
 }
 
 vec4 rand_v4() {
-    return {(rand()%100 - 50) / 100., (rand()%100 - 50) / 100., (rand()%100 - 50) / 100., (rand()%100 - 50) / 100.};
+    return {rand_signed_scalar(), rand_signed_scalar(), rand_signed_scalar(), rand_signed_scalar()};
 }
 
 bool are_doubles_equal(double a, double b, double eps) {
@@ -267,6 +267,9 @@ TEST_CASE("Test triangle geom", "[geom]") {
         Triangle2 r_tri(rand_v2(), rand_v2(), rand_v2());
         vec3 abc = rand_v3();
 
+        // Continue if degenerated
+        if (std::abs(r_tri.signed_area()) <1e-3) continue;
+
         vec2 grad = r_tri.grad(abc);
 
         // Rotate 90° all tri vectors (get orthogonal vectors)
@@ -293,6 +296,9 @@ TEST_CASE("Test triangle geom", "[geom]") {
 
     // 	Triangle3 r_tri(rand_v3(), rand_v3(), rand_v3());
     // 	vec3 abc = rand_v3();
+
+    // // Continue if degenerated
+    // if (std::abs(r_tri.signed_area()) <1e-3) continue;
 
     // 	vec3 grad = r_tri.grad(abc);
 
