@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cmath>
 #include <algorithm>
+#include <stdlib.h>
 
 using namespace UM;
 
@@ -17,10 +18,12 @@ struct VerdictResult {
     double result;
 };
 
-// Some useful functions
-
 double rand_scalar() {
     return rand()%100 / 100.;
+}
+
+double rand_signed_scalar() {
+    return (rand()%100) / 100. - .5;
 }
 
 double rand_scalar(float from, float to) {
@@ -28,15 +31,15 @@ double rand_scalar(float from, float to) {
 }
 
 vec2 rand_v2() {
-    return {(rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5};
+    return {rand_signed_scalar(), rand_signed_scalar()};
 }
 
 vec3 rand_v3() {
-    return {(rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5};
+    return {rand_signed_scalar(), rand_signed_scalar(), rand_signed_scalar()};
 }
 
 vec4 rand_v4() {
-    return {(rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5, (rand()%100 / 100.) - .5};
+    return {rand_signed_scalar(), rand_signed_scalar(), rand_signed_scalar(), rand_signed_scalar()};
 }
 
 bool are_doubles_equal(double a, double b, double eps) {
@@ -139,6 +142,8 @@ TEST_CASE("Test segment geom", "[geom]") {
     for (int hi = 0; hi < 3; hi++) {
         auto h = Surface::Halfedge(m, hi);
         Segment3 s = h;
+        auto v = s.vector();
+        INFO(v);
 
         // Check that segment references points correctly
         CHECK(std::abs((s[0] - m.points[hi % 3]).norm2()) < 1e-4);
@@ -176,9 +181,12 @@ TEST_CASE("Test triangle3 nearest point", "[geom]") {
         CHECK( (nearest-q).norm() < 1e-4 );
     }
 }
-
+// Some useful functions
+const unsigned int SEED = 42;
 
 TEST_CASE("Test triangle geom", "[geom]") {
+
+    srand(SEED);
 
     Triangles m;
     m.points.create_points(4);
@@ -259,6 +267,9 @@ TEST_CASE("Test triangle geom", "[geom]") {
         Triangle2 r_tri(rand_v2(), rand_v2(), rand_v2());
         vec3 abc = rand_v3();
 
+        // Continue if degenerated
+        if (std::abs(r_tri.signed_area()) <1e-3) continue;
+
         vec2 grad = r_tri.grad(abc);
 
         // Rotate 90° all tri vectors (get orthogonal vectors)
@@ -278,12 +289,6 @@ TEST_CASE("Test triangle geom", "[geom]") {
         INFO("exp grad: " << exp_grad);
         CHECK(are_vec_equal(grad, exp_grad, 1e-4));
 
-        // for (int v = 0; v < 3; v++) {
-        // 	INFO("grad:" << grad);
-        // 	INFO("a:" << grad * (r_tri[(v + 1) % 3] - r_tri[v]));
-        // 	INFO("b:" << abc[(v + 1) % 3] - abc[v]);
-        // 	CHECK(are_doubles_equal(grad * (r_tri[(v + 1) % 3] - r_tri[v]), abc[(v + 1) % 3] - abc[v], 1e-4));
-        // }
     }
 
     // // Check gradient on some random 3D triangles
@@ -291,6 +296,9 @@ TEST_CASE("Test triangle geom", "[geom]") {
 
     // 	Triangle3 r_tri(rand_v3(), rand_v3(), rand_v3());
     // 	vec3 abc = rand_v3();
+
+    // // Continue if degenerated
+    // if (std::abs(r_tri.signed_area()) <1e-3) continue;
 
     // 	vec3 grad = r_tri.grad(abc);
 
@@ -319,6 +327,8 @@ TEST_CASE("Test triangle geom", "[geom]") {
 }
 
 TEST_CASE("Test quad geom", "[geom]") {
+    srand(SEED);
+
     Quads m;
     m.points.create_points(6);
     m.points[0] = vec3(0,0,0);
@@ -409,6 +419,7 @@ TEST_CASE("Test quad geom", "[geom]") {
 }
 
 TEST_CASE("Test poly geom", "[geom]") {
+    srand(SEED);
 
     // Create a unique regular polygon facet of size 6
     const int nbv = 6;
@@ -454,6 +465,7 @@ TEST_CASE("Test poly geom", "[geom]") {
 }
 
 TEST_CASE("Test tetra geom", "[geom]") {
+    srand(SEED);
 
     // Construct a regular tetrahedron
     Tetrahedra m;
@@ -571,6 +583,7 @@ TEST_CASE("Test tetra geom", "[geom]") {
 }
 
 TEST_CASE("Test hexa geom", "[geom]") {
+    srand(SEED);
 
     // Construct a cube
     Hexahedra m;
@@ -678,6 +691,7 @@ TEST_CASE("Test hexa geom", "[geom]") {
 }
 
 TEST_CASE("Test pyramid geom", "[geom]") {
+    srand(SEED);
 
     // Construct an equilateral square pyramid
     // https://en.wikipedia.org/wiki/Square_pyramid
@@ -735,6 +749,7 @@ TEST_CASE("Test pyramid geom", "[geom]") {
 }
 
 TEST_CASE("Test wedge geom", "[geom]") {
+    srand(SEED);
 
     // Random wedge sample
     for (int i = 0; i < 10000; i++) {
@@ -779,7 +794,8 @@ TEST_CASE("Test wedge geom", "[geom]") {
 // This test aims to check that extracting an abstract polygon geometry from a facet 
 // give equivalent computations than computation from facet real shape
 TEST_CASE("Test polygon facet extraction geom", "[geom]") {
-    
+    srand(SEED);
+
     Wedges w;
     w.points.create_points(6);
     w.create_cells(1);
@@ -821,6 +837,8 @@ TEST_CASE("Test polygon facet extraction geom", "[geom]") {
 }
 
 TEST_CASE("Test segment 2", "[geom][segment]") {
+    srand(SEED);
+
     for (int i = 0; i < 100; i++) {
         vec2 a{0,0};
         vec2 b{rand_scalar(), 0};
@@ -878,6 +896,8 @@ TEST_CASE("Test segment 2", "[geom][segment]") {
 }
 
 TEST_CASE("Test segment 3", "[geom][segment]") {
+    srand(SEED);
+
     for (int i = 0; i < 100; i++) {
         vec3 a{0,0,0};
         vec3 b{rand_scalar(), 0, 0};
@@ -898,7 +918,7 @@ TEST_CASE("Test segment 3", "[geom][segment]") {
         // Compute random u, v that sum up to 1 !
         float u = rand_scalar(-2., 2.);
         float v =  1. - u;
-        vec2 expected_bary_coords{u, v};
+        // vec2 expected_bary_coords{u, v};
         
         vec3 A = vec3{0,0,0} + rand_v3() * .5;
         vec3 B = vec3{1,0,0} + rand_v3() * .5;
@@ -914,15 +934,15 @@ TEST_CASE("Test segment 3", "[geom][segment]") {
 
         CHECK(std::abs((actual_u - u) < 1e-4));
 
-        vec3 actual_closest = s.closest_point(P);
-        vec3 expected_closest = s.a;
+        vec3 actual_nearest = s.nearest_point(P);
+        vec3 expected_nearest = s.a;
         if (u < 0.)
-            expected_closest = s.b;
+            expected_nearest = s.b;
         else if (u > 1)
-            expected_closest = s.a;
+            expected_nearest = s.a;
         else 
-            expected_closest = s.b + u * (s.a - s.b);
+            expected_nearest = s.b + u * (s.a - s.b);
             
-        CHECK(std::abs((expected_closest - actual_closest).norm2()) < 1e-4);
+        CHECK(std::abs((expected_nearest - actual_nearest).norm2()) < 1e-4);
     }
 }
