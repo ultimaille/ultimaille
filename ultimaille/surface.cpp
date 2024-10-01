@@ -45,7 +45,6 @@ namespace UM {
 
     void Surface::Connectivity::init() {
         active.fill(true);
-        c2f.fill(-1);
         v2c.fill(-1);
 
         for (int f = 0; f < m.nfacets(); f++)
