@@ -6,7 +6,6 @@
 #include "surface.h"
 #include "volume.h"
 #include "attr_binding.h"
-#include "surface_connectivity.h"
 
 namespace UM {
 
