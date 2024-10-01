@@ -11,9 +11,9 @@ namespace UM {
     struct GenericAttributeContainer;
 
     struct PointSet {
-        PointSet() : data(new std::vector<vec3>()), attr(), util(*this) {}
-        PointSet(std::shared_ptr<std::vector<vec3> > ext) : data(ext), attr(), util(*this) {}
-        PointSet(const PointSet &p) : data(p.data), attr(p.attr), util(*this) {}
+        PointSet() : data(new std::vector<vec3>()) {}
+        PointSet(std::shared_ptr<std::vector<vec3> > ext) : data(ext) {}
+        PointSet(const PointSet &p) : data(p.data), attr(p.attr) {}
         PointSet& operator=(const PointSet& p) {
             if (this!=&p) {
                 data = p.data;
@@ -44,15 +44,7 @@ namespace UM {
         void compress_attrs(const std::vector<int> &old2new);
 
         std::shared_ptr<std::vector<vec3> > data;
-        std::vector<std::weak_ptr<GenericAttributeContainer> > attr;
-
-        struct Util {
-            Util(const PointSet &ps_) : ps(ps_) {}
-            BBox3 bbox() const;
-            std::tuple<mat3x3,vec3,vec3> principal_axes() const; // axes matrix (column vectors) ; corresponding eigenvalues (sorted in decreasing order) ; center
-            vec3 barycenter() const;
-            const PointSet &ps;
-        } util;
+        std::vector<std::weak_ptr<GenericAttributeContainer> > attr = {};
     };
 }
 

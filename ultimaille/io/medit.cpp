@@ -270,9 +270,8 @@ namespace UM {
     }
 
     std::vector<int> load_attr(std::vector<NamedContainer> &container, int size) {
-        
         if (container.size() <= 0) {
-            return std::move(std::vector<int>(size, 1));
+            return std::vector<int>(size, 1);
         }
 
         std::shared_ptr<GenericAttributeContainer> point_attr_ptr = container[0].second;

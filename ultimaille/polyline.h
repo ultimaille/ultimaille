@@ -38,8 +38,8 @@ namespace UM {
 
         void delete_isolated_vertices();
 
-        PolyLine() : util(*this) {}
-        PolyLine(const PolyLine& m) : util(*this) {
+        PolyLine() {}
+        PolyLine(const PolyLine& m) {
             um_assert(!m.points.size() && !m.edges.size());
         }
         PolyLine& operator=(const PolyLine& m) {
@@ -122,20 +122,14 @@ namespace UM {
 
         auto iter_vertices();
         auto iter_edges();
-
-
-        struct Util {
-            Util(const PolyLine &mesh) : m(mesh) {}
-            const PolyLine &m;
-        } util;
     };
 
 
 
-/*   _ _                 _                      
-    (_) |               | |                     
-     _| |_ ___ _ __ __ _| |_ ___  _ __ ___      
-    | | __/ _ \ '__/ _` | __/ _ \| '__/ __|     
+/*   _ _                 _
+    (_) |               | |
+     _| |_ ___ _ __ __ _| |_ ___  _ __ ___
+    | | __/ _ \ '__/ _` | __/ _ \| '__/ __|
     | | ||  __/ | | (_| | || (_) | |  \__ \
     |_|\__\___|_|  \__,_|\__\___/|_|  |___/  */
 
@@ -206,9 +200,9 @@ inline auto PolyLine::Vertex::iter_edges() {
 
 
 
-/*  ______     _           _ _   _                
-    | ___ \   (_)         (_) | (_)               
-    | |_/ / __ _ _ __ ___  _| |_ ___   _____  ___ 
+/*  ______     _           _ _   _
+    | ___ \   (_)         (_) | (_)
+    | |_/ / __ _ _ __ ___  _| |_ ___   _____  ___
     |  __/ '__| | '_ ` _ \| | __| \ \ / / _ \/ __|
     | |  | |  | | | | | | | | |_| |\ V /  __/\__ \
     \_|  |_|  |_|_| |_| |_|_|\__|_| \_/ \___||___/  */
@@ -268,7 +262,7 @@ inline bool PolyLine::Edge::active() {
 inline PolyLine::Edge PolyLine::Edge::opposite() {
     assert(m.connected());
     assert(active());
-    Edge result = { m, -1 }; // not found        
+    Edge result = { m, -1 }; // not found
     for (auto candidate : to().iter_edges()) {
         um_assert(candidate.from() == to());
         if (candidate.to() == from()) {

@@ -18,7 +18,8 @@ TEST_CASE("3x3 PCA", "PointSet") {
     CHECK ( (cov.cov - C).norm() < 1e-10 );
     CHECK ( (cov.center - vec3{66,60,60}).norm() < 1e-10 );
 
-    auto [axes, eval, center] = p.util.principal_axes();
+    auto [axes, eval, center] = Meter(p).principal_axes();
+
     CHECK ( (center - vec3{66,60,60}).norm() < 1e-10 );
     CHECK( (eval - vec3{910.069953, 629.110387, 44.819660}).norm() < 1e-5 );
     CHECK( (axes - mat3x3{{{0.655802, 0.429198, 0.621058}, {-0.385999, -0.516366, 0.764441}, {0.648790, -0.741050, -0.172964}}}.transpose()).norm() < 1e-5 );

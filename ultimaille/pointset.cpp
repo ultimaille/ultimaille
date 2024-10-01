@@ -6,6 +6,7 @@
 #include "algebra/covariance.h"
 
 namespace UM {
+    /*
     BBox3 PointSet::Util::bbox() const {
         BBox3 bbox;
         for (vec3 const &p : ps)
@@ -26,6 +27,7 @@ namespace UM {
         if (ps.size()<4) return {mat3x3::identity(), {1.,1.,1.}, cov.center}; // If the system is under-determined, return the trivial basis
         return { evec, eval, cov.center };
     }
+    */
 
     void PointSet::resize(const int n) {
         data->resize(n);
