@@ -75,7 +75,7 @@ namespace UM {
 
         li.getline(); // any text, 256 characters maximum
 
-        li.getline(); // ASCII or BINARY
+        li.getline_nonempty(); // ASCII or BINARY
         if (!starts_with(li.line, "ASCII"))
             throw std::runtime_error("Error: only ASCII VTK file format is supported");
 
