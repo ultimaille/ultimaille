@@ -5,6 +5,7 @@
 #include "algebra/mat.h"
 #include "helpers/hboxes.h"
 #include "pointset.h"
+#include "surface.h"
 #include "syntactic-sugar/assert.h"
 
 namespace UM {
@@ -22,6 +23,27 @@ namespace UM {
 
         const PointSet& pts;
     };
+
+    template<> struct Meter<Surface::Halfedge> {
+        Meter(const Surface::Halfedge h) : h(h) {}
+
+        double corner_angle() const {
+            return angle(h.to().pos() - h.from().pos(), h.prev().from().pos() - h.from().pos());
+        }
+
+        double dihedral_angle() const {
+            um_assert(h.opposite().active());
+            return std::acos(std::clamp(Triangle3(h.facet()).normal() * Triangle3(h.opposite().facet()).normal(), -1., 1.));
+        }
+
+        Surface::Halfedge next_on_border() const { // TODO move this directly to surface.h
+            for (auto& it : h.to().iter_halfedges()) if (!it.opposite().active()) return it;
+            um_assert(false);
+        }
+
+        const Surface::Halfedge h;
+    };
+    
 }
 
 #endif //__METER_H__

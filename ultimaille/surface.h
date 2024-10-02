@@ -78,11 +78,12 @@ namespace UM {
 
         struct Primitive {
             Primitive(Surface& m, int id);
-            Primitive(Primitive& p) = default;
+            Primitive(Primitive& p)  = default;
             Primitive(Primitive&& p) = default;
+            Primitive(const Primitive& p)  = default;
 
-            Primitive& operator=(Primitive&& p);
-            Primitive& operator=(Primitive& p);
+            Primitive& operator=(const Primitive&& p);
+            Primitive& operator=(const Primitive& p);
             Primitive& operator=(int i);
 
             operator int() const;
@@ -98,7 +99,7 @@ namespace UM {
         struct Vertex : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Vertex(Vertex& v) = default;
+            Vertex(Vertex& v)  = default;
             Vertex(Vertex&& v) = default;
             Vertex& operator=(Vertex& v);
 
@@ -116,17 +117,18 @@ namespace UM {
         struct Halfedge : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Halfedge(Halfedge& he) = default;
+            Halfedge(Halfedge& he)  = default;
             Halfedge(Halfedge&& he) = default;
-            Halfedge& operator=(Halfedge& he);
+            Halfedge(const Halfedge& he) = default;
+            Halfedge& operator=(const Halfedge& he);
 
-            bool active();
-            bool on_boundary();
+            bool active() const;
+            bool on_boundary() const;
             Facet facet() const;
 
-            Halfedge next();
-            Halfedge prev();
-            Halfedge opposite();
+            Halfedge next() const;
+            Halfedge prev() const;
+            Halfedge opposite() const;
 
             int id_in_facet();
 
@@ -340,11 +342,11 @@ namespace UM {
 
     inline Surface::Primitive::Primitive(Surface& m, int id) : m(m), id(id) {}
 
-    inline Surface::Primitive& Surface::Primitive::operator=(Surface::Primitive&& p) {
+    inline Surface::Primitive& Surface::Primitive::operator=(const Surface::Primitive&& p) {
         return Primitive::operator=(p);
     }
 
-    inline Surface::Primitive& Surface::Primitive::operator=(Surface::Primitive& p) {
+    inline Surface::Primitive& Surface::Primitive::operator=(const Surface::Primitive& p) {
         assert(&m == &p.m);
         id = p.id;
         return *this;
@@ -394,16 +396,16 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Surface::Halfedge& Surface::Halfedge::operator=(Surface::Halfedge& he) {
+    inline Surface::Halfedge& Surface::Halfedge::operator=(const Surface::Halfedge& he) {
         Primitive::operator=(he);
         return *this;
     }
 
-    inline bool Surface::Halfedge::active() {
+    inline bool Surface::Halfedge::active() const {
         return id >= 0 && facet().active();
     }
 
-    inline bool Surface::Halfedge::on_boundary() {
+    inline bool Surface::Halfedge::on_boundary() const {
         assert(m.connected());
         assert(active());
 
@@ -436,21 +438,21 @@ namespace UM {
         return { m, m.conn->c2f[id] };
     }
 
-    inline Surface::Halfedge Surface::Halfedge::next() {
+    inline Surface::Halfedge Surface::Halfedge::next() const {
         auto f = facet();
         int lh = id - f.halfedge();
         int n = f.size();
         return { m, f.halfedge((lh + 1) % n) };
     }
 
-    inline Surface::Halfedge Surface::Halfedge::prev() {
+    inline Surface::Halfedge Surface::Halfedge::prev() const {
         auto f = facet();
         int lh = id - f.halfedge();
         int n = f.size();
         return { m, f.halfedge((lh - 1 + n) % n) };
     }
 
-    inline Surface::Halfedge Surface::Halfedge::opposite() {
+    inline Surface::Halfedge Surface::Halfedge::opposite() const {
         assert(m.connected());
         assert(active());
         Halfedge result = { m, -1 }; // not found
@@ -469,9 +471,7 @@ namespace UM {
                 cir = m.conn->c2c[cir];
                 if (cir == -1) return result;
             } while (!cir.active());
-
         }
-
     }
 
     inline Surface::Vertex Surface::Halfedge::from() const {

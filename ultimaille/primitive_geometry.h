@@ -9,6 +9,10 @@
 
 namespace UM {
 
+    inline double angle(const vec3 v0, const vec3 v1) {
+        return atan2(cross(v0, v1).norm(), v0 * v1);
+    }
+
     inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
         return 0.5*cross(B-A, C-A).norm();
     }
@@ -28,12 +32,12 @@ namespace UM {
     inline vec3 normal(const vec3 v[], const int nbv) {
         vec3 res{0, 0, 0};
         vec3 bary = bary_verts(v, nbv);
-        
+
         for (int lv=0; lv<nbv; lv++)
             res += cross(
-                v[lv]-bary,
-                v[(lv+1)%nbv]-bary
-            );
+                    v[lv]-bary,
+                    v[(lv+1)%nbv]-bary
+                    );
         return res.normalized();
     }
 
@@ -46,7 +50,7 @@ namespace UM {
             a += UM::unsigned_area(G, A, B);
         }
         return a;
-    }   
+    }
 
     struct Segment3;
 
@@ -72,12 +76,12 @@ namespace UM {
 
         vec3 a{}, b{};
 
-		inline vec3 vector() const;
-		inline double length2() const;
-		inline double length() const;
-		inline Segment2 xy() const;
-		inline double bary_coords(const vec3 &P) const;
-		inline vec3 nearest_point(const vec3 &P) const;
+        inline vec3 vector() const;
+        inline double length2() const;
+        inline double length() const;
+        inline Segment2 xy() const;
+        inline double bary_coords(const vec3 &P) const;
+        inline vec3 nearest_point(const vec3 &P) const;
         [[deprecated]] inline vec3 closest_point(const vec3 &P) const;
 
         inline vec3& operator[](int i) { return i == 0 ? a : b; }
@@ -303,12 +307,12 @@ namespace UM {
         double d1 = ab*ap;
         double d2 = ac*ap;                       //                            3    .
         if (d1 <= 0 && d2 <= 0) return v[0];     // region 1, vertex a            .
-                                                 //                          ...c
+                             //                          ...c
         vec3 bp = p - v[1];                      //                             ..
         double d3 = ab*bp;                       //                             . .   6
         double d4 = ac*bp;                       //                             .  .
         if (d3 >= 0 && d4 <= d3) return v[1];    // region 2, vertex b       5  . 0 .     .
-                                                 //                             .    .  .
+                             //                             .    .  .
         vec3 cp = p - v[2];                      //                          ...a.....b
         double d5 = ab*cp;                       //                             .     .  2
         double d6 = ac*cp;                       //                           1 .  4  .
