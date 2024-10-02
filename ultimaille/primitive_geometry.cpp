@@ -205,11 +205,11 @@ namespace UM {
     }
 
     double Quad3::unsigned_area() const {
-        return UM::unsigned_area(v, 4);
+        return UM::geo::unsigned_area(v, 4);
     }
 
     vec3 Quad3::normal() const {
-        return UM::normal(v, 4);
+        return UM::geo::normal(v, 4);
     }
 
     double Quad2::scaled_jacobian() const {
@@ -239,23 +239,23 @@ namespace UM {
     }
 
     vec3 Poly3::bary_verts() const {
-        return UM::bary_verts(v.data(), static_cast<int>(v.size()));
+        return UM::geo::bary_verts(v.data(), static_cast<int>(v.size()));
     }
 
     vec3 Poly3::normal() const {
-        return UM::normal(v.data(), static_cast<int>(v.size()));
+        return UM::geo::normal(v.data(), static_cast<int>(v.size()));
     }
 
     double Poly3::unsigned_area() const {
-        return UM::unsigned_area(v.data(), static_cast<int>(v.size()));
+        return UM::geo::unsigned_area(v.data(), static_cast<int>(v.size()));
     }
 
     vec3 Tetrahedron::bary_verts() const {
-        return UM::bary_verts(v, 4);
+        return UM::geo::bary_verts(v, 4);
     }
 
     vec3 Hexahedron::bary_verts() const {
-        return UM::bary_verts(v, 8);
+        return UM::geo::bary_verts(v, 8);
     }
 
     double Hexahedron::volume() const {
@@ -270,7 +270,7 @@ namespace UM {
         for (int f=0; f<6; f++) {
             for (int i=0; i<4; i++) {
                 const int offset = 4*f;
-                vol += tet_volume(
+                vol += geo::tet_volume(
                         bary,
                         v[indexes[i + offset]],
                         v[indexes[(i+1)%4 + offset]],
@@ -324,7 +324,7 @@ namespace UM {
     }
 
     vec3 Pyramid::bary_verts() const {
-        return UM::bary_verts(v, 5);
+        return UM::geo::bary_verts(v, 5);
     }
 
     double Pyramid::volume() const {
@@ -334,7 +334,7 @@ namespace UM {
 
         // Compute base to apex volume
         for (int i=0; i<4; i++) {
-            vol += tet_volume(
+            vol += geo::tet_volume(
                     apx,
                     v[(i+2)%4],
                     v[(i+1)%4],
@@ -346,7 +346,7 @@ namespace UM {
     }
 
     vec3 Wedge::bary_verts() const {
-        return UM::bary_verts(v, 6);
+        return UM::geo::bary_verts(v, 6);
     }
 
     double Wedge::volume() const {
@@ -359,14 +359,14 @@ namespace UM {
         auto rc = reference_cells[Volume::CELL_TYPE::WEDGE];
         const auto &indexes = rc.facets;
 
-        vol += tet_volume(
+        vol += geo::tet_volume(
             bary,
             v[indexes[0]],
             v[indexes[1]],
             v[indexes[2]]
         );
 
-        vol += tet_volume(
+        vol += geo::tet_volume(
             bary,
             v[indexes[3]],
             v[indexes[4]],
@@ -377,7 +377,7 @@ namespace UM {
 
             for (int i=0; i<4; i++) {
                 const int offset = 6+4*f;
-                vol += tet_volume(
+                vol += geo::tet_volume(
                         bary,
                         v[indexes[i + offset]],
                         v[indexes[(i+1)%4 + offset]],
