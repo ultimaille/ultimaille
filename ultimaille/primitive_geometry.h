@@ -9,47 +9,51 @@
 
 namespace UM {
 
-    inline double angle(const vec3 v0, const vec3 v1) {
-        return atan2(cross(v0, v1).norm(), v0 * v1);
-    }
+    namespace geo {
 
-    inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
-        return 0.5*cross(B-A, C-A).norm();
-    }
-
-    // Signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
-    inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
-        return ((B-A)*cross(C-A,D-A))/6.;
-    }
-
-    inline vec3 bary_verts(const vec3 v[], const int nbv) {
-        vec3 ave{0, 0, 0};
-        for (int lv=0; lv<nbv; lv++)
-            ave += v[lv];
-        return ave / static_cast<double>(nbv);
-    }
-
-    inline vec3 normal(const vec3 v[], const int nbv) {
-        vec3 res{0, 0, 0};
-        vec3 bary = bary_verts(v, nbv);
-
-        for (int lv=0; lv<nbv; lv++)
-            res += cross(
-                    v[lv]-bary,
-                    v[(lv+1)%nbv]-bary
-                    );
-        return res.normalized();
-    }
-
-    inline double unsigned_area(const vec3 v[], const int nbv) {
-        double a = 0;
-        vec3 G = UM::bary_verts(v, nbv);
-        for (int lv=0; lv<nbv; lv++) {
-            const vec3 &A = v[lv];
-            const vec3 &B = v[(lv+1)%nbv];
-            a += UM::unsigned_area(G, A, B);
+        inline double angle(const vec3 v0, const vec3 v1) {
+            return atan2(cross(v0, v1).norm(), v0 * v1);
         }
-        return a;
+
+        inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
+            return 0.5*cross(B-A, C-A).norm();
+        }
+
+        // Signed volume for a tet with vertices (A,B,C,D) such that (AB, AC, AD) form a right hand basis
+        inline double tet_volume(const vec3 &A, const vec3 &B, const vec3 &C, const vec3 &D) {
+            return ((B-A)*cross(C-A,D-A))/6.;
+        }
+
+        inline vec3 bary_verts(const vec3 v[], const int nbv) {
+            vec3 ave{0, 0, 0};
+            for (int lv=0; lv<nbv; lv++)
+                ave += v[lv];
+            return ave / static_cast<double>(nbv);
+        }
+
+        inline vec3 normal(const vec3 v[], const int nbv) {
+            vec3 res{0, 0, 0};
+            vec3 bary = bary_verts(v, nbv);
+
+            for (int lv=0; lv<nbv; lv++)
+                res += cross(
+                        v[lv]-bary,
+                        v[(lv+1)%nbv]-bary
+                        );
+            return res.normalized();
+        }
+
+        inline double unsigned_area(const vec3 v[], const int nbv) {
+            double a = 0;
+            vec3 G = UM::geo::bary_verts(v, nbv);
+            for (int lv=0; lv<nbv; lv++) {
+                const vec3 &A = v[lv];
+                const vec3 &B = v[(lv+1)%nbv];
+                a += UM::geo::unsigned_area(G, A, B);
+            }
+            return a;
+        }
+
     }
 
     struct Segment3;
@@ -288,7 +292,7 @@ namespace UM {
     }
 
     inline double Triangle3::unsigned_area() const {
-        return UM::unsigned_area(v[0], v[1], v[2]);
+        return UM::geo::unsigned_area(v[0], v[1], v[2]);
     }
 
     inline Triangle2 Triangle3::xy() const {
@@ -359,7 +363,7 @@ namespace UM {
     }
 
     inline double Tetrahedron::volume() const {
-        return tet_volume(v[0], v[1], v[2], v[3]);
+        return geo::tet_volume(v[0], v[1], v[2], v[3]);
     }
 
     inline Quad3 Pyramid::base() const {
