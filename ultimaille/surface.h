@@ -31,11 +31,11 @@ namespace UM {
         virtual int facet_size(const int fi) const = 0;
         virtual int corner(const int fi, const int ci) const = 0;
         virtual int   vert(const int fi, const int lv) const = 0;
-        virtual int& vert(const int fi, const int lv) = 0;
+        virtual int&  vert(const int fi, const int lv) = 0;
 
         virtual void clear() {
-            points = {};
-            attr_facets = {};
+            points       = {};
+            attr_facets  = {};
             attr_corners = {};
             disconnect();
         }
@@ -56,9 +56,9 @@ namespace UM {
 
         struct Connectivity {
             Surface& m;
-            PointAttribute<int>  v2c; // vertex to corner
-            CornerAttribute<int> c2f; // corner to facet
-            CornerAttribute<int> c2c; // corner to next corner sharing the same vertex (unordered)
+            PointAttribute<int>  v2c;    // vertex to corner map
+            CornerAttribute<int> c2f;    // corner to facet map
+            CornerAttribute<int> c2c;    // corner to next (unordered) corner map (the one sharing the same vertex)
             FacetAttribute<bool> active; // facets to keep after compacting
 
             Connectivity(Surface& m);
@@ -78,8 +78,8 @@ namespace UM {
 
         struct Primitive {
             Primitive(Surface& m, int id);
-            Primitive(Primitive& p)  = default;
-            Primitive(Primitive&& p) = default;
+            Primitive(Primitive& p)        = default;
+            Primitive(Primitive&& p)       = default;
             Primitive(const Primitive& p)  = default;
 
             Primitive& operator=(const Primitive&& p);
@@ -87,11 +87,10 @@ namespace UM {
             Primitive& operator=(int i);
 
             operator int() const;
-            operator int& ();
+            operator int&();
 
         protected:
             friend struct Surface;
-
             Surface& m;
             int id;
         };
@@ -99,28 +98,28 @@ namespace UM {
         struct Vertex : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Vertex(Vertex& v)  = default;
-            Vertex(Vertex&& v) = default;
-            Vertex& operator=(Vertex& v);
+//          Vertex(Vertex& v)  = default;
+//          Vertex(Vertex&& v) = default;
+//          Vertex& operator=(Vertex& v);
 
 //          inline operator vec3() const;
             vec3  pos() const;
             vec3& pos();
-            Halfedge halfedge();
-            bool on_boundary();
-            bool active();
-            int id_in_facet(Facet f);
+            Halfedge halfedge() const;
+            bool on_boundary() const;
+            bool active() const;
+            int id_in_facet(Facet f) const;
 
-            auto iter_halfedges();
+            auto iter_halfedges() const;
         };
 
         struct Halfedge : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Halfedge(Halfedge& he)  = default;
-            Halfedge(Halfedge&& he) = default;
-            Halfedge(const Halfedge& he) = default;
-            Halfedge& operator=(const Halfedge& he);
+//          Halfedge(Halfedge& he)  = default;
+//          Halfedge(Halfedge&& he) = default;
+//          Halfedge(const Halfedge& he) = default;
+//          Halfedge& operator=(const Halfedge& he);
 
             bool active() const;
             bool on_boundary() const;
@@ -139,27 +138,27 @@ namespace UM {
             [[deprecated]] inline Segment3 geom();
             inline operator Segment3() const;
 
-            auto iter_sector_halfedges();
+            auto iter_sector_halfedges() const;
         };
 
         struct Facet : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Facet(Facet& f) = default;
-            Facet(Facet&& f) = default;
-            Facet& operator=(Facet& f);
+//          Facet(Facet& f) = default;
+//          Facet(Facet&& f) = default;
+//          Facet& operator=(Facet& f);
 
-            Vertex vertex(int lv);
-            Halfedge halfedge(int lh = 0);
+            Vertex vertex(int lv) const;
+            Halfedge halfedge(int lh = 0) const;
             int size() const;
-            bool active();
+            bool active() const;
 
             template<typename T> [[deprecated]] T geom();
             operator Triangle3() const;
             operator Quad3() const;
             operator Poly3() const;
 
-            auto iter_halfedges();
+            auto iter_halfedges() const;
         };
 
         auto iter_vertices();
@@ -358,36 +357,35 @@ namespace UM {
     }
 
     inline Surface::Primitive::operator int() const { return id; }
-    inline Surface::Primitive::operator int& () { return id; }
+    inline Surface::Primitive::operator int&()      { return id; }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Surface::Vertex& Surface::Vertex::operator=(Surface::Vertex& v) {
-        Primitive::operator=(v);
-        return *this;
-    }
+//  inline Surface::Vertex& Surface::Vertex::operator=(Surface::Vertex& v) {
+//      Primitive::operator=(v);
+//      return *this;
+//  }
 
 //  inline Surface::Vertex::operator vec3() const {
 //      return { m.points[id] };
 //  }
 
     inline vec3  Surface::Vertex::pos() const { return m.points[id]; }
-    inline vec3& Surface::Vertex::pos() { return m.points[id]; }
+    inline vec3& Surface::Vertex::pos()       { return m.points[id]; }
 
-    inline Surface::Halfedge Surface::Vertex::halfedge() {
+    inline Surface::Halfedge Surface::Vertex::halfedge() const {
         assert(m.connected());
         Surface::Halfedge res{m, m.conn->v2c[id]};
-        while (res >= 0 && !res.active()) {
+        while (res >= 0 && !res.active())
             res = m.conn->c2c[res];
-        }
         return res;
     }
 
-    inline bool Surface::Vertex::active() {
+    inline bool Surface::Vertex::active() const {
         return id >= 0;
     }
 
-    inline int Surface::Vertex::id_in_facet(Facet f) {
+    inline int Surface::Vertex::id_in_facet(Facet f) const {
         for (int lv = 0; lv < f.size(); lv++)
             if (m.vert(f, lv) == id) return lv;
         assert(false);
@@ -396,10 +394,10 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Surface::Halfedge& Surface::Halfedge::operator=(const Surface::Halfedge& he) {
-        Primitive::operator=(he);
-        return *this;
-    }
+//  inline Surface::Halfedge& Surface::Halfedge::operator=(const Surface::Halfedge& he) {
+//      Primitive::operator=(he);
+//      return *this;
+//  }
 
     inline bool Surface::Halfedge::active() const {
         return id >= 0 && facet().active();
@@ -501,16 +499,16 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Surface::Facet& Surface::Facet::operator=(Surface::Facet& f) {
-        Primitive::operator=(f);
-        return *this;
-    }
+//  inline Surface::Facet& Surface::Facet::operator=(Surface::Facet& f) {
+//      Primitive::operator=(f);
+//      return *this;
+//  }
 
-    inline Surface::Vertex Surface::Facet::vertex(int lv) {
+    inline Surface::Vertex Surface::Facet::vertex(int lv) const {
         return { m, m.vert(id, lv) };
     }
 
-    inline Surface::Halfedge Surface::Facet::halfedge(int lh) {
+    inline Surface::Halfedge Surface::Facet::halfedge(int lh) const {
         return { m, m.corner(id, lh) };
     }
 
@@ -519,7 +517,7 @@ namespace UM {
         return m.facet_size(id);
     }
 
-    inline bool Surface::Facet::active() {
+    inline bool Surface::Facet::active() const {
         return id>=0 && (!m.connected() || m.conn->active[id]);
     }
 
@@ -625,7 +623,7 @@ namespace UM {
         return wrapper{ *this };
     }
 
-    inline auto Surface::Vertex::iter_halfedges() {
+    inline auto Surface::Vertex::iter_halfedges() const {
         assert(m.connected());
         struct iterator {
             Surface::Halfedge he;
@@ -647,7 +645,7 @@ namespace UM {
         return wrapper{ *this };
     }
 
-    inline auto Surface::Halfedge::iter_sector_halfedges() {
+    inline auto Surface::Halfedge::iter_sector_halfedges() const {
         struct iterator {
             Surface::Halfedge h, seed;
 //          iterator(Surface::Halfedge seed) : h(seed), seed(seed) {}
@@ -679,7 +677,7 @@ namespace UM {
         return wrapper{ *this };
     }
 
-    inline auto Surface::Facet::iter_halfedges() {
+    inline auto Surface::Facet::iter_halfedges() const {
         struct iterator {
             Surface::Halfedge he;
             void operator++() {
