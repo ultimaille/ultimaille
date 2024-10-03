@@ -54,6 +54,10 @@ namespace UM {
         struct Halfedge;
         struct Facet;
 
+        Vertex   vertex(int id)   { return Vertex(*this, id);   }
+        Halfedge halfedge(int id) { return Halfedge(*this, id); }
+        Facet    facet(int id)    { return Facet(*this, id);    }
+
         struct Connectivity {
             Surface& m;
             PointAttribute<int>  v2c;    // vertex to corner map
@@ -98,11 +102,8 @@ namespace UM {
         struct Vertex : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-//          Vertex(Vertex& v)  = default;
-//          Vertex(Vertex&& v) = default;
-//          Vertex& operator=(Vertex& v);
 
-//          inline operator vec3() const;
+            inline operator vec3() const;
             vec3  pos() const;
             vec3& pos();
             Halfedge halfedge() const;
@@ -116,10 +117,6 @@ namespace UM {
         struct Halfedge : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-//          Halfedge(Halfedge& he)  = default;
-//          Halfedge(Halfedge&& he) = default;
-//          Halfedge(const Halfedge& he) = default;
-//          Halfedge& operator=(const Halfedge& he);
 
             bool active() const;
             bool on_boundary() const;
@@ -144,9 +141,6 @@ namespace UM {
         struct Facet : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-//          Facet(Facet& f) = default;
-//          Facet(Facet&& f) = default;
-//          Facet& operator=(Facet& f);
 
             Vertex vertex(int lv) const;
             Halfedge halfedge(int lh = 0) const;
@@ -361,14 +355,9 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//  inline Surface::Vertex& Surface::Vertex::operator=(Surface::Vertex& v) {
-//      Primitive::operator=(v);
-//      return *this;
-//  }
-
-//  inline Surface::Vertex::operator vec3() const {
-//      return { m.points[id] };
-//  }
+    inline Surface::Vertex::operator vec3() const {
+        return { m.points[id] };
+    }
 
     inline vec3  Surface::Vertex::pos() const { return m.points[id]; }
     inline vec3& Surface::Vertex::pos()       { return m.points[id]; }
@@ -393,11 +382,6 @@ namespace UM {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//  inline Surface::Halfedge& Surface::Halfedge::operator=(const Surface::Halfedge& he) {
-//      Primitive::operator=(he);
-//      return *this;
-//  }
 
     inline bool Surface::Halfedge::active() const {
         return id >= 0 && facet().active();
@@ -498,11 +482,6 @@ namespace UM {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//  inline Surface::Facet& Surface::Facet::operator=(Surface::Facet& f) {
-//      Primitive::operator=(f);
-//      return *this;
-//  }
 
     inline Surface::Vertex Surface::Facet::vertex(int lv) const {
         return { m, m.vert(id, lv) };
