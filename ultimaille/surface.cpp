@@ -30,7 +30,7 @@ namespace UM {
         connect();
     }
 
-    bool Surface::Vertex::on_boundary() {
+    bool Surface::Vertex::on_boundary() const {
         assert(m.connected());
         for (Halfedge &he : iter_halfedges())
             if (he.on_boundary()) return true;
