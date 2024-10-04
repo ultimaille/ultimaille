@@ -12,11 +12,16 @@
 namespace UM {
 
     struct Surface { // polygonal mesh interface
-
         PointSet points{};
         std::vector<int> facets{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
         std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
+
+//       _                 _                _
+//      | | _____      __ | | _____   _____| |
+//      | |/ _ \ \ /\ / / | |/ _ \ \ / / _ \ |
+//      | | (_) \ V  V /  | |  __/\ V /  __/ |
+//      |_|\___/ \_/\_/   |_|\___| \_/ \___|_|
 
         void delete_vertices(const std::vector<bool>& to_kill);
         virtual void delete_facets(const std::vector<bool>& to_kill);
@@ -50,6 +55,13 @@ namespace UM {
             return *this;
         }
 
+//                                      _   _       _ _
+//       ___ ___  _ __  _ __   ___  ___| |_(_)_   _(_) |_ _   _
+//      / __/ _ \| '_ \| '_ \ / _ \/ __| __| \ \ / / | __| | | |
+//     | (_| (_) | | | | | | |  __/ (__| |_| |\ V /| | |_| |_| |
+//      \___\___/|_| |_|_| |_|\___|\___|\__|_| \_/ |_|\__|\__, |
+//                                                        |___/
+
         struct Vertex;
         struct Halfedge;
         struct Facet;
@@ -62,7 +74,7 @@ namespace UM {
             Surface& m;
             PointAttribute<int>  v2c;    // vertex to corner map
             CornerAttribute<int> c2f;    // corner to facet map
-            CornerAttribute<int> c2c;    // corner to next (unordered) corner map (the one sharing the same vertex)
+            CornerAttribute<int> c2c;    // corner to corner (sharing the same vertex) map. Consecutive maps form an unordered linked list terminated by -1.
             FacetAttribute<bool> active; // facets to keep after compacting
 
             Connectivity(Surface& m);
@@ -70,7 +82,7 @@ namespace UM {
             Surface::Facet create_facet(std::initializer_list<int> verts);
             Surface::Facet create_facet(int* verts, int size);
 
-            void change_from(Surface::Halfedge he, int new_vertex_id);
+            void change_from(Surface::Halfedge he, int new_vertex_id); // TODO move it to the toolbox
         };
 
         std::unique_ptr<Connectivity> conn = {};
@@ -79,6 +91,13 @@ namespace UM {
         void connect();
         void disconnect();
         void compact(bool delete_isolated_vertices = true);
+
+//                  _           _ _   _
+//       _ __  _ __(_)_ __ ___ (_) |_(_)_   _____  ___
+//      | '_ \| '__| | '_ ` _ \| | __| \ \ / / _ \/ __|
+//      | |_) | |  | | | | | | | | |_| |\ V /  __/\__ \
+//      | .__/|_|  |_|_| |_| |_|_|\__|_| \_/ \___||___/
+//      |_|
 
         struct Primitive {
             Primitive(Surface& m, int id);
@@ -134,6 +153,7 @@ namespace UM {
             Vertex to() const;
 
             [[deprecated]] inline Segment3 geom();
+            inline operator vec3() const;
             inline operator Segment3() const;
 
             auto iter_sector_halfedges() const;
@@ -166,7 +186,6 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Triangles : Surface { // simplicial mesh implementation
-
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -205,7 +224,6 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Polygons : Surface { // polygonal mesh implementation
-
         std::vector<int> offset = { 0 };
         Polygons() = default;
         Polygons(const Polygons& m) = default;
@@ -482,6 +500,10 @@ namespace UM {
         return {from().pos(), to().pos()};
     }
 
+    inline Surface::Halfedge::operator vec3() const {
+        return {(vec3&)to() - (vec3&)from()};
+    }
+
     inline Surface::Halfedge::operator Segment3() const {
         return {from().pos(), to().pos()};
     }
@@ -541,8 +563,6 @@ namespace UM {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // TODO: is it really reasonable to inline these functions?
 
     inline auto Surface::iter_vertices() {
         struct iterator {
@@ -632,7 +652,6 @@ namespace UM {
     inline auto Surface::Halfedge::iter_sector_halfedges() const {
         struct iterator {
             Surface::Halfedge h, seed;
-//          iterator(Surface::Halfedge seed) : h(seed), seed(seed) {}
             void operator++() {
                 h = h.prev().opposite();
                 if (h == seed) h = -1;
