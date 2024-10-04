@@ -103,7 +103,8 @@ namespace UM {
             using Primitive::Primitive;
             using Primitive::operator=;
 
-            inline operator vec3() const;
+            inline operator vec3&();
+            inline operator vec3&() const;
             vec3  pos() const;
             vec3& pos();
             Halfedge halfedge() const;
@@ -355,7 +356,11 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Surface::Vertex::operator vec3() const {
+    inline Surface::Vertex::operator vec3&() {
+        return { m.points[id] };
+    }
+
+    inline Surface::Vertex::operator vec3&() const {
         return { m.points[id] };
     }
 

@@ -120,6 +120,7 @@ namespace UM {
         inline vec3 bary_verts() const;
         vec3 bary_coords(vec3 G) const;
         inline double unsigned_area() const;
+        inline double corner_angle(int i) const;
         Triangle2 project() const;
         inline Triangle2 xy() const;
         Triangle3 dilate(double scale) const;
@@ -293,6 +294,13 @@ namespace UM {
 
     inline double Triangle3::unsigned_area() const {
         return UM::geo::unsigned_area(v[0], v[1], v[2]);
+    }
+
+    inline double Triangle3::corner_angle(int i) const {
+        const vec3 &a = v[i];
+        const vec3 &b = v[(i+1)%3];
+        const vec3 &c = v[(i+2)%3];
+        return geo::angle(b-a, c-a);
     }
 
     inline Triangle2 Triangle3::xy() const {

@@ -41,7 +41,10 @@ namespace UM {
         Meter(const Surface::Halfedge h) : h(h) {}
 
         double corner_angle() const {
-            return geo::angle(h.to().pos() - h.from().pos(), h.prev().from().pos() - h.from().pos());
+            const vec3 &a = h.from();
+            const vec3 &b = h.to();
+            const vec3 &c = h.prev().from();
+            return geo::angle(b-a, c-a);
         }
 
         double dihedral_angle() const {
