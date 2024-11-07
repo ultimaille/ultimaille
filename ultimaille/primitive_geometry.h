@@ -319,12 +319,12 @@ namespace UM {
         double d1 = ab*ap;
         double d2 = ac*ap;                       //                            3    .
         if (d1 <= 0 && d2 <= 0) return v[0];     // region 1, vertex a            .
-                             //                          ...c
+                                                 //                          ...c
         vec3 bp = p - v[1];                      //                             ..
         double d3 = ab*bp;                       //                             . .   6
         double d4 = ac*bp;                       //                             .  .
         if (d3 >= 0 && d4 <= d3) return v[1];    // region 2, vertex b       5  . 0 .     .
-                             //                             .    .  .
+                                                 //                             .    .  .
         vec3 cp = p - v[2];                      //                          ...a.....b
         double d5 = ab*cp;                       //                             .     .  2
         double d6 = ac*cp;                       //                           1 .  4  .

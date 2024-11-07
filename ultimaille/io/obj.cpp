@@ -159,6 +159,7 @@ namespace UM {
 
         m.points = mpoly.points;
         m.facets = mpoly.facets;
+        m.attr_corners = mpoly.attr_corners; // TODO pay attention to m.points.attr
         return sa;
     }
 
@@ -173,6 +174,7 @@ namespace UM {
 
         m.points = mpoly.points;
         m.facets = mpoly.facets;
+        m.attr_corners = mpoly.attr_corners; // TODO pay attention to m.points.attr
         return sa;
     }
 
