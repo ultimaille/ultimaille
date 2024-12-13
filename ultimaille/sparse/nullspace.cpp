@@ -2,24 +2,22 @@
 #include "../syntactic-sugar/assert.h"
 
 namespace UM {
-    void NullSpaceBuilder::reduce(SparseVector &v) {
+    void NullSpaceBuilder::leading_to_free(SparseVector &v) {
         SparseVector result;
-        for (const SparseElement &e : v) {                             // for each term of the constraint
+        for (const SparseElement &e : v) {                    // for each term of the constraint
             SparseVector &row = C[e.index];
-            if (row.size()==1 && row[0].index==e.index)                // if variable is free,
-                result.data.push_back(e);                              // push the term directly into the resulting expression
-            else {                                                     // otherwise
-                reduce(row);                                           // reduce the basic variable constraint itself
-                for (const SparseElement &e2 : row)                    // and push the scaled constraint into the result
-                    result.data.push_back(e2 * e.value);
-            }
+            um_assert(row.size());
+            if (row.size()>1 || row.front().index!=e.index)   // reexpress corresponding variable itself in terms of free variables
+                leading_to_free(row);
+            for (const SparseElement &e2 : row)               // and push the scaled constraint into the result
+                result.data.push_back(e2 * e.value);
         }
-        result.compact();                                              // do not forget to aggregate terms
+        result.compact();                                     // do not forget to aggregate terms
         v = std::move(result);
     }
 
     void NullSpaceBuilder::add_constraint(SparseVector &v) {
-        reduce(v);
+        leading_to_free(v);
 
         if (v.empty()) return;
         um_assert(!free_last || v.front().index < size()-1);           // check for the impossible constraint non-zero constant = 0

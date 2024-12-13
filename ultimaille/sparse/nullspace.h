@@ -10,14 +10,14 @@ namespace UM {
         // re-express v in terms of free variables
         // after the call (v.empty()) indicates a redundant constraint;
         // (free_last && !v.empty() && v.front().index == size()-1) indicates an impossible constraint
-        void reduce(SparseVector &v);
+        void leading_to_free(SparseVector &v);
         void add_constraint(SparseVector &e);
         void add_constraint(SparseVector &&e) { add_constraint(e); }
 
         // N.B. the builder is destroyed
         CRSMatrix to_crs() {
             for (SparseVector &r : C.rows)
-                reduce(r);
+                leading_to_free(r);
             C.drop_zero_columns();
             CRSMatrix result = C.to_crs();
             C = {};
