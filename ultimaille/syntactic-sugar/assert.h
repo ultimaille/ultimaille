@@ -9,15 +9,15 @@ namespace UM {
     };
 
     void release_assert(bool expr, const source_location& loc, const char* expression);
+}
 
 #if defined(__GNUC__)
-#define CUR_SOURCE_LOCATION UM::source_location{__FILE__, __LINE__, __PRETTY_FUNCTION__}
+    #define CUR_SOURCE_LOCATION UM::source_location{__FILE__, __LINE__, __PRETTY_FUNCTION__}
 #else
-#define CUR_SOURCE_LOCATION UM::source_location{__FILE__, __LINE__, __FUNCSIG__}
+    #define CUR_SOURCE_LOCATION UM::source_location{__FILE__, __LINE__, __FUNCSIG__}
 #endif
 
-#define um_assert(Expr) release_assert(Expr, CUR_SOURCE_LOCATION, #Expr)
-}
+#define um_assert(Expr) UM::release_assert(Expr, CUR_SOURCE_LOCATION, #Expr)
 
 #endif //__ASSERT_H__
 
