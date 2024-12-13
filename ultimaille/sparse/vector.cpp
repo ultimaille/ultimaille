@@ -15,5 +15,20 @@ namespace UM {
         }
         data.resize(s);
     }
+
+    std::ostream& operator<<(std::ostream& out, const SparseElement& e) {
+        out << "{" << e.index << ", " << e.value << "}";
+        return out;
+    }
+
+    std::ostream& operator<<(std::ostream& out, const SparseVector& v) {
+        out << "{";
+        for (int i=0; i<v.size(); i++) {
+            out << v[i];
+            if (i+1<v.size()) out << ", ";
+        }
+        out << "}";
+        return out;
+    }
 }
 

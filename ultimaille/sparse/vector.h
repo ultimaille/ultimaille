@@ -1,6 +1,7 @@
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
+#include <iostream>
 #include <cmath>
 #include <vector>
 
@@ -31,6 +32,7 @@ namespace UM {
     inline SparseElement operator-(const SparseElement& t) {
         return { t.index, -t.value };
     }
+    std::ostream& operator<<(std::ostream& out, const SparseElement& e);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,6 +88,8 @@ namespace UM {
 
         std::vector<SparseElement> data = {};
     };
+
+    std::ostream& operator<<(std::ostream& out, const SparseVector& v);
 
     inline SparseVector operator+(const SparseVector& a, const SparseVector& b) {
         SparseVector c;
