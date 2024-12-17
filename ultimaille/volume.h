@@ -807,7 +807,7 @@ namespace UM {
         struct wrapper {
             Cell c;
             auto begin() { return iterator{ c.corner(0) }; }
-            auto end()   { return iterator{ c.corner(c.ncorners()-1) }; }
+            auto end()   { return iterator{ c.corner(c.ncorners()) }; }
         };
         return wrapper{ *this };
     }
