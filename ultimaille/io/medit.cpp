@@ -279,6 +279,7 @@ namespace UM {
             return std::move(point_cont_ptr->data);
         } else {
             assert(false);
+            return {};
         }
     }
 

@@ -28,7 +28,7 @@ namespace UM {
         Meter(const Surface::Vertex v) : v(v) {}
         int valence() {
             int ret = 0;
-            for (Surface::Halfedge cir : v.iter_halfedges()) {
+            for ([[maybe_unused]] Surface::Halfedge cir : v.iter_halfedges()) {
                 assert(cir.active());
                 ret++;
             }
