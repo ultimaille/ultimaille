@@ -6,8 +6,7 @@ namespace UM {
         SparseVector result;
         for (const SparseElement &e : v) {                    // for each term of the constraint
             SparseVector &row = C[e.index];
-            um_assert(row.size());
-            if (row.size()>1 || row.front().index!=e.index)   // reexpress corresponding variable itself in terms of free variables
+            if (row.size()>1 || (row.size()==1 && row.front().index!=e.index))   // reexpress corresponding variable itself in terms of free variables
                 leading_to_free(row);
             for (const SparseElement &e2 : row)               // and push the scaled constraint into the result
                 result.data.push_back(e2 * e.value);
