@@ -7,9 +7,9 @@ namespace UM {
     struct NullSpaceBuilder {
 
         enum Status {
-            SUCCESS    = 0,
-            REDUNDANT  = 1,
-            IMPOSSIBLE = 2
+            REDUNDANT  = 0,
+            IMPOSSIBLE = 1,
+            SUCCESS    = 2
         };
         
         NullSpaceBuilder(int n, bool free_last=true) : C{lol_identity(n)}, free_last{free_last} { }
