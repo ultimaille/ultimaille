@@ -5,14 +5,23 @@
 
 namespace UM {
     struct NullSpaceBuilder {
+
+        enum Status {
+            SUCCESS    = 0,
+            REDUNDANT  = 1,
+            IMPOSSIBLE = 2
+        };
+        
         NullSpaceBuilder(int n, bool free_last=true) : C{lol_identity(n)}, free_last{free_last} { }
 
         // re-express v in terms of free variables
         // after the call (v.empty()) indicates a redundant constraint;
         // (free_last && !v.empty() && v.front().index == size()-1) indicates an impossible constraint
         void leading_to_free(SparseVector &v);
+        Status test(SparseVector &e);
+        Status test(SparseVector &&e) { return test(e); }
         void add_constraint(SparseVector &e);
-        void add_constraint(SparseVector &&e) { add_constraint(e); }
+        void add_constraint(SparseVector &&e) { return add_constraint(e); }
 
         // N.B. the builder is destroyed
         CRSMatrix to_crs() {
