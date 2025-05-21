@@ -7,8 +7,8 @@ namespace UM {
     struct NullSpaceBuilder {
 
         enum Status {
-            REDUNDANT  = 0,
-            IMPOSSIBLE = 1,
+            IMPOSSIBLE = 0,
+            REDUNDANT  = 1,
             SUCCESS    = 2
         };
         
