@@ -581,14 +581,14 @@ namespace UM {
     inline auto Surface::iter_vertices() {
         struct iterator {
             Vertex v;
-            void operator++() { ++v.id; }
+            iterator & operator++() { ++v.id; return *this; }
             bool operator!=(const iterator& rhs) const { return v != rhs.v; }
             Vertex& operator*() { return v; }
         };
         struct wrapper {
             Surface& m;
-            auto begin() { return iterator{ {m,0} }; }
-            auto end() { return iterator{ {m,m.nverts()} }; }
+            iterator begin() { return {{m,0}}; }
+            iterator end()   { return {{m,m.nverts()}}; }
         };
         return wrapper{ *this };
     }
@@ -596,23 +596,20 @@ namespace UM {
     inline auto Surface::iter_halfedges() {
         struct iterator {
             Halfedge h;
-            void operator++() {
+	    const int ncorners; // need to freeze the end in the case the surface is changed in the meantime
+            iterator & operator++() {
                 ++h.id;
                 if (h.m.connected())
-                    while (h.id < h.m.ncorners() && !h.active()) ++h.id;
+                    while (h.id < ncorners && !h.active()) ++h.id;
+		return *this;
             }
             bool operator!=(const iterator& rhs) const { return h != rhs.h; }
             Halfedge& operator*() { return h; }
         };
         struct wrapper {
             Surface& m;
-            auto begin() {
-                iterator res{ {m,0} };
-                if (m.connected())
-                    if (m.ncorners() > 0 && !res.h.active()) ++res;
-                return res;
-            }
-            auto end() { return iterator{ {m,m.ncorners()} }; }
+            auto begin() { return ++iterator{{m, -1},          m.ncorners()}; } // ++(-1) is to select the first active
+            auto end()   { return   iterator{{m, m.nfacets()}, m.ncorners()}; }
         };
         return wrapper{ *this };
     }
@@ -620,23 +617,20 @@ namespace UM {
     inline auto Surface::iter_facets() {
         struct iterator {
             Facet f;
-            void operator++() {
+	    const int nfacets; // need to freeze the end in the case the surface is changed in the meantime
+            iterator & operator++() {
                 ++f.id;
                 if (f.m.connected())
-                    while (f.id < f.m.nfacets() && !f.active()) ++f.id;
+                    while (f.id < nfacets && !f.active()) ++f.id;
+                return *this;
             }
             bool operator!=(const iterator& rhs) const { return f != rhs.f; }
             Facet& operator*() { return f; }
         };
         struct wrapper {
             Surface& m;
-            auto begin() {
-                iterator res{ {m,0} };
-                if (m.connected())
-                    if (m.nfacets() > 0 && !res.f.active()) ++res;
-                return res;
-            }
-            auto end() { return iterator{ {m,m.nfacets()} }; }
+            auto begin() { return ++iterator{{m, -1},          m.nfacets()}; } // ++(-1) is to select the first active
+            auto end()   { return   iterator{{m, m.nfacets()}, m.nfacets()}; }
         };
         return wrapper{ *this };
     }
