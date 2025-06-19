@@ -113,7 +113,11 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
 
     }
 
+    std::cerr << q.ncorners() << std::endl;
     int brd = 0;
+    for (Halfedge he : q.iter_halfedges()) {
+	    std::cerr << int(he) << std::endl;
+    }
     for (Halfedge he : q.iter_halfedges()) {
         REQUIRE(cnt_next[he]==1);
         REQUIRE(cnt_prev[he]==1);

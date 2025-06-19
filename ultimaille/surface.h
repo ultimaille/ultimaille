@@ -608,8 +608,8 @@ namespace UM {
         };
         struct wrapper {
             Surface& m;
-            auto begin() { return ++iterator{{m, -1},          m.ncorners()}; } // ++(-1) is to select the first active
-            auto end()   { return   iterator{{m, m.nfacets()}, m.ncorners()}; }
+            auto begin() { return ++iterator{{m, -1},           m.ncorners()}; } // ++(-1) is to select the first active
+            auto end()   { return   iterator{{m, m.ncorners()}, m.ncorners()}; }
         };
         return wrapper{ *this };
     }
