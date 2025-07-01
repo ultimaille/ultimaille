@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <cassert>
+#include "syntactic-sugar/assert.h"
 #include "pointset.h"
 //#include "polyline.h"
 //#include "surface.h"
@@ -13,6 +14,8 @@ namespace UM {
     struct PolyLine;
     struct Surface;
     struct Volume;
+
+    struct SurfaceAttributes;
 
     struct GenericAttributeContainer {
         virtual void resize(const int n) = 0;
@@ -37,21 +40,37 @@ namespace UM {
         T default_value;
     };
 
-    typedef std::pair<std::string, std::shared_ptr<GenericAttributeContainer> > NamedContainer;
+    struct AttributeBase {
+        enum TYPE { GENERIC=-1, POINTS=0, EDGES=1, FACETS=2, CORNERS=3, CELLS=4, CELLFACETS=5, CELLCORNERS=6 };
+        virtual ~AttributeBase() = default;
+        virtual TYPE kind() const { return GENERIC; }
+        virtual std::shared_ptr<GenericAttributeContainer> get_ptr() const = 0;
+    };
+
+    struct NamedContainer {
+        std::string name;
+        std::shared_ptr<GenericAttributeContainer> ptr;
+    };
+
+    struct NamedAttribute {
+        std::string name;
+        AttributeBase& attribute;
+    };
+
     struct PointSetAttributes {
         std::vector<NamedContainer> points;
     };
+
     struct PolyLineAttributes {
         std::vector<NamedContainer> points, edges;
     };
-    struct SurfaceAttributes {
-        std::vector<NamedContainer> points, facets, corners;
-    };
+
     struct VolumeAttributes {
         std::vector<NamedContainer> points, cells, cell_facets, cell_corners;
     };
 
-    template <typename T> struct GenericAttribute {
+    template <typename T> struct GenericAttribute : AttributeBase {
+    using value_type = T;
         GenericAttribute() : ptr(nullptr) {}
         GenericAttribute(int size, const T def = T()) : ptr(new AttributeContainer<T>(size, def)) {}
         GenericAttribute(std::shared_ptr<AttributeContainer<T> > p) : ptr(p) {}
@@ -62,10 +81,12 @@ namespace UM {
         void fill(T value) {
             if (ptr) std::fill(ptr->data.begin(), ptr->data.end(), value);
         }
+        virtual std::shared_ptr<GenericAttributeContainer> get_ptr() const { return ptr; }
         std::shared_ptr<AttributeContainer<T> > ptr;
     };
 
-    template <> struct GenericAttribute<bool> {
+    template <> struct GenericAttribute<bool> : AttributeBase {
+    using value_type = bool;
         GenericAttribute() : ptr(nullptr) {}
         GenericAttribute(int size, const bool def = false) : ptr(new AttributeContainer<bool>(size, def)) {}
         GenericAttribute(std::shared_ptr<AttributeContainer<bool> > p) : ptr(p) {}
@@ -124,10 +145,13 @@ namespace UM {
             if (ptr) std::fill(ptr->data.begin(), ptr->data.end(), value);
         }
 
+        virtual std::shared_ptr<GenericAttributeContainer> get_ptr() const { return ptr; }
+
         std::shared_ptr<AttributeContainer<bool> > ptr;
     };
 
     template <typename T> struct PointAttribute : GenericAttribute<T> {
+
         PointAttribute(PointSet &pts, const T def = T());
         PointAttribute(const PointSet &pts, const T def = T());
 
@@ -142,42 +166,70 @@ namespace UM {
         PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def = T());
         PointAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T());
         PointAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::POINTS; }
     };
 
     template <typename T> struct EdgeAttribute : GenericAttribute<T> {
         EdgeAttribute(PolyLine &seg, const T def = T());
         EdgeAttribute(const PolyLine &seg, const T def = T());
         EdgeAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def = T());
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::EDGES; }
     };
 
     template <typename T> struct FacetAttribute : GenericAttribute<T> {
         FacetAttribute(Surface &m, const T def = T());
         FacetAttribute(const Surface &m, const T def = T());
         FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T());
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::FACETS; }
     };
 
     template <typename T> struct CornerAttribute : GenericAttribute<T> {
         CornerAttribute(Surface &m, const T def = T());
         CornerAttribute(const Surface &m, const T def = T());
         CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T());
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::CORNERS; }
     };
 
     template <typename T> struct CellAttribute : GenericAttribute<T> {
         CellAttribute(Volume &m, const T def = T());
         CellAttribute(const Volume &m, const T def = T());
         CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLS; }
     };
 
     template <typename T> struct CellFacetAttribute : GenericAttribute<T> {
         CellFacetAttribute(Volume &m, const T def = T());
         CellFacetAttribute(const Volume &m, const T def = T());
         CellFacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLFACETS; }
     };
 
     template <typename T> struct CellCornerAttribute : GenericAttribute<T> {
         CellCornerAttribute(Volume &m, const T def = T());
         CellCornerAttribute(const Volume &m, const T def = T());
         CellCornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLCORNERS; }
+    };
+
+    struct SurfaceAttributes {
+        SurfaceAttributes() = default;
+        SurfaceAttributes(SurfaceAttributes& p)        = default;
+        SurfaceAttributes(SurfaceAttributes&& p)       = default;
+        SurfaceAttributes(const SurfaceAttributes& p)  = default;
+        SurfaceAttributes(std::vector<NamedContainer> points, std::vector<NamedContainer> facets, std::vector<NamedContainer> corners) : points(points), facets(facets), corners(corners) {}
+
+        SurfaceAttributes(std::initializer_list<NamedAttribute> list) {
+            for (auto na : list) {
+                switch (na.attribute.kind()) {
+                    case AttributeBase::POINTS:   points.emplace_back(na.name, na.attribute.get_ptr()); break;
+                    case AttributeBase::FACETS:   facets.emplace_back(na.name, na.attribute.get_ptr()); break;
+                    case AttributeBase::CORNERS: corners.emplace_back(na.name, na.attribute.get_ptr()); break;
+                    default: um_assert(false);
+                }
+            }
+        }
+
+        std::vector<NamedContainer> points = {}, facets = {}, corners = {};
     };
 }
 

@@ -82,7 +82,9 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
 
     // TODO compress test
 
-    write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"fvec3", fvec3.ptr}}, {{"cint", cint.ptr}}});
+//  write_by_extension(filename, m, {{{"vbool", vbool.ptr}}, {{"fvec3", fvec3.ptr}}, {{"cint", cint.ptr}}});
+
+      write_by_extension(filename, m,  {{"vbool", vbool}, {"fvec3", fvec3}, {"cint", cint}} );
 
     Polygons m2;
     SurfaceAttributes attrs = read_by_extension(filename, m2);

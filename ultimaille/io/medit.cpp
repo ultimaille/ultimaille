@@ -97,7 +97,7 @@ namespace UM {
                     iss >> edges_region[e];
                 }
                 attr[1].emplace_back(attr_name, edges_region.ptr);
-            }           
+            }
 
             if (string_start(firstline, "Triangles")) {
                 std::string line;
@@ -107,7 +107,7 @@ namespace UM {
                     std::istringstream iss(line.c_str());
                     iss >> nb_of_tri;
                 }
-                
+
                 facet_region.resize(nb_of_tri + nb_of_quads);
 
                 tris_.resize(3 * nb_of_tri);
@@ -248,7 +248,7 @@ namespace UM {
 
         // Create facet region attribute
         const int nb_facets = nb_of_tri + nb_of_quads;
-        if (nb_facets > 0) {    
+        if (nb_facets > 0) {
             GenericAttribute<int> facet_region_attr(nb_facets);
             for (int i = 0; i < static_cast<int>(facet_region.size()); i++) {
                 facet_region_attr[i] = facet_region[i];
@@ -258,7 +258,7 @@ namespace UM {
         }
         // Create cell region attribute
         const int nb_cells = nb_of_tets + nb_of_hexs + nb_of_prisms + nb_of_pyramids;
-        if (nb_cells > 0) {    
+        if (nb_cells > 0) {
             GenericAttribute<int> cell_region_attr(nb_cells);
             for (int i = 0; i < static_cast<int>(cell_region.size()); i++) {
                 cell_region_attr[i] = cell_region[i];
@@ -274,7 +274,7 @@ namespace UM {
             return std::vector<int>(size, 1);
         }
 
-        std::shared_ptr<GenericAttributeContainer> point_attr_ptr = container[0].second;
+        std::shared_ptr<GenericAttributeContainer> point_attr_ptr = container[0].ptr;
         if (auto point_cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int>>(point_attr_ptr); point_cont_ptr.get()!=nullptr) {
             return std::move(point_cont_ptr->data);
         } else {
@@ -446,7 +446,7 @@ namespace UM {
         m = PointSet();
         m.create_points(verts.size());
         FOR(v, verts.size()) m[v] = verts[v];
-        for (auto &a : attrib[0]) m.attr.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.attr.emplace_back(a.ptr);
         return {attrib[0]};
     }
 
@@ -460,8 +460,8 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_edges(edges.size()/2);
         FOR(e, m.nedges()) FOR(ev, 2) m.vert(e, ev) = edges[2 * e + ev];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[1]) m.attr.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[1]) m.attr.emplace_back(a.ptr);
         return {attrib[0], attrib[1]};
     }
 
@@ -475,8 +475,8 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(tris.size() / 3);
         FOR(t, m.nfacets()) FOR(tv, 3) m.vert(t, tv) = tris[3 * t + tv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
         return {attrib[0], attrib[2], {}};
     }
 
@@ -490,8 +490,8 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(quads.size() / 4);
         FOR(q, m.nfacets()) FOR(qv, 4) m.vert(q, qv) = quads[4 * q + qv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
         return {attrib[0], attrib[2], {}};
     }
 
@@ -509,8 +509,8 @@ namespace UM {
 
         int off = m.create_facets(quads.size() / 4, 4);
         FOR(q, quads.size() / 4) FOR(qv, 4) m.vert(off + q, qv) = quads[4 * q + qv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
         return {attrib[0], attrib[2], {}};
     }
 
@@ -524,9 +524,9 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_cells(tets.size() / 4);
         FOR(t, m.ncells()) FOR(tv, 4) m.vert(t, tv) = tets[4 * t + tv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.second);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
         return {attrib[0], attrib[3], attrib[2], {}};
     }
 
@@ -541,9 +541,9 @@ namespace UM {
 
         m.create_cells(hexes.size() / 8);
         FOR(h, m.ncells()) FOR(hv, 8) m.vert(h, hv) = hexes[8 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.second);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
         return {attrib[0], attrib[3], attrib[2], {}};
     }
 
@@ -558,9 +558,9 @@ namespace UM {
 
         m.create_cells(wedges.size() / 6);
         FOR(h, m.ncells()) FOR(hv, 6) m.vert(h, hv) = wedges[5 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.second);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
         return {attrib[0], attrib[3], attrib[2], {}};
     }
 
@@ -575,9 +575,9 @@ namespace UM {
 
         m.create_cells(pyramids.size() / 5);
         FOR(h, m.ncells()) FOR(hv, 5) m.vert(h, hv) = pyramids[5 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.second);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
 
         return {attrib[0], attrib[3], attrib[2], {}};
     }

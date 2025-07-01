@@ -86,8 +86,8 @@ namespace UM {
             auto &att = attr.points;
 
             for (int i=0; i<static_cast<int>(att.size()); i++) {
-                std::string name = att[i].first;
-                std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                std::string name = att[i].name;
+                std::shared_ptr<GenericAttributeContainer> ptr = att[i].ptr;
                 std::string place = "GEO::Mesh::vertices";
 
                 // TODO externalize that
@@ -131,8 +131,8 @@ namespace UM {
                 auto &att = A[z];
 
                 for (int i=0; i<static_cast<int>(att.size()); i++) {
-                    std::string name = att[i].first;
-                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                    std::string name = att[i].name;
+                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].ptr;
                     std::string place = "";
 
                     if (z==0)
@@ -185,6 +185,7 @@ namespace UM {
                     corner_vertex.push_back(m.vert(f,v));
             writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex.data(), m.ncorners(), 1);
 
+            // TODO we cannot use m.conn if there are deactivated facets; therefore we need to compute another connectivity (const &) if we want this attribute
             // std::vector<index_t> corner_adjacent_facet;
             // SurfaceConnectivity fec(m);
             // for (int c=0; c<m.ncorners(); c++) {
@@ -198,8 +199,8 @@ namespace UM {
                 auto &att = A[z];
 
                 for (int i=0; i<static_cast<int>(att.size()); i++) {
-                    std::string name = att[i].first;
-                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                    std::string name = att[i].name;
+                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].ptr;
                     std::string place = "";
 
                     if (z==0)
@@ -284,8 +285,8 @@ namespace UM {
                 auto &att = A[z];
 
                 for (int i=0; i<static_cast<int>(att.size()); i++) {
-                    std::string name = att[i].first;
-                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].second;
+                    std::string name = att[i].name;
+                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].ptr;
                     std::string place = "";
 
                     if (z==0)
@@ -547,8 +548,8 @@ namespace UM {
 
     void parse_pointset_attributes(PointSet &pts, std::vector<NamedContainer> &attr) {
         for (int i=0; i<(int)attr.size(); i++) {
-            if (attr[i].first != "point") continue;
-            std::shared_ptr<AttributeContainer<vec3> > ptr = std::dynamic_pointer_cast<AttributeContainer<vec3> >(attr[i].second);
+            if (attr[i].name != "point") continue;
+            std::shared_ptr<AttributeContainer<vec3> > ptr = std::dynamic_pointer_cast<AttributeContainer<vec3> >(attr[i].ptr);
             pts.resize(ptr->data.size());
             for (int v=0; v<pts.size(); v++)
                 pts[v] = ptr->data[v];
@@ -559,8 +560,8 @@ namespace UM {
 
     void parse_int_array(const std::string &name, std::vector<int> &array, std::vector<NamedContainer> &attr) {
         for (int i=0; i<(int)attr.size(); i++) {
-            if (attr[i].first != name) continue;
-            std::shared_ptr<AttributeContainer<int> > ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(attr[i].second);
+            if (attr[i].name != name) continue;
+            std::shared_ptr<AttributeContainer<int> > ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(attr[i].ptr);
             array = ptr->data;
             attr.erase(attr.begin()+i);
             i--;
@@ -624,11 +625,11 @@ namespace UM {
         }
 
         for (auto &nc : attrib[4])
-            (*nc.second).compress(cells_old2new);
+            (*nc.ptr).compress(cells_old2new);
         for (auto &nc : attrib[5])
-            (*nc.second).compress(facets_old2new);
+            (*nc.ptr).compress(facets_old2new);
         for (auto &nc : attrib[6])
-            (*nc.second).compress(corners_old2new);
+            (*nc.ptr).compress(corners_old2new);
 
         va = {attrib[0], attrib[4], attrib[5], attrib[6]};
     }
@@ -642,10 +643,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr.emplace_back(a.second);
-        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
-        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
-        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
+        for (auto &a : va.points      ) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
 
         return va;
     }
@@ -659,10 +660,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr.emplace_back(a.second);
-        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
-        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
-        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
+        for (auto &a : va.points      ) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
 
         return va;
     }
@@ -676,10 +677,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr.emplace_back(a.second);
-        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
-        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
-        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
+        for (auto &a : va.points      ) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
 
         return va;
     }
@@ -693,10 +694,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr.emplace_back(a.second);
-        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
-        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
-        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
+        for (auto &a : va.points      ) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
 
         return va;
     }
@@ -715,9 +716,9 @@ namespace UM {
         parse_int_array("GEO::Mesh::facets::facet_ptr", polygons.offset, attrib[2]);
         polygons.offset.push_back(polygons.facets.size());
 
-        for (auto &a : attrib[0]) polygons.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[2]) polygons.attr_facets.emplace_back(a.second);
-        for (auto &a : attrib[3]) polygons.attr_corners.emplace_back(a.second);
+        for (auto &a : attrib[0]) polygons.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[2]) polygons.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib[3]) polygons.attr_corners.emplace_back(a.ptr);
 
         return {attrib[0], attrib[2], attrib[3]};
     }
@@ -761,8 +762,8 @@ namespace UM {
 
         parse_int_array("GEO::Mesh::edges::edge_vertex", pl.edges, attrib[1]);
 
-        for (auto &a : attrib[0]) pl.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[1]) pl.attr.emplace_back(a.second);
+        for (auto &a : attrib[0]) pl.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[1]) pl.attr.emplace_back(a.ptr);
 
         return {attrib[0], attrib[1]};
     }
@@ -774,7 +775,7 @@ namespace UM {
         read_geogram(filename, attrib);
         parse_pointset_attributes(ps, attrib[0]);
 
-        for (auto &a : attrib[0]) ps.attr.emplace_back(a.second);
+        for (auto &a : attrib[0]) ps.attr.emplace_back(a.ptr);
 
         return {attrib[0]};
     }

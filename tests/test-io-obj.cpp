@@ -103,7 +103,7 @@ TEST_CASE("tex_coord per vertex IO test#1", "[OBJ]") {
 
         int cnt = 0;
         for (auto &pair : attr.points)
-            cnt += (pair.first=="tex_coord");
+            cnt += (pair.name=="tex_coord");
         CHECK( cnt==1 );
 
         for (int f : range(2))
@@ -128,7 +128,7 @@ TEST_CASE("tex_coord per vertex IO test#2", "[OBJ]") {
 
         int cnt = 0;
         for (auto &pair : attr.points)
-            cnt += (pair.first=="tex_coord");
+            cnt += (pair.name=="tex_coord");
         CHECK( cnt==1 );
 
         for (int f : range(2))
@@ -153,7 +153,7 @@ TEST_CASE("tex_coord per corner IO test", "[OBJ]") {
 
         int cnt = 0;
         for (auto &pair : attr.corners)
-            cnt += (pair.first=="tex_coord");
+            cnt += (pair.name=="tex_coord");
         CHECK( cnt==1 );
 
         for (int f : range(2))
@@ -179,7 +179,7 @@ TEST_CASE("Polygons IO test", "[OBJ]") {
 
         int cnt = 0;
         for (auto &pair : attr.corners)
-            cnt += (pair.first=="tex_coord");
+            cnt += (pair.name=="tex_coord");
         CHECK( cnt==1 );
 
 //      for (int f : range(2))

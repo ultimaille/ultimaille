@@ -189,8 +189,8 @@ namespace UM {
             out << "v " << m.points[v] << std::endl;
 
         for (auto &pair : attr.points) { // export tex_coord per vertex
-            if (pair.first!="tex_coord") continue;
-            std::shared_ptr<GenericAttributeContainer> ptr = pair.second;
+            if (pair.name!="tex_coord") continue;
+            std::shared_ptr<GenericAttributeContainer> ptr = pair.ptr;
             if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
                 std::vector<vec2> tmp = cont_ptr->data;
                 um_assert((int)tmp.size()==m.nverts());
@@ -207,8 +207,8 @@ namespace UM {
         }
 
         for (auto &pair : attr.corners) { // export tex_coord per corner
-            if (pair.first!="tex_coord") continue;
-            std::shared_ptr<GenericAttributeContainer> ptr = pair.second;
+            if (pair.name!="tex_coord") continue;
+            std::shared_ptr<GenericAttributeContainer> ptr = pair.ptr;
             if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
                 std::vector<vec2> tmp = cont_ptr->data;
                 um_assert((int)tmp.size()==m.ncorners());

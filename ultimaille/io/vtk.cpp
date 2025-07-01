@@ -507,7 +507,7 @@ namespace UM {
         m = PointSet();
         m.create_points(verts.size());
         FOR(v, verts.size()) m[v] = verts[v];
-        for (auto &a : attrib[0]) m.attr.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.attr.emplace_back(a.ptr);
         return { attrib[0] };
      }
 
@@ -521,8 +521,8 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_edges(edges.size()/2);
         FOR(e, m.nedges()) FOR(ev, 2) m.vert(e, ev) = edges[2 * e + ev];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[1]) m.attr.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[1]) m.attr.emplace_back(a.ptr);
         return { attrib[0], attrib[1] };
     }
 
@@ -536,8 +536,8 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(tris.size() / 3);
         FOR(t, m.nfacets()) FOR(tv, 3) m.vert(t, tv) = tris[3 * t + tv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[1]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[1]) m.attr_facets.emplace_back(a.ptr);
         return { attrib[0], attrib[1], {} };
     }
 
@@ -568,7 +568,7 @@ namespace UM {
         um_assert(attrib2[1].size() == attrib1[1].size());
 
         FOR(i, attrib1[1].size())
-            append_attribute(std::get<1>(attrib1[1][i]), std::get<1>(attrib2[1][i]));
+            append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
 
         m = Quads();
         m.points.create_points(verts.size());
@@ -579,8 +579,8 @@ namespace UM {
 
         int off = m.create_facets(pixel.size() / 4);
         FOR(q, pixel.size()/4) FOR(qv, 4) m.vert(off+q, qv) = pixel[4 * q + qv];
-        for (auto &a : attrib1[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib1[1]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib1[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib1[1]) m.attr_facets.emplace_back(a.ptr);
         return { attrib1[0], attrib1[1], {} };
     }
 
@@ -594,7 +594,7 @@ namespace UM {
         um_assert(attrib2[1].size() == attrib1[1].size());
 
         FOR(i, attrib1[1].size())
-            append_attribute(std::get<1>(attrib1[1][i]), std::get<1>(attrib2[1][i]));
+            append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
 
         m = Polygons();
         m.points.create_points(verts.size());
@@ -606,8 +606,8 @@ namespace UM {
         int off = m.create_facets(quads.size() / 4, 4);
         FOR(q, quads.size() / 4) FOR(qv, 4) m.vert(off + q, qv) = quads[4 * q + qv];
 
-        for (auto &a : attrib1[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib1[1]) m.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib1[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib1[1]) m.attr_facets.emplace_back(a.ptr);
         return { attrib1[0], attrib1[1], {} };
     }
 
@@ -621,8 +621,8 @@ namespace UM {
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_cells(tetra.size() / 4);
         FOR(t, m.ncells()) FOR(tv, 4) m.vert(t, tv) = tetra[4 * t + tv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.ptr);
         return { attrib[0], attrib[1], {}, {} };
     }
 
@@ -636,7 +636,7 @@ namespace UM {
         um_assert(attrib2[1].size() == attrib1[1].size());
 
         FOR(i, attrib1[1].size())
-            append_attribute(std::get<1>(attrib1[1][i]), std::get<1>(attrib2[1][i]));
+            append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
 
         m = Hexahedra();
         m.points.create_points(verts.size());
@@ -646,8 +646,8 @@ namespace UM {
         FOR(h, m.ncells()) FOR(hv, 8) m.vert(h, hv) = hexa[8 * h + hv];
         int off = m.create_cells(voxel.size() / 8);
         FOR(h, voxel.size()/8) FOR(hv, 8) m.vert(off+h, hv) = voxel[8 * h + hv];
-        for (auto &a : attrib1[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib1[1]) m.attr_cells.emplace_back(a.second);
+        for (auto &a : attrib1[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib1[1]) m.attr_cells.emplace_back(a.ptr);
         return { attrib1[0], attrib1[1], {}, {} };
     }
 
@@ -662,8 +662,8 @@ namespace UM {
 
         m.create_cells(wedges.size() / 6);
         FOR(h, m.ncells()) FOR(hv, 6) m.vert(h, hv) = wedges[6 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.ptr);
         return { attrib[0], attrib[1], {}, {} };
     }
 
@@ -678,8 +678,8 @@ namespace UM {
 
         m.create_cells(pyramids.size() / 5);
         FOR(h, m.ncells()) FOR(hv, 5) m.vert(h, hv) = pyramids[5 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.second);
-        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.second);
+        for (auto &a : attrib[0]) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.ptr);
         return { attrib[0], attrib[1], {}, {} };
     }
 }

@@ -6,8 +6,8 @@
 namespace UM {
     template <typename T> void bind_attribute(GenericAttribute<T> *A, const std::string name, const int size, std::vector<NamedContainer> &containers, std::vector<std::weak_ptr<GenericAttributeContainer> > &callbacks, const T def = T()) {
         for (auto &pair : containers) {
-            if (pair.first!=name) continue;
-            A->ptr = std::dynamic_pointer_cast<AttributeContainer<T> >(pair.second);
+            if (pair.name!=name) continue;
+            A->ptr = std::dynamic_pointer_cast<AttributeContainer<T> >(pair.ptr);
             assert(A->ptr.get());
             A->ptr->default_value = def;
             //   callbacks.push_back(ptr); // TODO architectural choice: to bind or not to bind? At the moment the binding is done in mesh_io.cpp

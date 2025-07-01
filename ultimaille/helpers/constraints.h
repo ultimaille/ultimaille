@@ -25,7 +25,7 @@ namespace UM {
 
             m_same_sign[rootA] = (m_same_sign[a]==m_same_sign[b])==same_sign;
             m_size[rootB] += m_size[rootA];
-            m_conflicts[rootB] = m_conflicts[rootB] | m_conflicts[rootA];
+            m_conflicts[rootB] = m_conflicts[rootB] || m_conflicts[rootA];
         }
 
         int root(const int i) { // connect a node and its ancestors to the root and return the root
