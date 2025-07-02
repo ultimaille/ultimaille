@@ -4,7 +4,7 @@
 #include <memory>
 
 namespace UM {
-    template <typename T> void bind_attribute(GenericAttribute<T> *A, const std::string name, const int size, std::vector<NamedContainer> &containers, std::vector<std::weak_ptr<GenericAttributeContainer> > &callbacks, const T def = T()) {
+    template <typename T> void bind_attribute(GenericAttribute<T> *A, const std::string name, const int size, std::vector<NamedContainer> &containers, std::vector<std::weak_ptr<ContainerBase> > &callbacks, const T def = T()) {
         for (auto &pair : containers) {
             if (pair.name!=name) continue;
             A->ptr = std::dynamic_pointer_cast<AttributeContainer<T> >(pair.ptr);

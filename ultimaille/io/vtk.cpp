@@ -214,7 +214,7 @@ namespace UM {
 //              um_assert(data.size()==nb*dim);
 
 //              std::cerr << "zzz " << place << " " << datatype << std::endl;
-                std::shared_ptr<GenericAttributeContainer> P;
+                std::shared_ptr<ContainerBase> P;
                 if (datatype=="bit") {
 //                  std::cerr << "Gngaslsdfkgj"<<std::endl;
                     GenericAttribute<bool> A(data.size());
@@ -541,7 +541,7 @@ namespace UM {
         return { attrib[0], attrib[1], {} };
     }
 
-    void append_attribute(std::shared_ptr<GenericAttributeContainer> a, std::shared_ptr<GenericAttributeContainer> b) {
+    void append_attribute(std::shared_ptr<ContainerBase> a, std::shared_ptr<ContainerBase> b) {
         if (auto A = std::dynamic_pointer_cast<AttributeContainer<int> >(a); A.get()!=nullptr) {
             auto B = std::dynamic_pointer_cast<AttributeContainer<int> >(b);
             um_assert(B.get()!=nullptr);

@@ -10,12 +10,12 @@
 #include "primitive_geometry.h"
 
 namespace UM {
-    struct GenericAttributeContainer;
+    struct ContainerBase;
 
     struct PolyLine {
         PointSet points{};
         std::vector<int> edges{};
-        std::vector<std::weak_ptr<GenericAttributeContainer> > attr{};
+        std::vector<std::weak_ptr<ContainerBase> > attr{};
 
         int nverts() const;
         int nedges() const;

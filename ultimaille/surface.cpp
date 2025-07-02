@@ -139,8 +139,8 @@ namespace UM {
             facets_old2new[f] = new_nb_facets++;
         }
 
-        std::erase_if(attr_facets,  [](std::weak_ptr<GenericAttributeContainer> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
-        std::erase_if(attr_corners, [](std::weak_ptr<GenericAttributeContainer> ptr) { return ptr.lock()==nullptr; });
+        std::erase_if(attr_facets,  [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
+        std::erase_if(attr_corners, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
         for (auto &wp : attr_facets) { // compress attributes
             auto spt = wp.lock();
             assert(spt!=nullptr);

@@ -274,7 +274,7 @@ namespace UM {
             return std::vector<int>(size, 1);
         }
 
-        std::shared_ptr<GenericAttributeContainer> point_attr_ptr = container[0].ptr;
+        std::shared_ptr<ContainerBase> point_attr_ptr = container[0].ptr;
         if (auto point_cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int>>(point_attr_ptr); point_cont_ptr.get()!=nullptr) {
             return std::move(point_cont_ptr->data);
         } else {

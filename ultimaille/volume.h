@@ -80,9 +80,9 @@ namespace UM {
         PointSet points{};
         std::vector<int> cells{};
 
-        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_cells{};
-        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
-        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
+        std::vector<std::weak_ptr<ContainerBase> > attr_cells{};
+        std::vector<std::weak_ptr<ContainerBase> > attr_facets{};
+        std::vector<std::weak_ptr<ContainerBase> > attr_corners{};
 
         int  create_cells(const int n);
         void delete_cells(const std::vector<bool> &to_kill);

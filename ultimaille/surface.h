@@ -14,8 +14,8 @@ namespace UM {
     struct Surface { // polygonal mesh interface
         PointSet points{};
         std::vector<int> facets{};
-        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_facets{};
-        std::vector<std::weak_ptr<GenericAttributeContainer> > attr_corners{};
+        std::vector<std::weak_ptr<ContainerBase> > attr_facets{};
+        std::vector<std::weak_ptr<ContainerBase> > attr_corners{};
 
 ////////////////////////////////////////////////////
 //       _                 _                _     //

@@ -16,14 +16,24 @@ namespace UM {
     struct Volume;
 
     struct SurfaceAttributes;
+    struct PointSetAttributes;
+    struct PolyLineAttributes;
+    struct VolumeAttributes;
 
-    struct GenericAttributeContainer {
+    struct ContainerBase {
+        virtual ~ContainerBase() = default;
         virtual void resize(const int n) = 0;
         virtual void compress(const std::vector<int> &old2new) = 0;
-        virtual ~GenericAttributeContainer() = default;
     };
 
-    template <typename T> struct AttributeContainer : GenericAttributeContainer {
+    struct AttributeBase {
+        enum TYPE { GENERIC=-1, POINTS=0, EDGES=1, FACETS=2, CORNERS=3, CELLS=4, CELLFACETS=5, CELLCORNERS=6 };
+        virtual ~AttributeBase() = default;
+        virtual TYPE kind() const { return GENERIC; }
+        virtual std::shared_ptr<ContainerBase> get_ptr() const = 0;
+    };
+
+    template <typename T> struct AttributeContainer : ContainerBase {
         AttributeContainer(const int n, const T def = T()) : data(n, def), default_value(def) {}
         void resize(const int n) { data.resize(n, default_value); }
         void compress(const std::vector<int> &old2new) { // NB: old2new is not a permutation!
@@ -40,37 +50,8 @@ namespace UM {
         T default_value;
     };
 
-    struct AttributeBase {
-        enum TYPE { GENERIC=-1, POINTS=0, EDGES=1, FACETS=2, CORNERS=3, CELLS=4, CELLFACETS=5, CELLCORNERS=6 };
-        virtual ~AttributeBase() = default;
-        virtual TYPE kind() const { return GENERIC; }
-        virtual std::shared_ptr<GenericAttributeContainer> get_ptr() const = 0;
-    };
-
-    struct NamedContainer {
-        std::string name;
-        std::shared_ptr<GenericAttributeContainer> ptr;
-    };
-
-    struct NamedAttribute {
-        std::string name;
-        AttributeBase& attribute;
-    };
-
-    struct PointSetAttributes {
-        std::vector<NamedContainer> points;
-    };
-
-    struct PolyLineAttributes {
-        std::vector<NamedContainer> points, edges;
-    };
-
-    struct VolumeAttributes {
-        std::vector<NamedContainer> points, cells, cell_facets, cell_corners;
-    };
-
     template <typename T> struct GenericAttribute : AttributeBase {
-    using value_type = T;
+//  using value_type = T;
         GenericAttribute() : ptr(nullptr) {}
         GenericAttribute(int size, const T def = T()) : ptr(new AttributeContainer<T>(size, def)) {}
         GenericAttribute(std::shared_ptr<AttributeContainer<T> > p) : ptr(p) {}
@@ -81,12 +62,12 @@ namespace UM {
         void fill(T value) {
             if (ptr) std::fill(ptr->data.begin(), ptr->data.end(), value);
         }
-        virtual std::shared_ptr<GenericAttributeContainer> get_ptr() const { return ptr; }
+        virtual std::shared_ptr<ContainerBase> get_ptr() const { return ptr; }
         std::shared_ptr<AttributeContainer<T> > ptr;
     };
 
     template <> struct GenericAttribute<bool> : AttributeBase {
-    using value_type = bool;
+//  using value_type = bool;
         GenericAttribute() : ptr(nullptr) {}
         GenericAttribute(int size, const bool def = false) : ptr(new AttributeContainer<bool>(size, def)) {}
         GenericAttribute(std::shared_ptr<AttributeContainer<bool> > p) : ptr(p) {}
@@ -94,43 +75,40 @@ namespace UM {
         GenericAttribute<bool>& operator=(const GenericAttribute<bool>& rhs) = delete;
 
         struct ConstBoolAttributeAccessor {
-            ConstBoolAttributeAccessor(const GenericAttribute<bool>& attribute, int index) : attribute_(&attribute), index_(index) {}
+            ConstBoolAttributeAccessor(const GenericAttribute<bool>& attribute, int index) : attribute(&attribute), index(index) {}
             operator bool() const {
-                return attribute_->ptr->data[index_];
+                return attribute->ptr->data[index];
             }
-            const GenericAttribute<bool>* attribute_;
-            const int index_;
+            const GenericAttribute<bool>* attribute;
+            const int index;
         };
 
         struct BoolAttributeAccessor {
-            BoolAttributeAccessor(GenericAttribute<bool>& attribute, int index) : attribute_(&attribute), index_(index) { }
-            operator bool() const {
-                return attribute_->ptr->data[index_];
-            }
+            BoolAttributeAccessor(GenericAttribute<bool>& attribute, int index) : attribute(&attribute), index(index) { }
+            BoolAttributeAccessor(const BoolAttributeAccessor& rhs) : attribute(rhs.attribute), index(rhs.index) { }
 
-            BoolAttributeAccessor(const BoolAttributeAccessor& rhs) {
-                attribute_ = rhs.attribute_;
-                index_ = rhs.index_;
+            operator bool() const {
+                return attribute->ptr->data[index];
             }
 
             BoolAttributeAccessor& operator=(bool x) {
-                attribute_->ptr->data[index_] = x;
+                attribute->ptr->data[index] = x;
                 return *this;
             }
 
             BoolAttributeAccessor& operator=(const BoolAttributeAccessor& rhs) {
                 if (&rhs != this)
-                    attribute_->ptr->data[index_] = rhs.attribute_->ptr->data[rhs.index_];
+                    attribute->ptr->data[index] = rhs.attribute->ptr->data[rhs.index];
                 return *this;
             }
 
             BoolAttributeAccessor& operator=(const ConstBoolAttributeAccessor& rhs) {
-                attribute_->ptr->data[index_] = rhs.attribute_->ptr->data[rhs.index_];
+                attribute->ptr->data[index] = rhs.attribute->ptr->data[rhs.index];
                 return *this;
             }
 
-            GenericAttribute<bool>* attribute_;
-            int index_;
+            GenericAttribute<bool>* attribute;
+            int index;
         };
 
         BoolAttributeAccessor operator[](const int i) {
@@ -145,16 +123,14 @@ namespace UM {
             if (ptr) std::fill(ptr->data.begin(), ptr->data.end(), value);
         }
 
-        virtual std::shared_ptr<GenericAttributeContainer> get_ptr() const { return ptr; }
+        virtual std::shared_ptr<ContainerBase> get_ptr() const { return ptr; }
 
         std::shared_ptr<AttributeContainer<bool> > ptr;
     };
 
     template <typename T> struct PointAttribute : GenericAttribute<T> {
-
         PointAttribute(PointSet &pts, const T def = T());
         PointAttribute(const PointSet &pts, const T def = T());
-
         PointAttribute(PolyLine &m, const T def = T());
         PointAttribute(const PolyLine &m, const T def = T());
         PointAttribute(Surface &m, const T def = T());
@@ -162,10 +138,10 @@ namespace UM {
         PointAttribute(Volume  &m, const T def = T());
         PointAttribute(const Volume  &m, const T def = T());
 
-        PointAttribute(std::string name, PointSetAttributes &attributes, PointSet &ps, const T def = T());
+        PointAttribute(std::string name, PointSetAttributes &attributes, PointSet &ps,  const T def = T());
         PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, const T def = T());
-        PointAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, const T def = T());
-        PointAttribute(std::string name, VolumeAttributes &attributes, Volume &m, const T def = T());
+        PointAttribute(std::string name, SurfaceAttributes  &attributes, Surface  &m,   const T def = T());
+        PointAttribute(std::string name, VolumeAttributes   &attributes, Volume   &m,   const T def = T());
         virtual AttributeBase::TYPE kind() const { return AttributeBase::POINTS; }
     };
 
@@ -211,11 +187,35 @@ namespace UM {
         virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLCORNERS; }
     };
 
+    struct NamedContainer {
+        std::string name;
+        std::shared_ptr<ContainerBase> ptr;
+    };
+
+    struct NamedAttribute {
+        std::string name;
+        AttributeBase& attribute;
+    };
+
+    struct PointSetAttributes {
+        std::vector<NamedContainer> points;
+    };
+
+    struct PolyLineAttributes {
+        std::vector<NamedContainer> points, edges;
+    };
+
+    struct VolumeAttributes {
+        std::vector<NamedContainer> points, cells, cell_facets, cell_corners;
+    };
+
     struct SurfaceAttributes {
         SurfaceAttributes() = default;
         SurfaceAttributes(SurfaceAttributes& p)        = default;
         SurfaceAttributes(SurfaceAttributes&& p)       = default;
         SurfaceAttributes(const SurfaceAttributes& p)  = default;
+        SurfaceAttributes& operator=(const SurfaceAttributes& p)  = default;
+
         SurfaceAttributes(std::vector<NamedContainer> points, std::vector<NamedContainer> facets, std::vector<NamedContainer> corners) : points(points), facets(facets), corners(corners) {}
 
         SurfaceAttributes(std::initializer_list<NamedAttribute> list) {

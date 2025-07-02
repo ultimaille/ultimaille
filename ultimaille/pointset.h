@@ -8,7 +8,7 @@
 #include "helpers/hboxes.h"
 
 namespace UM {
-    struct GenericAttributeContainer;
+    struct ContainerBase;
 
     struct PointSet {
         PointSet() : data(new std::vector<vec3>()) {}
@@ -44,7 +44,7 @@ namespace UM {
         void compress_attrs(const std::vector<int> &old2new);
 
         std::shared_ptr<std::vector<vec3> > data;
-        std::vector<std::weak_ptr<GenericAttributeContainer> > attr = {};
+        std::vector<std::weak_ptr<ContainerBase> > attr = {};
     };
 }
 

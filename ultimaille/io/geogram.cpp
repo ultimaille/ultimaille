@@ -87,7 +87,7 @@ namespace UM {
 
             for (int i=0; i<static_cast<int>(att.size()); i++) {
                 std::string name = att[i].name;
-                std::shared_ptr<GenericAttributeContainer> ptr = att[i].ptr;
+                std::shared_ptr<ContainerBase> ptr = att[i].ptr;
                 std::string place = "GEO::Mesh::vertices";
 
                 // TODO externalize that
@@ -132,7 +132,7 @@ namespace UM {
 
                 for (int i=0; i<static_cast<int>(att.size()); i++) {
                     std::string name = att[i].name;
-                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].ptr;
+                    std::shared_ptr<ContainerBase> ptr = att[i].ptr;
                     std::string place = "";
 
                     if (z==0)
@@ -200,7 +200,7 @@ namespace UM {
 
                 for (int i=0; i<static_cast<int>(att.size()); i++) {
                     std::string name = att[i].name;
-                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].ptr;
+                    std::shared_ptr<ContainerBase> ptr = att[i].ptr;
                     std::string place = "";
 
                     if (z==0)
@@ -286,7 +286,7 @@ namespace UM {
 
                 for (int i=0; i<static_cast<int>(att.size()); i++) {
                     std::string name = att[i].name;
-                    std::shared_ptr<GenericAttributeContainer> ptr = att[i].ptr;
+                    std::shared_ptr<ContainerBase> ptr = att[i].ptr;
                     std::string place = "";
 
                     if (z==0)
@@ -499,7 +499,7 @@ namespace UM {
 
                 //                  std::cerr << "ATTR " << attribute_set_name << " " << attribute_name << " " << element_type << " " << element_size << " " << dimension << "\n";
 
-                std::shared_ptr<GenericAttributeContainer> P;
+                std::shared_ptr<ContainerBase> P;
                 if (element_type=="char") {
                     assert(dimension == 1);
                     std::vector<char> tmp(nb_items);
