@@ -157,9 +157,9 @@ namespace UM {
             to_kill[f] = (3!=mpoly.facet_size(f));
         mpoly.delete_facets(to_kill);
 
-        m.points = mpoly.points;
+        m.points = mpoly.points; // TODO pay attention to m.points.attr
         m.facets = mpoly.facets;
-        m.attr_corners = mpoly.attr_corners; // TODO pay attention to m.points.attr
+	m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
         return sa;
     }
 
@@ -172,9 +172,9 @@ namespace UM {
             to_kill[f] = (4!=mpoly.facet_size(f));
         mpoly.delete_facets(to_kill);
 
-        m.points = mpoly.points;
+        m.points = mpoly.points; // TODO pay attention to m.points.attr
         m.facets = mpoly.facets;
-        m.attr_corners = mpoly.attr_corners; // TODO pay attention to m.points.attr
+	m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
         return sa;
     }
 

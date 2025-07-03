@@ -108,23 +108,18 @@ namespace UM {
         constexpr int  facet(const int c, const int lf) const;
         constexpr int corner(const int c, const int lc) const;
 
-        void clear() {
-            points = {};
-            cells  = {};
-            attr_cells   = {};
-            attr_facets  = {};
-            attr_corners = {};
-        }
+//      void clear() {
+//          points = {};
+//          cells  = {};
+//          attr_cells   = {};
+//          attr_facets  = {};
+//          attr_corners = {};
+//      }
 
         Volume(CELL_TYPE cell_type) : cell_type(cell_type) {}
-        Volume(const Volume& m) { // TODO re-think copying policy
-            um_assert(!m.points.size() && !m.cells.size());
-        }
-        Volume& operator=(const Volume& m) {
-            clear();
-            um_assert(!m.points.size() && !m.cells.size());
-            return *this;
-        }
+        Volume(const Volume& m) = delete;
+        Volume(Volume&& m) = delete;
+        Volume& operator=(const Volume& m) = delete;
 
         struct Connectivity {
             Volume &m;
@@ -229,7 +224,7 @@ namespace UM {
 
             Halfedge halfedge(int lh);
             //[[deprecated]]
-            Vertex __vertex(int lv);
+            Vertex __vertex(int lv); // TODO remove
             Vertex vertex(int lv);
             Corner corner(int lc);
 
