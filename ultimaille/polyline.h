@@ -29,13 +29,6 @@ namespace UM {
         int  vert(const int s, const int lv) const;
         int &vert(const int s, const int lv)      ;
 
-//      virtual void clear() {
-//          points   = {};
-//          attr     = {};
-//          edges = {};
-//          disconnect();
-//      }
-
         void delete_isolated_vertices();
 
         PolyLine() {}

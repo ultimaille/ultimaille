@@ -41,13 +41,6 @@ namespace UM {
         virtual int   vert(const int fi, const int lv) const = 0;
         virtual int&  vert(const int fi, const int lv) = 0;
 
-//      virtual void clear() {
-//          points       = {};
-//          attr_facets  = {};
-//          attr_corners = {};
-//          disconnect();
-//      }
-
         Surface() = default;
         Surface(const Surface& m) = delete;
         Surface(Surface&& m) = delete;
@@ -223,11 +216,6 @@ namespace UM {
 
         int create_facets(const int n, const int size);
         void delete_facets(const std::vector<bool>& to_kill);
-
-//      virtual void clear() {
-//          Surface::clear();
-//          offset = { 0 };
-//      }
 
         int nfacets()  const;
         int facet_size(const int fi) const;

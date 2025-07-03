@@ -500,11 +500,11 @@ namespace UM {
 */
 
     PointSetAttributes read_vtk(const std::string filename, PointSet   &m) {
+        um_assert(!m.size());
         std::vector<vec3> verts;
         std::vector<int> cells;
         std::vector<NamedContainer> attrib[2];
         read_vtk_format(filename, -1, verts, cells, attrib);
-        m = PointSet();
         m.create_points(verts.size());
         FOR(v, verts.size()) m[v] = verts[v];
         for (auto &a : attrib[0]) m.attr.emplace_back(a.ptr);
@@ -512,11 +512,11 @@ namespace UM {
      }
 
     PolyLineAttributes read_vtk(const std::string filename, PolyLine& m) {
+        um_assert(!m.nverts() && !m.nedges());
         std::vector<vec3> verts;
         std::vector<int> edges;
         std::vector<NamedContainer> attrib[2];
         read_vtk_format(filename, 3, verts, edges, attrib);
-        m = PolyLine();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_edges(edges.size()/2);
@@ -527,11 +527,11 @@ namespace UM {
     }
 
     SurfaceAttributes read_vtk(const std::string filename, Triangles& m) {
+        um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> tris;
         std::vector<NamedContainer> attrib[2];
         read_vtk_format(filename, 5, verts, tris, attrib);
-        m = Triangles();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(tris.size() / 3);
@@ -560,6 +560,7 @@ namespace UM {
     }
 
     SurfaceAttributes read_vtk(const std::string filename, Quads& m) {
+        um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> quads, pixel;
         std::vector<NamedContainer> attrib1[2], attrib2[2];
@@ -570,7 +571,6 @@ namespace UM {
         FOR(i, attrib1[1].size())
             append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
 
-        m = Quads();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
@@ -585,6 +585,7 @@ namespace UM {
     }
 
     SurfaceAttributes read_vtk(const std::string filename, Polygons& m) {
+        um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> tris, quads;
         std::vector<NamedContainer> attrib1[2], attrib2[2];
@@ -596,7 +597,6 @@ namespace UM {
         FOR(i, attrib1[1].size())
             append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
 
-        m = Polygons();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
@@ -612,11 +612,11 @@ namespace UM {
     }
 
     VolumeAttributes read_vtk(const std::string filename, Tetrahedra& m) {
+        um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> tetra;
         std::vector<NamedContainer> attrib[2];
         read_vtk_format(filename, 10, verts, tetra, attrib);
-        m = Tetrahedra();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_cells(tetra.size() / 4);
@@ -627,6 +627,7 @@ namespace UM {
     }
 
     VolumeAttributes read_vtk(const std::string filename, Hexahedra& m) {
+        um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> hexa, voxel;
         std::vector<NamedContainer> attrib1[2], attrib2[2];
@@ -638,7 +639,6 @@ namespace UM {
         FOR(i, attrib1[1].size())
             append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
 
-        m = Hexahedra();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
@@ -652,11 +652,11 @@ namespace UM {
     }
 
     VolumeAttributes read_vtk(const std::string filename, Wedges& m) {
+        um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> wedges;
         std::vector<NamedContainer> attrib[2];
         read_vtk_format(filename, 13, verts, wedges, attrib);
-        m = Wedges();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
@@ -668,11 +668,11 @@ namespace UM {
     }
 
     VolumeAttributes read_vtk(const std::string filename, Pyramids& m) {
+        um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> pyramids;
         std::vector<NamedContainer> attrib[2];
         read_vtk_format(filename, 14, verts, pyramids, attrib);
-        m = Pyramids();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 

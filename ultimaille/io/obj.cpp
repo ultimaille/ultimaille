@@ -9,7 +9,7 @@
 namespace UM {
 
     PolyLineAttributes read_wavefront_obj(const std::string &filename, PolyLine &m) {
-        m = PolyLine();
+        um_assert(!m.nverts() && !m.nedges());
         std::ifstream in;
         in.open (filename, std::ifstream::in);
         if (in.fail())
@@ -47,13 +47,13 @@ namespace UM {
     // TODO: improve the parser
     // TODO: export vn (corner and point) and vt (corner) attributes
     SurfaceAttributes read_wavefront_obj(const std::string &filename, Polygons &m) {
+        um_assert(!m.nverts() && !m.nfacets());
         SurfaceAttributes sa;
         std::vector<vec3> VN;
         std::vector<vec2> VT;
         std::vector<std::vector<int>> VTID;
         std::vector<std::vector<int>> VNID;
 
-        m = Polygons();
         std::ifstream in;
         in.open (filename, std::ifstream::in);
         if (in.fail())
@@ -159,7 +159,7 @@ namespace UM {
 
         m.points = mpoly.points; // TODO pay attention to m.points.attr
         m.facets = mpoly.facets;
-	m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
+        m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
         return sa;
     }
 
@@ -174,7 +174,7 @@ namespace UM {
 
         m.points = mpoly.points; // TODO pay attention to m.points.attr
         m.facets = mpoly.facets;
-	m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
+        m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
         return sa;
     }
 

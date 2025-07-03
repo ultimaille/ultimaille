@@ -635,7 +635,8 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Tetrahedra &m) {
-        m = Tetrahedra();
+        um_assert(!m.nverts() && !m.ncells());
+
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, Volume::TETRAHEDRON);
@@ -652,7 +653,8 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Hexahedra &m) {
-        m = Hexahedra();
+        um_assert(!m.nverts() && !m.ncells());
+
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, Volume::HEXAHEDRON);
@@ -669,7 +671,8 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Wedges &m) {
-        m = Wedges();
+        um_assert(!m.nverts() && !m.ncells());
+
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, Volume::WEDGE);
@@ -686,7 +689,8 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Pyramids &m) {
-        m = Pyramids();
+        um_assert(!m.nverts() && !m.ncells());
+
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, Volume::PYRAMID);
@@ -703,7 +707,7 @@ namespace UM {
     }
 
     SurfaceAttributes read_geogram(const std::string filename, Polygons &polygons) {
-        polygons = Polygons();
+        um_assert(!polygons.nverts() && !polygons.nfacets());
 
         std::vector<NamedContainer> attrib[7];
         read_geogram(filename, attrib);
@@ -724,37 +728,45 @@ namespace UM {
     }
 
     SurfaceAttributes read_geogram(const std::string filename, Triangles &m) {
+        um_assert(!m.nverts() && !m.nfacets());
         Polygons mpoly;
+        mpoly.points.attr = m.points.attr; // N.B. we need to keep m.points.attr weak pointers!
         SurfaceAttributes polyattr = read_geogram(filename, mpoly);
         std::vector<bool> to_kill(mpoly.nfacets(), false);
         for (int f=0; f<mpoly.nfacets(); f++)
             to_kill[f] = (3!=mpoly.facet_size(f));
         mpoly.delete_facets(to_kill);
-        m.points = mpoly.points;
+
+        m.points = mpoly.points; // N.B. here we retreive original weak pointers back along with the vec3 data and new attributes
         m.facets = mpoly.facets;
-        m.attr_facets = mpoly.attr_facets;
-        m.attr_corners = mpoly.attr_corners;
+        m.attr_facets.insert (std::end(m.attr_facets),  std::begin(mpoly.attr_facets),  std::end(mpoly.attr_facets));
+        m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
 
         return polyattr;
     }
 
     SurfaceAttributes read_geogram(const std::string filename, Quads &m) {
+        um_assert(!m.nverts() && !m.nfacets());
+
         Polygons mpoly;
+        mpoly.points.attr = m.points.attr; // N.B. we need to keep m.points.attr weak pointers!
+
         SurfaceAttributes polyattr = read_geogram(filename, mpoly);
         std::vector<bool> to_kill(mpoly.nfacets(), false);
         for (int f=0; f<mpoly.nfacets(); f++)
             to_kill[f] = (4!=mpoly.facet_size(f));
         mpoly.delete_facets(to_kill);
-        m.points = mpoly.points;
+
+        m.points = mpoly.points; // N.B. here we retreive  original weak pointers back
         m.facets = mpoly.facets;
-        m.attr_facets = mpoly.attr_facets;
-        m.attr_corners = mpoly.attr_corners;
+        m.attr_facets.insert (std::end(m.attr_facets),  std::begin(mpoly.attr_facets),  std::end(mpoly.attr_facets));
+        m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
 
         return polyattr;
     }
 
     PolyLineAttributes read_geogram(const std::string filename, PolyLine &pl) {
-        pl = PolyLine();
+        um_assert(!pl.nverts() && !pl.nedges());
 
         std::vector<NamedContainer> attrib[7];
         read_geogram(filename, attrib);
@@ -769,7 +781,7 @@ namespace UM {
     }
 
     PointSetAttributes read_geogram(const std::string filename, PointSet &ps) {
-        ps = PointSet();
+        um_assert(!ps.size());
 
         std::vector<NamedContainer> attrib[7];
         read_geogram(filename, attrib);

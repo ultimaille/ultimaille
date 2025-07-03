@@ -40,38 +40,6 @@ namespace UM {
         const Volume &m;
     };
 
-    // struct [[deprecated]] halfedge_around_edge_iter {
-    //     const OppositeFacet  &of;
-    //     const HalfEdgeHelper &heh;
-    //     int start  = -1;
-    //     int finish = -1;
-
-    //     halfedge_around_edge_iter(const OppositeFacet &of, const int he);
-
-    //     struct iterator {
-    //         const OppositeFacet  &of;
-    //         const HalfEdgeHelper &heh;
-    //         int value;
-    //         bool circ;
-
-    //         void operator++() {
-    //             value = of.opposite_c(heh.opposite_f(value));
-    //             circ = false;
-    //         }
-
-    //         int operator*() const {
-    //             return value;
-    //         }
-
-    //         bool operator!=(const iterator& rhs) const {
-    //             return circ || value != rhs.value;
-    //         }
-    //     };
-
-    //     iterator begin() const { return {of, heh, start, start==finish}; }
-    //     iterator end()   const { return {of, heh, finish, false}; }
-    // };
-
     struct Volume {
         enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };
         CELL_TYPE cell_type;
@@ -107,14 +75,6 @@ namespace UM {
         int facet_vert(const int c, const int lf, const int lv) const;
         constexpr int  facet(const int c, const int lf) const;
         constexpr int corner(const int c, const int lc) const;
-
-//      void clear() {
-//          points = {};
-//          cells  = {};
-//          attr_cells   = {};
-//          attr_facets  = {};
-//          attr_corners = {};
-//      }
 
         Volume(CELL_TYPE cell_type) : cell_type(cell_type) {}
         Volume(const Volume& m) = delete;
@@ -692,8 +652,6 @@ namespace UM {
     inline Volume::Vertex Volume::Facet::vertex(int i) {
         return Volume::Vertex(m, m.facet_vert(cell(), id_in_cell(), i));
     }
-
-            
 
     inline Volume::Corner Volume::Facet::corner(int i) {
         assert(m.connected());
