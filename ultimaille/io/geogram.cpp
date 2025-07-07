@@ -186,13 +186,16 @@ namespace UM {
             writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex.data(), m.ncorners(), 1);
 
             // TODO we cannot use m.conn if there are deactivated facets; therefore we need to compute another connectivity (const &) if we want this attribute
-            // std::vector<index_t> corner_adjacent_facet;
-            // SurfaceConnectivity fec(m);
-            // for (int c=0; c<m.ncorners(); c++) {
-            //     int opp = fec.opposite(c);
-            //     corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : fec.c2f[opp]);
-            // }
-            // writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet.data(), m.ncorners(), 1);
+            if (m.connected()) {
+                std::vector<index_t> corner_adjacent_facet;
+                for (int c=0; c<m.ncorners(); c++) {
+                    const Surface::Halfedge h{const_cast<Surface &>(m), c}; // TODO const_cast is ugly, but safe here
+                    um_assert(h.active() || !"Impossible to save .geogram files with deactivated facets, use compact() beforehand");
+                    int opp = h.opposite();
+                    corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : m.conn->c2f[opp]);
+                }
+                writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet.data(), m.ncorners(), 1);
+            }
 
             std::vector<NamedContainer> A[3] = {attr.points, attr.facets, attr.corners};
             for (int z=0; z<3; z++) {
