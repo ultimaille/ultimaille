@@ -141,7 +141,7 @@ namespace UM {
             Halfedge prev() const;
             Halfedge opposite() const;
 
-            int id_in_facet();
+            int id_in_facet() const;
 
             friend struct Vertex;
             Vertex from() const;
@@ -185,7 +185,7 @@ namespace UM {
     struct Triangles : Surface { // simplicial mesh implementation
         int create_facets(const int n);
 
-        int nfacets()  const;
+        int nfacets() const;
         int facet_size(const int) const;
         int corner(const int fi, const int ci) const;
         int  vert(const int fi, const int lv) const;
@@ -468,7 +468,7 @@ namespace UM {
         return { m, m.vert(f, (lh+1)%n) };
     }
 
-    inline int Surface::Halfedge::id_in_facet() {
+    inline int Surface::Halfedge::id_in_facet() const {
         return id - m.corner(facet(), 0);
     }
 
@@ -563,12 +563,12 @@ namespace UM {
     inline auto Surface::iter_halfedges() {
         struct iterator {
             Halfedge h;
-	    const int ncorners; // need to freeze the end in the case the surface is changed in the meantime
+            const int ncorners; // need to freeze the end in the case the surface is changed in the meantime
             iterator & operator++() {
                 ++h.id;
                 if (h.m.connected())
                     while (h.id < ncorners && !h.active()) ++h.id;
-		return *this;
+                return *this;
             }
             bool operator!=(const iterator& rhs) const { return h != rhs.h; }
             Halfedge& operator*() { return h; }
@@ -584,7 +584,7 @@ namespace UM {
     inline auto Surface::iter_facets() {
         struct iterator {
             Facet f;
-	    const int nfacets; // need to freeze the end in the case the surface is changed in the meantime
+            const int nfacets; // need to freeze the end in the case the surface is changed in the meantime
             iterator & operator++() {
                 ++f.id;
                 if (f.m.connected())

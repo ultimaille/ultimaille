@@ -74,8 +74,7 @@ TEST_CASE("query .geogram", "[k-NN]") {
                 to_kill[i] = true;
             }
         }
-        std::vector<int> old2new;
-        request.delete_points(to_kill, old2new);
+        request.delete_points(to_kill);
         write_geogram("knn-request.geogram", request);
     }
     {
@@ -86,8 +85,7 @@ TEST_CASE("query .geogram", "[k-NN]") {
                 to_kill[i] = true;
             }
         }
-        std::vector<int> old2new;
-        cloud.delete_points(to_kill, old2new);
+        cloud.delete_points(to_kill);
         write_geogram("knn-cloud.geogram", cloud);
     }
 

@@ -41,7 +41,7 @@ namespace UM {
         vec3 result;
         double sum = 0;
         const vec3 n = normal();
-        
+
         for (int i = 0; i < 3; i++) {
             const vec3 &A = v[(i + 1) % 3];
             const vec3 &B = v[(i + 2) % 3];
@@ -56,7 +56,7 @@ namespace UM {
     // vec4 Tetrahedron::bary_coords(vec3 G) const {
     //     vec4 result;
     //     double sum = 0;
-        
+
     //     double vol = volume();
 
     //     for (int coord = 0; coord < 4; coord++) {
@@ -72,20 +72,20 @@ namespace UM {
     // }
 
     vec4 Tetrahedron::bary_coords(vec3 G) const {
-    	vec4 result;
-    	double sum = 0;
-        
-    	for(int coord=0;coord< 4;coord++) {
-    		vec3 P = v[coord];
-    		vec3 A = v[(coord + 1) % 4];
-    		vec3 B = v[(coord + 2) % 4];
-    		vec3 C = v[(coord + 3) % 4];
-    		result[coord] = Tetrahedron(A, B, C, G).volume() / Tetrahedron(A, B, C, P).volume();
-    		sum += result[coord];
-    	}
+        vec4 result;
+        double sum = 0;
 
-    	result /= sum;
-    	return result;
+        for(int coord=0;coord< 4;coord++) {
+            vec3 P = v[coord];
+            vec3 A = v[(coord + 1) % 4];
+            vec3 B = v[(coord + 2) % 4];
+            vec3 C = v[(coord + 3) % 4];
+            result[coord] = Tetrahedron(A, B, C, G).volume() / Tetrahedron(A, B, C, P).volume();
+            sum += result[coord];
+        }
+
+        result /= sum;
+        return result;
     }
 
     Triangle2 Triangle3::project() const {
@@ -97,7 +97,7 @@ namespace UM {
         vec3 Z = cross(X, C - A).normalized();
         vec3 Y = cross(Z, X);
 
-        
+
         const vec2 z0 = vec2(0,0); // project the triangle to the 2d basis (X,Y)
         const vec2 z1 = vec2((B - A).norm(), 0);
         const vec2 z2 = vec2((C - A)*X, (C - A)*Y);
@@ -114,13 +114,13 @@ namespace UM {
         vec3 G = bary_verts();
         return Triangle3(G + scale * (v[0] - G), G + scale * (v[1] - G), G + scale * (v[2] - G));
     }
-    
+
     mat3x3 Triangle3::tangent_basis() const {
         mat3x3 res{v[1] - v[0], v[2] - v[0]};
-        
+
         for (int i = 0; i < 2; i++)
             res[i].normalize();
-        
+
         res[2] = cross(res[0], res[1]);
         res[2].normalize();
         res[1] = cross(res[2], res[0]);
@@ -130,10 +130,10 @@ namespace UM {
 
     mat3x3 Triangle3::tangent_basis(vec3 first_axis) const {
         mat3x3 res{v[1] - v[0], v[2] - v[0]};
-        
+
         for (int i = 0; i < 2; i++)
             res[i].normalize();
-        
+
         res[2] = cross(res[0], res[1]);
         res[2].normalize();
         res[0] = first_axis;
@@ -145,7 +145,7 @@ namespace UM {
     mat3x3 Triangle3::grad_operator() const {
         mat3x3 accum;
         vec3 tr_normal = normal();
-        
+
         for (int i = 0; i < 3; i++) {
             const vec3 &P = v[i];
             const vec3 &A = v[(i + 1) % 3];
@@ -218,14 +218,14 @@ namespace UM {
 
         // quadratures for every quad corner
         constexpr int cverts[4][2][2] { {{0,1},{0,3}}, {{0,1},{1,2}}, {{3,2},{1,2}}, {{3,2},{0,3}} };
-        
+
         double min_sj = std::numeric_limits<double>::max();
         for (int c = 0; c < 4; c++) { // 4 corners of the quad
             vec2 n1 = v[cverts[c][0][1]] - v[cverts[c][0][0]];
             vec2 n2 = v[cverts[c][1][1]] - v[cverts[c][1][0]];
 
-            // Check L < DBL_MIN => q = 0 
-            
+            // Check L < DBL_MIN => q = 0
+
             if (n1.norm() < 1.0e-30 || n2.norm() < 1.0e-30)
                 return 0;
 
@@ -295,7 +295,7 @@ namespace UM {
             vec3 n3 = v[cverts[c][3]] - v[cverts[c][0]];
 
             l_min2 = std::min(std::min(std::min(l_min2, n1.norm2()), n2.norm2()), n3.norm2());
-            
+
             n1.normalize();
             n3.normalize();
             n2.normalize();
@@ -328,7 +328,7 @@ namespace UM {
     }
 
     double Pyramid::volume() const {
-        
+
         const vec3 apx = apex();
         double vol = 0;
 

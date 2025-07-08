@@ -183,8 +183,6 @@ namespace UM {
             int nhalfedges() const;
 
             Halfedge halfedge(int lh);
-            //[[deprecated]]
-            Vertex __vertex(int lv); // TODO remove
             Vertex vertex(int lv);
             Corner corner(int lc);
 
@@ -643,14 +641,8 @@ namespace UM {
         return { m, m.conn->heh.halfedge(cell(), id_in_cell(), i) };
     }
 
-    // No need to be connected anymore (TO REMOVE! replaced vertex)
-    inline Volume::Vertex Volume::Facet::__vertex(int i) {
-        assert(m.connected());
-        return { m, halfedge(i).from() };
-    }
-
     inline Volume::Vertex Volume::Facet::vertex(int i) {
-        return Volume::Vertex(m, m.facet_vert(cell(), id_in_cell(), i));
+        return { m, m.facet_vert(cell(), id_in_cell(), i) };
     }
 
     inline Volume::Corner Volume::Facet::corner(int i) {

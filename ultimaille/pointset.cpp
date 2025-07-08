@@ -61,6 +61,11 @@ namespace UM {
         compress_attrs(old2new);
     }
 
+    void PointSet::delete_points(const std::vector<bool> &to_kill) {
+        std::vector<int> old2new;
+        delete_points(to_kill, old2new);
+    }
+
     void PointSet::resize_attrs() {
         um_assert(1==data.use_count());
         for (auto &wp : attr)  if (auto spt = wp.lock())

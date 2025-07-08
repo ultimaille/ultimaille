@@ -82,7 +82,7 @@ bool are_vec_equal(vec<n> a, vec<n> b, double eps) {
         // Use absolute tolerance for very small numbers
         if (max[i] < 1e-10)
             equal &= diff[i] < eps;
-        else 
+        else
             // Otherwise, use relative tolerance
             equal &= diff[i] < max[i] * eps;
     }
@@ -259,7 +259,7 @@ TEST_CASE("Test triangle geom", "[geom]") {
 
     // Check bary coordinates of Triangle3
     vec3 g3 = actual_xy0_tri.bary_verts();
-    CHECK(std::abs((actual_xy0_tri.bary_coords(g3) - expected_bary_coords).norm2()) < 1e-4);   
+    CHECK(std::abs((actual_xy0_tri.bary_coords(g3) - expected_bary_coords).norm2()) < 1e-4);
 
     // Check gradient on some random 2D triangles
     for (int i = 0; i < 10000; i++) {
@@ -425,7 +425,7 @@ TEST_CASE("Test poly geom", "[geom]") {
     const int nbv = 6;
     Polygons m;
     m.points.create_points(nbv);
-    
+
     // Create a regular polygon
     for (int i = 0; i < nbv; i++) {
         const double t = 2*M_PI/nbv*i;
@@ -529,7 +529,7 @@ TEST_CASE("Test tetra geom", "[geom]") {
             // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html
             // u, v, w, w' the barycentric coordinates
             // u = 0.2, v = 0.4, w = 0.15, w' = 0.25
-            // P = A + u * AB + v * AC + w * AD 
+            // P = A + u * AB + v * AC + w * AD
             // so w'= (1 - u - v - w) then P = (1 - u - v - w) * A + u * B + v * C + w * D
             // match with P = w' * A + u * B + v * C + w * D instead of P = u * A + v * B + w * C + w' * D
             // so I shift bary coordinates to get the right order in coordinates components...
@@ -763,21 +763,21 @@ TEST_CASE("Test wedge geom", "[geom]") {
 
         // Create random wedge with a rectangular base
         Wedge w(
-            p_offset, 
-            p_offset + vec3{0,b,0}, 
-            p_offset + vec3{a*.25/*rand_scalar()*/,b*.5,h}, 
-            p_offset + vec3{a,0,0}, 
-            p_offset + vec3{a,b,0}, 
+            p_offset,
+            p_offset + vec3{0,b,0},
+            p_offset + vec3{a*.25/*rand_scalar()*/,b*.5,h},
+            p_offset + vec3{a,0,0},
+            p_offset + vec3{a,b,0},
             p_offset + vec3{a-a*.25/*rand_scalar()*/,b*.5,h}
         );
-        
+
         // Compute volume of a wedge with a rectangular base with the formula: V = bh((a/3)+(c/6))
         // ref: https://en.wikipedia.org/wiki/Wedge_(geometry)
         double c = (w[2] - w[5]).norm();
         double exp_v = b*h*((a/3.)+(c/6.));
 
         double act_v = w.volume();
-        
+
         INFO("expected volume: " << exp_v);
         INFO("actual volume: " << act_v);
         CHECK(std::abs(act_v - exp_v) < 1e-4);
@@ -791,7 +791,7 @@ TEST_CASE("Test wedge geom", "[geom]") {
     }
 }
 
-// This test aims to check that extracting an abstract polygon geometry from a facet 
+// This test aims to check that extracting an abstract polygon geometry from a facet
 // give equivalent computations than computation from facet real shape
 TEST_CASE("Test polygon facet extraction geom", "[geom]") {
     srand(SEED);
@@ -877,7 +877,7 @@ TEST_CASE("Test segment 2", "[geom][segment]") {
 
         // Case: degenerated segment
         {
-            // Distance of degenerated segment to a point 
+            // Distance of degenerated segment to a point
             // is distance from point to point
             vec2 p = rand_v2();
             vec2 a = rand_v2();
@@ -919,7 +919,7 @@ TEST_CASE("Test segment 3", "[geom][segment]") {
         float u = rand_scalar(-2., 2.);
         float v =  1. - u;
         // vec2 expected_bary_coords{u, v};
-        
+
         vec3 A = vec3{0,0,0} + rand_v3() * .5;
         vec3 B = vec3{1,0,0} + rand_v3() * .5;
         // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html
@@ -940,9 +940,9 @@ TEST_CASE("Test segment 3", "[geom][segment]") {
             expected_nearest = s.b;
         else if (u > 1)
             expected_nearest = s.a;
-        else 
+        else
             expected_nearest = s.b + u * (s.a - s.b);
-            
+
         CHECK(std::abs((expected_nearest - actual_nearest).norm2()) < 1e-4);
     }
 }

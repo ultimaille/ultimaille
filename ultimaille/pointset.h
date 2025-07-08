@@ -18,13 +18,15 @@ namespace UM {
         PointSet(PointSet &&p)                 = default; // N.B. attr pointers are also copied, but this should not have 
         PointSet& operator=(const PointSet& p) = default; // serious consequences since use_count()==1 is asserted for modification
 
-        int size()   const { return data->size(); }
-        vec3& operator[](const int i)       { return data->at(i); }
+        int size() const { return data->size(); }
+        vec3& operator[](const int i) { return data->at(i); }
         const vec3& operator[](const int i) const { return data->at(i); }
         int use_count() { return data.use_count(); }
 
         void resize(const int n);
         int push_back(const vec3 &p);
+
+        void delete_points(const std::vector<bool> &to_kill);
         void delete_points(const std::vector<bool> &to_kill, std::vector<int> &old2new); // TODO: remove old2new
         int create_points(const int n);
 

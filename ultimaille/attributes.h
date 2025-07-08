@@ -65,7 +65,7 @@ namespace UM {
         }
         virtual std::shared_ptr<ContainerBase> get_ptr() const { return ptr; }
 
-        T default_value;
+        T default_value; // necessary for the late binding
         std::shared_ptr<AttributeContainer<T> > ptr;
     };
 
@@ -160,7 +160,7 @@ namespace UM {
         EdgeAttribute(PolyLine &seg, T def = T());
         EdgeAttribute(const PolyLine &seg, T def = T());
         EdgeAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def = T());
-        bool bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg);
+        bool bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg); // bind on the attribute if found in the collection (return value true), otherwise pushes a new attribute in the collection
         virtual AttributeBase::TYPE kind() const { return AttributeBase::EDGES; }
     };
 

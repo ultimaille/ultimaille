@@ -18,10 +18,10 @@ namespace UM {
     NullSpaceBuilder::Status NullSpaceBuilder::test(SparseVector &v) {
         leading_to_free(v);
         if (v.empty()) return REDUNDANT;
-	if (free_last && v.front().index == size()-1) return IMPOSSIBLE;
-	return SUCCESS;
+        if (free_last && v.front().index == size()-1) return IMPOSSIBLE;
+        return SUCCESS;
     }
-    
+
     void NullSpaceBuilder::add_constraint(SparseVector &v) {
         leading_to_free(v);
 
