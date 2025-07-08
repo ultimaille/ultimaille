@@ -351,7 +351,7 @@ namespace UM {
             for (int c=0; c<m.ncells(); c++) {
                 out << m.nverts_per_cell() << " ";
                 for (int lv=0; lv<m.nverts_per_cell(); lv++)
-                    if (Volume::CELL_TYPE::WEDGE) {
+                    if (m.cell_type == Volume::CELL_TYPE::WEDGE) {
                         constexpr int vtk2geo13[6] = { 0,2,1,3,5,4 };
                         out << m.vert(c, vtk2geo13[lv]) << " ";
                     } else

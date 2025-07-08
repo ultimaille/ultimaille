@@ -253,7 +253,7 @@ POINTS 6 double
 0 0 1 1 0 1 0 1 1 
 
 CELLS 1 7
-6 0 1 2 3 4 5 
+6 0 2 1 3 5 4 
 
 CELL_TYPES 1
 13
