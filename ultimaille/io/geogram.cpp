@@ -186,13 +186,16 @@ namespace UM {
             writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_vertex", "index_t", corner_vertex.data(), m.ncorners(), 1);
 
             // TODO we cannot use m.conn if there are deactivated facets; therefore we need to compute another connectivity (const &) if we want this attribute
-            // std::vector<index_t> corner_adjacent_facet;
-            // SurfaceConnectivity fec(m);
-            // for (int c=0; c<m.ncorners(); c++) {
-            //     int opp = fec.opposite(c);
-            //     corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : fec.c2f[opp]);
-            // }
-            // writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet.data(), m.ncorners(), 1);
+            if (m.connected()) {
+                std::vector<index_t> corner_adjacent_facet;
+                for (int c=0; c<m.ncorners(); c++) {
+                    const Surface::Halfedge h{const_cast<Surface &>(m), c}; // TODO const_cast is ugly, but safe here
+                    um_assert(h.active() || !"Impossible to save .geogram files with deactivated facets, use compact() beforehand");
+                    int opp = h.opposite();
+                    corner_adjacent_facet.push_back(opp < 0 ? index_t(-1) : m.conn->c2f[opp]);
+                }
+                writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet.data(), m.ncorners(), 1);
+            }
 
             std::vector<NamedContainer> A[3] = {attr.points, attr.facets, attr.corners};
             for (int z=0; z<3; z++) {
@@ -504,37 +507,35 @@ namespace UM {
                     assert(dimension == 1);
                     std::vector<char> tmp(nb_items);
                     in.read_attribute(tmp.data(), size);
-                    GenericAttribute<int> A(nb_items);
-                    for (int i=0; i<nb_items; i++) {
-                        A[i] = tmp[i];
-                    }
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<int>>(nb_items);
+                    for (int i=0; i<nb_items; i++)
+                        ptr->data[i] = tmp[i];
+                    P = ptr;
                 } else if (element_type=="int" || element_type=="index_t" || element_type=="signed_index_t") {
-                    GenericAttribute<int> A(nb_items);
+                    auto ptr = std::make_shared<AttributeContainer<int>>(nb_items);
                     if (attribute_name=="GEO::Mesh::edges::edge_vertex")
-                        A.ptr->data.resize(nb_items*2); // TODO AARGH Bruno!
+                        ptr->data.resize(nb_items*2); // TODO AARGH Bruno!
                     assert(dimension == 1 || (attribute_name=="GEO::Mesh::edges::edge_vertex" && dimension == 2));
-                    void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
-                    in.read_attribute(ptr, size);
-                    P = A.ptr;
+                    in.read_attribute(ptr->data.data(), size);
+                    P = ptr;
                 } else if (element_type=="double" && 1==dimension) {
-                    GenericAttribute<double> A(nb_items);
-                    in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<double> >(A.ptr)->data.data(), size);
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<double>>(nb_items);
+                    in.read_attribute(ptr->data.data(), size);
+                    P = ptr;
                 } else if ((element_type=="vec2" && 1==dimension) || (element_type=="double" && 2==dimension)) {
-                    GenericAttribute<vec2> A(nb_items);
-                    in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<vec2> >(A.ptr)->data.data(), size);
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<vec2>>(nb_items);
+                    in.read_attribute(ptr->data.data(), size);
+                    P = ptr;
                 } else if ((element_type=="vec3" && 1==dimension) || (element_type=="double" && 3==dimension)) {
-                    GenericAttribute<vec3> A(nb_items);
-                    in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<vec3> >(A.ptr)->data.data(), size);
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<vec3>>(nb_items);
+                    in.read_attribute(ptr->data.data(), size);
+                    P = ptr;
                 } else if (element_type=="bool" && 1==dimension) {
                     std::vector<char> tmp(nb_items, 0);
                     in.read_attribute(tmp.data(), size);
-                    GenericAttribute<bool> A(nb_items);
-                    for (int i=0; i<nb_items; i++) A[i] = tmp[i];
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<bool>>(nb_items);
+                    for (int i=0; i<nb_items; i++) ptr->data[i] = tmp[i];
+                    P = ptr;
                 } else {
                     continue;
                 }
@@ -635,7 +636,8 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Tetrahedra &m) {
-        m = Tetrahedra();
+        um_assert(!m.nverts() && !m.ncells());
+
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, Volume::TETRAHEDRON);
@@ -652,7 +654,8 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Hexahedra &m) {
-        m = Hexahedra();
+        um_assert(!m.nverts() && !m.ncells());
+
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, Volume::HEXAHEDRON);
@@ -669,7 +672,8 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Wedges &m) {
-        m = Wedges();
+        um_assert(!m.nverts() && !m.ncells());
+
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, Volume::WEDGE);
@@ -686,7 +690,8 @@ namespace UM {
     }
 
     VolumeAttributes read_geogram(const std::string filename, Pyramids &m) {
-        m = Pyramids();
+        um_assert(!m.nverts() && !m.ncells());
+
         VolumeAttributes va;
         std::vector<int> corner_vertex;
         parse_volume_data(filename, m.points, va, corner_vertex, Volume::PYRAMID);
@@ -703,7 +708,7 @@ namespace UM {
     }
 
     SurfaceAttributes read_geogram(const std::string filename, Polygons &polygons) {
-        polygons = Polygons();
+        um_assert(!polygons.nverts() && !polygons.nfacets());
 
         std::vector<NamedContainer> attrib[7];
         read_geogram(filename, attrib);
@@ -724,37 +729,45 @@ namespace UM {
     }
 
     SurfaceAttributes read_geogram(const std::string filename, Triangles &m) {
+        um_assert(!m.nverts() && !m.nfacets());
         Polygons mpoly;
+        mpoly.points.attr = m.points.attr; // N.B. we need to keep m.points.attr weak pointers!
         SurfaceAttributes polyattr = read_geogram(filename, mpoly);
         std::vector<bool> to_kill(mpoly.nfacets(), false);
         for (int f=0; f<mpoly.nfacets(); f++)
             to_kill[f] = (3!=mpoly.facet_size(f));
         mpoly.delete_facets(to_kill);
-        m.points = mpoly.points;
+
+        m.points = mpoly.points; // N.B. here we retreive original weak pointers back along with the vec3 data and new attributes
         m.facets = mpoly.facets;
-        m.attr_facets = mpoly.attr_facets;
-        m.attr_corners = mpoly.attr_corners;
+        m.attr_facets.insert (std::end(m.attr_facets),  std::begin(mpoly.attr_facets),  std::end(mpoly.attr_facets));
+        m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
 
         return polyattr;
     }
 
     SurfaceAttributes read_geogram(const std::string filename, Quads &m) {
+        um_assert(!m.nverts() && !m.nfacets());
+
         Polygons mpoly;
+        mpoly.points.attr = m.points.attr; // N.B. we need to keep m.points.attr weak pointers!
+
         SurfaceAttributes polyattr = read_geogram(filename, mpoly);
         std::vector<bool> to_kill(mpoly.nfacets(), false);
         for (int f=0; f<mpoly.nfacets(); f++)
             to_kill[f] = (4!=mpoly.facet_size(f));
         mpoly.delete_facets(to_kill);
-        m.points = mpoly.points;
+
+        m.points = mpoly.points; // N.B. here we retreive  original weak pointers back
         m.facets = mpoly.facets;
-        m.attr_facets = mpoly.attr_facets;
-        m.attr_corners = mpoly.attr_corners;
+        m.attr_facets.insert (std::end(m.attr_facets),  std::begin(mpoly.attr_facets),  std::end(mpoly.attr_facets));
+        m.attr_corners.insert(std::end(m.attr_corners), std::begin(mpoly.attr_corners), std::end(mpoly.attr_corners));
 
         return polyattr;
     }
 
     PolyLineAttributes read_geogram(const std::string filename, PolyLine &pl) {
-        pl = PolyLine();
+        um_assert(!pl.nverts() && !pl.nedges());
 
         std::vector<NamedContainer> attrib[7];
         read_geogram(filename, attrib);
@@ -769,7 +782,7 @@ namespace UM {
     }
 
     PointSetAttributes read_geogram(const std::string filename, PointSet &ps) {
-        ps = PointSet();
+        um_assert(!ps.size());
 
         std::vector<NamedContainer> attrib[7];
         read_geogram(filename, attrib);

@@ -41,22 +41,10 @@ namespace UM {
         virtual int   vert(const int fi, const int lv) const = 0;
         virtual int&  vert(const int fi, const int lv) = 0;
 
-        virtual void clear() {
-            points       = {};
-            attr_facets  = {};
-            attr_corners = {};
-            disconnect();
-        }
-
         Surface() = default;
-        Surface(const Surface& m) {
-            um_assert(!m.points.size() && !m.facets.size());
-        }
-        Surface& operator=(const Surface& m) {
-            clear();
-            um_assert(!m.points.size() && !m.facets.size());
-            return *this;
-        }
+        Surface(const Surface& m) = delete;
+        Surface(Surface&& m) = delete;
+        Surface& operator=(const Surface& m) = delete;
 
 //////////////////////////////////////////////////////////////////////
 //                                      _   _       _ _             //
@@ -204,11 +192,6 @@ namespace UM {
         int& vert(const int fi, const int lv);
 
         Triangles() = default;
-        Triangles(const Triangles& m) = default;
-        Triangles& operator=(const Triangles& m) {
-            Surface::operator=(m);
-            return *this;
-        }
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,11 +206,6 @@ namespace UM {
         int& vert(const int fi, const int lv);
 
         Quads() = default;
-        Quads(const Quads& m) = default;
-        Quads& operator=(const Quads& m) {
-            Surface::operator=(m);
-            return *this;
-        }
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -235,20 +213,9 @@ namespace UM {
     struct Polygons : Surface { // polygonal mesh implementation
         std::vector<int> offset = { 0 };
         Polygons() = default;
-        Polygons(const Polygons& m) = default;
-        Polygons& operator=(const Polygons& m) {
-            clear();
-            um_assert(!m.points.size() && !m.facets.size() && 1 == m.offset.size());
-            return *this;
-        }
 
         int create_facets(const int n, const int size);
         void delete_facets(const std::vector<bool>& to_kill);
-
-        virtual void clear() {
-            Surface::clear();
-            offset = { 0 };
-        }
 
         int nfacets()  const;
         int facet_size(const int fi) const;

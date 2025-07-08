@@ -29,24 +29,12 @@ namespace UM {
         int  vert(const int s, const int lv) const;
         int &vert(const int s, const int lv)      ;
 
-        virtual void clear() {
-            points   = {};
-            attr     = {};
-            edges = {};
-            disconnect();
-        }
-
         void delete_isolated_vertices();
 
         PolyLine() {}
-        PolyLine(const PolyLine& m) {
-            um_assert(!m.points.size() && !m.edges.size());
-        }
-        PolyLine& operator=(const PolyLine& m) {
-            clear();
-            um_assert(!m.points.size() && !m.edges.size());
-            return *this;
-        }
+        PolyLine(const PolyLine& m) = delete;
+        PolyLine(PolyLine&& m) = delete;
+        PolyLine& operator=(const PolyLine& m) = delete;
 
         struct Edge;
         struct Connectivity {

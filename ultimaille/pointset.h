@@ -13,14 +13,10 @@ namespace UM {
     struct PointSet {
         PointSet() : data(new std::vector<vec3>()) {}
         PointSet(std::shared_ptr<std::vector<vec3> > ext) : data(ext) {}
-        PointSet(const PointSet &p) : data(p.data), attr(p.attr) {}
-        PointSet& operator=(const PointSet& p) {
-            if (this!=&p) {
-                data = p.data;
-                attr = p.attr;
-            }
-            return *this;
-        }
+
+        PointSet(const PointSet &p)            = default; // We need to be able to share point sets, therefore we allow copying of the pointer
+        PointSet(PointSet &&p)                 = default; // N.B. attr pointers are also copied, but this should not have 
+        PointSet& operator=(const PointSet& p) = default; // serious consequences since use_count()==1 is asserted for modification
 
         int size()   const { return data->size(); }
         vec3& operator[](const int i)       { return data->at(i); }

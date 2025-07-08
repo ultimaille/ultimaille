@@ -59,17 +59,16 @@ namespace UM {
                 }
 
                 // Create vertices region attribute
-                GenericAttribute<int> vertices_region(nb_of_vertices);
-
+                auto ptr = std::make_shared<AttributeContainer<int>>(nb_of_vertices);
                 verts_.resize(nb_of_vertices);
                 FOR(v, nb_of_vertices) {
                     file_must_no_be_at_end(in, "parsing vertices");
                     std::getline(in, line);
                     std::istringstream iss(line.c_str());
                     FOR(i, 3)  iss >> verts_[v][i];
-                    iss >> vertices_region[v];
+                    iss >> ptr->data[v];
                 }
-                attr[0].emplace_back(attr_name, vertices_region.ptr);
+                attr[0].emplace_back(attr_name, ptr);
             }
             if (string_start(firstline, "Edges")) {
                 std::string line;
@@ -82,7 +81,7 @@ namespace UM {
                 }
 
                 // Create edges region attribute
-                GenericAttribute<int> edges_region(nb_of_edges);
+                auto ptr = std::make_shared<AttributeContainer<int>>(nb_of_edges);
 
                 edges_.resize(2 * nb_of_edges);
                 FOR(e, nb_of_edges) {
@@ -94,9 +93,9 @@ namespace UM {
                         iss >> a;
                         edges_[2 * e + i] = a - 1;
                     }
-                    iss >> edges_region[e];
+                    iss >> ptr->data[e];
                 }
-                attr[1].emplace_back(attr_name, edges_region.ptr);
+                attr[1].emplace_back(attr_name, ptr);
             }
 
             if (string_start(firstline, "Triangles")) {
@@ -182,7 +181,7 @@ namespace UM {
                 }
 
                 cell_region.resize(nb_of_tets + nb_of_hexs + nb_of_prisms + nb_of_pyramids);
-                
+
                 hexes_.resize(8 * nb_of_hexs);
                 FOR(h, nb_of_hexs) {
                     file_must_no_be_at_end(in, "parsing Hexahedra");
@@ -249,22 +248,18 @@ namespace UM {
         // Create facet region attribute
         const int nb_facets = nb_of_tri + nb_of_quads;
         if (nb_facets > 0) {
-            GenericAttribute<int> facet_region_attr(nb_facets);
-            for (int i = 0; i < static_cast<int>(facet_region.size()); i++) {
-                facet_region_attr[i] = facet_region[i];
-            }
-
-            attr[2].emplace_back(attr_name, facet_region_attr.ptr);
+            auto ptr = std::make_shared<AttributeContainer<int>>(nb_facets);
+            for (int i = 0; i < static_cast<int>(facet_region.size()); i++)
+                ptr->data[i] = facet_region[i];
+            attr[2].emplace_back(attr_name, ptr);
         }
         // Create cell region attribute
         const int nb_cells = nb_of_tets + nb_of_hexs + nb_of_prisms + nb_of_pyramids;
         if (nb_cells > 0) {
-            GenericAttribute<int> cell_region_attr(nb_cells);
-            for (int i = 0; i < static_cast<int>(cell_region.size()); i++) {
-                cell_region_attr[i] = cell_region[i];
-            }
-
-            attr[3].emplace_back(attr_name, cell_region_attr.ptr);
+            auto ptr = std::make_shared<AttributeContainer<int>>(nb_cells);
+            for (int i = 0; i < static_cast<int>(cell_region.size()); i++)
+                ptr->data[i] = cell_region[i];
+            attr[3].emplace_back(attr_name, ptr);
         }
 
     }
@@ -311,7 +306,7 @@ namespace UM {
             }
             out << std::endl << "End" << std::endl;
         }
-        
+
         // Load facet attributes
         auto facet_attr = load_attr(attr[2], tris_.size() / 3 + quads_.size() / 4);
 
@@ -439,11 +434,11 @@ namespace UM {
 
 
     PointSetAttributes read_medit(const std::string filename, PointSet& m) {
+        um_assert(!m.size());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         std::vector<NamedContainer> attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
-        m = PointSet();
         m.create_points(verts.size());
         FOR(v, verts.size()) m[v] = verts[v];
         for (auto &a : attrib[0]) m.attr.emplace_back(a.ptr);
@@ -451,11 +446,11 @@ namespace UM {
     }
 
     PolyLineAttributes read_medit(const std::string filename, PolyLine& m) {
+        um_assert(!m.nverts() && !m.nedges());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         std::vector<NamedContainer> attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
-        m = PolyLine();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_edges(edges.size()/2);
@@ -466,11 +461,11 @@ namespace UM {
     }
 
     SurfaceAttributes read_medit(const std::string filename, Triangles& m) {
+        um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         std::vector<NamedContainer> attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
-        m = Triangles();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(tris.size() / 3);
@@ -481,11 +476,11 @@ namespace UM {
     }
 
     SurfaceAttributes read_medit(const std::string filename, Quads& m) {
+        um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         std::vector<NamedContainer> attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
-        m = Quads();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(quads.size() / 4);
@@ -496,11 +491,11 @@ namespace UM {
     }
 
     SurfaceAttributes read_medit(const std::string filename, Polygons& m) {
+        um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         std::vector<NamedContainer> attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
-        m = Polygons();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
@@ -515,11 +510,11 @@ namespace UM {
     }
 
     VolumeAttributes read_medit(const std::string filename, Tetrahedra& m) {
+        um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         std::vector<NamedContainer> attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
-        m = Tetrahedra();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_cells(tets.size() / 4);
@@ -531,11 +526,11 @@ namespace UM {
     }
 
     VolumeAttributes read_medit(const std::string filename, Hexahedra& m) {
+        um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         std::vector<NamedContainer> attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
-        m = Hexahedra();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
@@ -548,11 +543,11 @@ namespace UM {
     }
 
     VolumeAttributes read_medit(const std::string filename, Wedges& m) {
+        um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         std::vector<NamedContainer> attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
-        m = Wedges();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
@@ -565,11 +560,11 @@ namespace UM {
     }
 
     VolumeAttributes read_medit(const std::string filename, Pyramids& m) {
+        um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         std::vector<NamedContainer> attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
-        m = Pyramids();
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
