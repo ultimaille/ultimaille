@@ -507,37 +507,35 @@ namespace UM {
                     assert(dimension == 1);
                     std::vector<char> tmp(nb_items);
                     in.read_attribute(tmp.data(), size);
-                    GenericAttribute<int> A(nb_items);
-                    for (int i=0; i<nb_items; i++) {
-                        A[i] = tmp[i];
-                    }
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<int>>(nb_items);
+                    for (int i=0; i<nb_items; i++)
+                        ptr->data[i] = tmp[i];
+                    P = ptr;
                 } else if (element_type=="int" || element_type=="index_t" || element_type=="signed_index_t") {
-                    GenericAttribute<int> A(nb_items);
+                    auto ptr = std::make_shared<AttributeContainer<int>>(nb_items);
                     if (attribute_name=="GEO::Mesh::edges::edge_vertex")
-                        A.ptr->data.resize(nb_items*2); // TODO AARGH Bruno!
+                        ptr->data.resize(nb_items*2); // TODO AARGH Bruno!
                     assert(dimension == 1 || (attribute_name=="GEO::Mesh::edges::edge_vertex" && dimension == 2));
-                    void *ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(A.ptr)->data.data();
-                    in.read_attribute(ptr, size);
-                    P = A.ptr;
+                    in.read_attribute(ptr->data.data(), size);
+                    P = ptr;
                 } else if (element_type=="double" && 1==dimension) {
-                    GenericAttribute<double> A(nb_items);
-                    in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<double> >(A.ptr)->data.data(), size);
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<double>>(nb_items);
+                    in.read_attribute(ptr->data.data(), size);
+                    P = ptr;
                 } else if ((element_type=="vec2" && 1==dimension) || (element_type=="double" && 2==dimension)) {
-                    GenericAttribute<vec2> A(nb_items);
-                    in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<vec2> >(A.ptr)->data.data(), size);
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<vec2>>(nb_items);
+                    in.read_attribute(ptr->data.data(), size);
+                    P = ptr;
                 } else if ((element_type=="vec3" && 1==dimension) || (element_type=="double" && 3==dimension)) {
-                    GenericAttribute<vec3> A(nb_items);
-                    in.read_attribute(std::dynamic_pointer_cast<AttributeContainer<vec3> >(A.ptr)->data.data(), size);
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<vec3>>(nb_items);
+                    in.read_attribute(ptr->data.data(), size);
+                    P = ptr;
                 } else if (element_type=="bool" && 1==dimension) {
                     std::vector<char> tmp(nb_items, 0);
                     in.read_attribute(tmp.data(), size);
-                    GenericAttribute<bool> A(nb_items);
-                    for (int i=0; i<nb_items; i++) A[i] = tmp[i];
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<bool>>(nb_items);
+                    for (int i=0; i<nb_items; i++) ptr->data[i] = tmp[i];
+                    P = ptr;
                 } else {
                     continue;
                 }

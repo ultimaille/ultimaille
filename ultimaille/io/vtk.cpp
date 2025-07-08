@@ -213,22 +213,19 @@ namespace UM {
                 } while (li.good() && cnt<nb*dim);
 //              um_assert(data.size()==nb*dim);
 
-//              std::cerr << "zzz " << place << " " << datatype << std::endl;
                 std::shared_ptr<ContainerBase> P;
                 if (datatype=="bit") {
-//                  std::cerr << "Gngaslsdfkgj"<<std::endl;
-                    GenericAttribute<bool> A(data.size());
-                    std::transform(data.begin(), data.end(), A.ptr->data.begin(), [](const std::string& str) -> bool { return std::stoi(str); });
-//                  std::cerr << "a.data.size " << data.size() << " " << A.ptr->data.size() << std::endl;
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<bool>>(data.size());
+                    std::transform(data.begin(), data.end(), ptr->data.begin(), [](const std::string& str) -> bool { return std::stoi(str); });
+                    P = ptr;
                 } else if (datatype=="unsigned_short" || datatype=="short" || datatype=="unsigned_int" || datatype=="int" || datatype=="unsigned_long" || datatype=="long") {
-                    GenericAttribute<int> A(data.size());
-                    std::transform(data.begin(), data.end(), A.ptr->data.begin(), [](const std::string& str) { return std::stoi(str); });
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<int>>(data.size());
+                    std::transform(data.begin(), data.end(), ptr->data.begin(), [](const std::string& str) { return std::stoi(str); });
+                    P = ptr;
                 } else if (datatype=="float" || datatype=="double") {
-                    GenericAttribute<double> A(data.size());
-                    std::transform(data.begin(), data.end(), A.ptr->data.begin(), [](const std::string& str) { return std::stod(str); });
-                    P = A.ptr;
+                    auto ptr = std::make_shared<AttributeContainer<double>>(data.size());
+                    std::transform(data.begin(), data.end(), ptr->data.begin(), [](const std::string& str) { return std::stod(str); });
+                    P = ptr;
                 } else {
                     std::cerr << "Warning: unsupported attribute data type" << std::endl;
                     continue;

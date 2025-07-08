@@ -89,7 +89,12 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
     Polygons m2;
     SurfaceAttributes attrs = read_by_extension(filename, m2);
     FacetAttribute<int> fint2(m2, 18);
-    CornerAttribute<int> cint2("cint", attrs, m2, -122);
+
+    CornerAttribute<int> cint2(-122);
+    REQUIRE( !cint2.bound() );
+    bool present = cint2.bind("cint", attrs, m2);
+    CHECK( present );
+
     PointAttribute<bool> vbool2("vbool", attrs, m2, true);
 
     m2.create_facets(1, 5);
