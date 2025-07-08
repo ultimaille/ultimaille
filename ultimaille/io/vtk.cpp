@@ -157,7 +157,8 @@ namespace UM {
                 if (cell_types[i]!=celltype2keep) continue;
                 int cell_size = offset[i+1] - offset[i];
                 constexpr int pixel2quad[4] = { 0,1,3,2 };
-                constexpr int vtk2geo[8] = { 0,1,3,2,4,5,7,6 };
+                constexpr int vtk2geo12[8] = { 0,1,3,2,4,5,7,6 };
+                constexpr int vtk2geo13[6] = { 0,2,1,3,5,4 };
                 for (int j=0; j<cell_size; j++) {
                     switch (cell_types[i]) {
                         case  3:
@@ -165,9 +166,9 @@ namespace UM {
                         case  9:
                         case 10:
                         case 11:
-                        case 13:
                         case 14: cells_.push_back(cells[offset[i] + j]);             break;
-                        case 12: cells_.push_back(cells[offset[i] + vtk2geo[j]]);    break;
+                        case 13: cells_.push_back(cells[offset[i] + vtk2geo13[j]]);  break;
+                        case 12: cells_.push_back(cells[offset[i] + vtk2geo12[j]]);  break;
                         case  8: cells_.push_back(cells[offset[i] + pixel2quad[j]]); break;
                         default: break;
                     }
@@ -350,7 +351,11 @@ namespace UM {
             for (int c=0; c<m.ncells(); c++) {
                 out << m.nverts_per_cell() << " ";
                 for (int lv=0; lv<m.nverts_per_cell(); lv++)
-                    out << m.vert(c, lv) << " ";
+                    if (Volume::CELL_TYPE::WEDGE) {
+                        constexpr int vtk2geo13[6] = { 0,2,1,3,5,4 };
+                        out << m.vert(c, vtk2geo13[lv]) << " ";
+                    } else
+                        out << m.vert(c, lv) << " ";
                 out << std::endl;
             }
             out << std::endl << "CELL_TYPES " << m.ncells() << std::endl;
