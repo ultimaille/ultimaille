@@ -932,7 +932,7 @@ TEST_CASE("Test segment 3", "[geom][segment]") {
         double actual_u = s.bary_coords(P);
         INFO("u:" << actual_u << ", " << u << "," << v);
 
-        CHECK(std::abs((actual_u - u) < 1e-4));
+        CHECK(std::abs(actual_u - u) < 1e-4);
 
         vec3 actual_nearest = s.nearest_point(P);
         vec3 expected_nearest = s.a;

@@ -52,13 +52,11 @@ namespace UM {
         assert(to_kill.size()==(size_t)ncells());
         compress_attrs(to_kill);
 
-        int new_nb_cells   = 0;
         int new_nb_corners = 0;
         for (int c=0; c<ncells(); c++) {
             if (to_kill[c]) continue;
             for (int lv=0; lv<nverts_per_cell(); lv++)
                 cells[new_nb_corners++] = vert(c, lv);
-            ++new_nb_cells;
         }
         cells.resize(new_nb_corners);
     }
