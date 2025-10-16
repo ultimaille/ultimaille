@@ -20,7 +20,7 @@
 #include <ultimaille/helpers/knn.h>
 #include <ultimaille/helpers/bvh.h>
 
-#include <ultimaille/meter.h>
+#include <ultimaille/inspect.h>
 
 #include <ultimaille/io/xyz.h>
 #include <ultimaille/io/obj.h>

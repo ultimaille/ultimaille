@@ -52,7 +52,7 @@ namespace UM {
             return get_minor(row,col).det()*((row+col)%2 ? -1 : 1);
         }
 
-        mat<nrows,ncols> adjugate() const {
+        mat<nrows,ncols> cofactor() const {
             mat<nrows,ncols> ret;
             for (int i=nrows; i--; )
                 for (int j=ncols; j--; ret[i][j]=cofactor(i,j));
@@ -60,7 +60,7 @@ namespace UM {
         }
 
         mat<nrows,ncols> invert_transpose() const {
-            mat<nrows,ncols> ret = adjugate();
+            mat<nrows,ncols> ret = cofactor();
             return ret/(ret[0]*rows[0]);
         }
 
