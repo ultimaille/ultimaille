@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <string>
 
 #include "inspect.h"
 #include "helpers/disjointset.h"
