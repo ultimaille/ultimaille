@@ -4,4 +4,4 @@ endif ()
 
 file(GLOB SOURCES *.c)
 add_library(zlib ${SOURCES})
-set_target_properties(zlib PROPERTIES SOVERSION 1.2)
+set_target_properties(zlib PROPERTIES SOVERSION 1.3)
