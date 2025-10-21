@@ -16,6 +16,7 @@ namespace UM {
     SurfaceAttributes read_wavefront_obj(const std::string &filename, Quads  &m);
     SurfaceAttributes read_wavefront_obj(const std::string &filename, Polygons  &m);
     void write_wavefront_obj(const std::string &filename, const Surface &m, const SurfaceAttributes &attr = {});
+    void write_wavefront_obj(const std::string &filename, const PolyLine &m, const PolyLineAttributes &attr = {});
 }
 
 #endif // __OBJ_H__

@@ -10,7 +10,6 @@
 #include "ultimaille/io/vtk.h"
 #include "ultimaille/io/xyz.h"
 #include "ultimaille/io/obj.h"
-#include "ultimaille/attr_binding.h"
 
 namespace UM {
     inline PointSetAttributes empty_attr([[maybe_unused]] const PointSet &m) { return {}; }
@@ -31,7 +30,8 @@ namespace UM {
                 if (ext == ".xyz")
                     write_xyz(path, m);
             }
-            if constexpr (std::is_same_v<decltype(empty_attr(m)), SurfaceAttributes>) {
+            if constexpr (std::is_same_v<decltype(empty_attr(m)), PolyLineAttributes>
+                        || std::is_same_v<decltype(empty_attr(m)), SurfaceAttributes> ) {
                 if (ext == ".obj")
                     write_wavefront_obj(path, m, a);
             }
@@ -53,8 +53,8 @@ namespace UM {
                 if (ext == ".xyz")
                     return read_xyz(path, m);
             }
-            if constexpr (std::is_same_v<decltype(empty_attr(m)), SurfaceAttributes>
-                        || std::is_same_v<decltype(empty_attr(m)), PolyLineAttributes>) {
+            if constexpr (std::is_same_v<decltype(empty_attr(m)), PolyLineAttributes>
+                        || std::is_same_v<decltype(empty_attr(m)), SurfaceAttributes>) {
                 if (ext == ".obj")
                     return read_wavefront_obj(path, m);
             }

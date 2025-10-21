@@ -178,6 +178,20 @@ namespace UM {
         return sa;
     }
 
+    void write_wavefront_obj(const std::string &filename, const PolyLine &m, [[maybe_unused]] const PolyLineAttributes &attr) {
+        std::fstream out;
+        out.open(filename, std::ios_base::out);
+        if (out.fail())
+            throw std::runtime_error("Failed to open " + filename);
+        out << std::setprecision(std::numeric_limits<double>::max_digits10);
+        for (int v=0; v<m.nverts(); v++)
+            out << "v " << m.points[v] << std::endl;
+
+        for (int e=0; e<m.nedges(); e++)
+            out << "l " << m.vert(e, 0) << " " << m.vert(e, 1) << std::endl;
+        out.close();
+    }
+
     void write_wavefront_obj(const std::string &filename, const Surface &m, const SurfaceAttributes &attr) {
         std::fstream out;
         out.open(filename, std::ios_base::out);
