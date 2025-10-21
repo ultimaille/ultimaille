@@ -188,7 +188,7 @@ namespace UM {
             out << "v " << m.points[v] << std::endl;
 
         for (int e=0; e<m.nedges(); e++)
-            out << "l " << m.vert(e, 0) << " " << m.vert(e, 1) << std::endl;
+            out << "l " << (m.vert(e, 0)+1) << " " << (m.vert(e, 1)+1) << std::endl;
         out.close();
     }
 
