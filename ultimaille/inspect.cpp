@@ -42,7 +42,7 @@ namespace UM {
 
     int Inspect<Surface>::euler_characteristic() const {
         um_assert(m.connected());
-        um_assert(is_manifold(false));
+        assert(is_manifold(false));
 
         int nb_vertices = 0; // number of **non-isolated** vertices
         for (auto v : m.iter_vertices())
@@ -61,7 +61,7 @@ namespace UM {
 
     int Inspect<Surface>::nb_connected_components() const {
         um_assert(m.connected());
-        um_assert(is_manifold(false));
+        assert(is_manifold(false));
 
         DisjointSet ds(m.nverts()+1);
         for (auto h : m.iter_halfedges())
@@ -70,13 +70,12 @@ namespace UM {
         for (auto v : m.iter_vertices())
             if (!v.halfedge().active())
                 ds.merge(v, m.nverts());
-        std::vector<int> id2setid;
-        return ds.get_sets_id(id2setid) - 1;
+        return ds.nsets() - 1;
     }
 
     int Inspect<Surface>::nb_boundaries() const {
         um_assert(m.connected());
-        um_assert(is_manifold(false));
+        assert(is_manifold(false));
 
         DisjointSet ds(m.nverts()+1);
         for (auto v : m.iter_vertices())
@@ -88,8 +87,7 @@ namespace UM {
             if (!opp.active())
                 ds.merge(h.from(), h.to());
         }
-        std::vector<int> id2setid;
-        return ds.get_sets_id(id2setid) - 1;
+        return ds.nsets() - 1;
     }
 
     bool Inspect<Surface>::is_disk(bool verbose) const {
