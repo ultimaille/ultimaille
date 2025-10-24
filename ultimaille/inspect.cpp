@@ -111,6 +111,7 @@ namespace UM {
             message += "Euler characteristic = " + std::to_string(xi) + (xi == 1 ? " (expected)" : " (not a disk)") + "\n";
             message += "------------------------------------------------------\n";
             message += std::string("Verdict: the surface is ") + (disk ? "" : "*NOT* ") + "a topological disk\n";
+            std::cerr << message;
         }
 
         return disk;
