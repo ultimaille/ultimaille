@@ -143,6 +143,9 @@ namespace UM {
             int id_in_cell();
             Vertex vertex();
             Cell cell();
+            Halfedge halfedge();
+
+//          auto iter_halfedges() const;
         };
 
         struct Halfedge : Primitive {
@@ -502,9 +505,39 @@ namespace UM {
          return { m, id / m.nverts_per_cell() };
     }
 
-    inline int Volume::Corner::id_in_cell() {
+    inline int Volume::Corner::id_in_cell() { // TODO const
         return id % m.nverts_per_cell();
     }
+
+    inline Volume::Halfedge Volume::Corner::halfedge() {
+        const int nhalfedges_per_cell = reference_cells[m.cell_type].ncorners();
+        const int local_halfedge      = reference_cells[m.cell_type].v2h[vertex() % m.nverts_per_cell()];
+        return { m,  cell() * nhalfedges_per_cell + local_halfedge };
+    }
+
+/*
+    inline auto Volume::Corner::iter_halfedges() const {
+        assert(m.connected());
+        struct iterator {
+            Surface::Halfedge he;
+            void operator++() {
+                const auto &c2c = he.m.conn->c2c;
+                do {
+                    he = c2c[he];
+                    if (he == -1) return;
+                } while (!he.active());
+            }
+            bool operator!=(const iterator& rhs) const { return he != rhs.he; }
+            Surface::Halfedge& operator*() { return he; }
+        };
+        struct wrapper {
+            Vertex v;
+            iterator begin() { return { v.halfedge() }; }
+            iterator end()   { return { {v.m, -1} }; }
+        };
+        return wrapper{ *this };
+    }
+*/
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 

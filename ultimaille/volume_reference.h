@@ -3,13 +3,14 @@
 #include <array>
 
 namespace UM {
-    struct ReferenceCell {     // There are 4 types of volume meshes: Tetrahedra, Hexahedra, Wedges, Prisms.
+    struct ReferenceCell {     // There are 4 types of volume meshes: Tetrahedra, Hexahedra, Wedges, Pyramids.
         const int nv, nf, nc;  // Each one has a reference cell (a polygonal surface) that encodes the numbering convention.
         const vec3 points[8];  // See comments below about the convention.
         const int facets[24];  // This struct is a minimal polygonal surface interface needed to encode connectivity between cells.
         const int offset[7];
         const int c2f[24];
         const int opp[24];
+        const int v2h[8];
 
         constexpr int nverts()   const { return nv; }
         constexpr int nfacets()  const { return nf; }
@@ -41,7 +42,8 @@ namespace UM {
      *          /_________________\
      *         1                   2
      */
-        {4,4,12,{{0,0,0},{1,0,0},{0,1,0},{0,0,1}},{1,2,3,0,3,2,0,1,3,0,2,1},{0,3,6,9,12},{0,0,0,1,1,1,2,2,2,3,3,3},{10,4,7,8,1,9,11,2,3,5,0,6}},
+        {4,4,12,{{0,0,0},{1,0,0},{0,1,0},{0,0,1}},{1,2,3,0,3,2,0,1,3,0,2,1},{0,3,6,9,12},{0,0,0,1,1,1,2,2,2,3,3,3},{10,4,7,8,1,9,11,2,3,5,0,6},{9,11,10,8}},
+
     /**
      * LOCAL NUMBERING CONVENTION
      * The numbering of the vertices is derived from the binary         The facets are numbered in the following order:
@@ -67,7 +69,8 @@ namespace UM {
      * (CCW ordering when viewed from outside).
      * The smallest local index is the first facet vertex.
      */
-        {8,6,24,{{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}},{0,4,6,2,1,3,7,5,0,1,5,4,2,6,7,3,0,2,3,1,4,5,7,6},{0,4,8,12,16,20,24},{0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5},{11,23,12,16,18,14,21,9,19,7,20,0,2,22,5,17,3,15,4,8,10,6,13,1}},
+        {8,6,24,{{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}},{0,4,6,2,1,3,7,5,0,1,5,4,2,6,7,3,0,2,3,1,4,5,7,6},{0,4,8,12,16,20,24},{0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5},{11,23,12,16,18,14,21,9,19,7,20,0,2,22,5,17,3,15,4,8,10,6,13,1},{16,19,17,18,20,21,23,22}},
+
     /**
      * LOCAL NUMBERING CONVENTION
      *
@@ -92,7 +95,8 @@ namespace UM {
      * (CCW ordering when viewed from outside).
      * The smallest local index is the first facet vertex.
      */
-        {6,5,18,{{0,0,0},{1,0,0},{0,1,0},{0,0,1},{1,0,1},{0,1,1}},{0,2,1,3,4,5,0,1,4,3,0,3,5,2,1,2,5,4},{0,3,6,10,14,18},{0,0,0,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4},{13,14,6,8,16,11,2,17,3,10,9,5,15,0,1,12,4,7}},
+        {6,5,18,{{0,0,0},{1,0,0},{0,1,0},{0,0,1},{1,0,1},{0,1,1}},{0,2,1,3,4,5,0,1,4,3,0,3,5,2,1,2,5,4},{0,3,6,10,14,18},{0,0,0,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4},{13,14,6,8,16,11,2,17,3,10,9,5,15,0,1,12,4,7},{10,14,15,11,17,16}},
+
     /**
      * LOCAL NUMBERING CONVENTION
      *
@@ -122,7 +126,7 @@ namespace UM {
      * (CCW ordering when viewed from outside).
      * The smallest local index is the first facet vertex.
      */
-        {5,5,16,{{0,0,0},{1,0,0},{1,1,0},{0,1,0},{0.5,0.5,0.5}},{0,3,2,1,0,1,4,0,4,3,2,3,4,1,2,4},{0,4,7,10,13,16},{0,0,0,0,1,1,1,2,2,2,3,3,3,4,4,4},{9,10,13,4,3,15,7,6,11,0,1,8,14,2,12,5}}
+        {5,5,16,{{0,0,0},{1,0,0},{1,1,0},{0,1,0},{0.5,0.5,0.5}},{0,3,2,1,0,1,4,0,4,3,2,3,4,1,2,4},{0,4,7,10,13,16},{0,0,0,0,1,1,1,2,2,2,3,3,3,4,4,4},{9,10,13,4,3,15,7,6,11,0,1,8,14,2,12,5},{7,13,14,11,15}}
     }};
 }
 
