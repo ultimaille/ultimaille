@@ -973,8 +973,8 @@ namespace UM {
             for (int lf=0; lf<nfacets_per_cell(); lf++)
                 facets_old2new[facet(c, lf)] = new_nb_facets++;
             for (int lv=0; lv<nverts_per_cell(); lv++) {
-                cells[new_nb_corners] = vert(c, lv);
                 corners_old2new[corner(c, lv)] = new_nb_corners;
+                cells[new_nb_corners] = vert(c, lv);
                 new_nb_corners++;
             }
             cells_old2new[c] = new_nb_cells++;
