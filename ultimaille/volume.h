@@ -53,9 +53,32 @@ namespace UM {
         std::vector<std::weak_ptr<ContainerBase> > attr_corners{};
 
         int  create_cells(const int n);
-        void delete_cells(const std::vector<bool> &to_kill);
+//      void delete_cells(const std::vector<bool> &to_kill);
         void delete_vertices(const std::vector<bool> &to_kill);
         void delete_isolated_vertices();
+
+        template <typename T> void delete_cells(const T &to_kill) {
+            constexpr bool invocable = std::is_invocable_r_v<bool, T, int>;
+            if constexpr (!invocable)
+                assert(to_kill.size()==(size_t)ncells());
+
+            std::vector<bool> to_kill_copy(ncells());
+            for (int c=0; c<ncells(); c++)
+                if constexpr (invocable)
+                    to_kill_copy[c] = to_kill(c);
+                else
+                    to_kill_copy[c] = to_kill[c];
+
+            compress_attrs(to_kill_copy);
+
+            int new_nb_corners = 0;
+            for (int c=0; c<ncells(); c++) {
+                if (to_kill_copy[c]) continue;
+                for (int lv=0; lv<nverts_per_cell(); lv++)
+                    cells[new_nb_corners++] = vert(c, lv);
+            }
+            cells.resize(new_nb_corners);
+        }
 
         void resize_attrs();
         void compress_attrs(const std::vector<bool> &cells_to_kill);
@@ -328,7 +351,6 @@ namespace UM {
     }
 
     inline int Volume::facet_vert(const int c, const int lf, const int lv) const {
-        // TODO check assert ! facet_size(lf) but facet_size expect a facet index, not local index !
         assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell() && lv>=0 && lv<facet_size(lf));
         return vert(c, reference_cells[cell_type].vert(lf, lv));
     }

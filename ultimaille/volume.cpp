@@ -48,6 +48,7 @@ namespace UM {
             spt->compress(corners_old2new);
     }
 
+/*
     void Volume::delete_cells(const std::vector<bool> &to_kill) {
         assert(to_kill.size()==(size_t)ncells());
         compress_attrs(to_kill);
@@ -60,6 +61,8 @@ namespace UM {
         }
         cells.resize(new_nb_corners);
     }
+*/
+
 
     void Volume::delete_vertices(const std::vector<bool> &to_kill) {
         assert(to_kill.size()==(size_t)nverts());

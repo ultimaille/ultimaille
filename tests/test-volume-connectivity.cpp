@@ -450,7 +450,7 @@ TEST_CASE("Tet triple singular edge", "[volume][connectivity]") {
     Tetrahedra tet;
     edge_one_ring(tet, 8);
     std::vector<bool> to_kill = { true, false, true, false, true, false, false, false };;
-    tet.delete_cells(to_kill);
+    tet.delete_cells([&to_kill](int c) { return to_kill[c]; });
     tet.delete_isolated_vertices();
     test_volume(tet);
 }
