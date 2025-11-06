@@ -18,6 +18,7 @@ namespace UM {
             spt->resize(ncorners());
     }
 
+    /*
     void Volume::compress_attrs(const std::vector<bool> &cells_to_kill) {
         assert(cells_to_kill.size()==(size_t)ncells());
         std::vector<int>   cells_old2new(ncells(),   -1);
@@ -47,6 +48,7 @@ namespace UM {
         for (auto &wp : attr_corners) if (auto spt = wp.lock())
             spt->compress(corners_old2new);
     }
+    */
 
 /*
     void Volume::delete_cells(const std::vector<bool> &to_kill) {

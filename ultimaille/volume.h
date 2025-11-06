@@ -53,35 +53,13 @@ namespace UM {
         std::vector<std::weak_ptr<ContainerBase> > attr_corners{};
 
         int  create_cells(const int n);
-//      void delete_cells(const std::vector<bool> &to_kill);
         void delete_vertices(const std::vector<bool> &to_kill);
         void delete_isolated_vertices();
 
-        template <typename T> void delete_cells(const T &to_kill) {
-            constexpr bool invocable = std::is_invocable_r_v<bool, T, int>;
-            if constexpr (!invocable)
-                assert(to_kill.size()==(size_t)ncells());
-
-            std::vector<bool> to_kill_copy(ncells());
-            for (int c=0; c<ncells(); c++)
-                if constexpr (invocable)
-                    to_kill_copy[c] = to_kill(c);
-                else
-                    to_kill_copy[c] = to_kill[c];
-
-            compress_attrs(to_kill_copy);
-
-            int new_nb_corners = 0;
-            for (int c=0; c<ncells(); c++) {
-                if (to_kill_copy[c]) continue;
-                for (int lv=0; lv<nverts_per_cell(); lv++)
-                    cells[new_nb_corners++] = vert(c, lv);
-            }
-            cells.resize(new_nb_corners);
-        }
+        template <typename T> void delete_cells(const T &to_kill);
 
         void resize_attrs();
-        void compress_attrs(const std::vector<bool> &cells_to_kill);
+//        void compress_attrs(const std::vector<bool> &cells_to_kill);
 
         int nverts()   const;
         int ncells()   const;
@@ -970,6 +948,47 @@ namespace UM {
         return wrapper{ *this };
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    template <typename T> void Volume::delete_cells(const T &to_kill) {
+        constexpr bool invocable = std::is_invocable_r_v<bool, T, int>;
+        if constexpr (!invocable)
+            assert(to_kill.size()==(size_t)ncells());
+
+        std::vector<int>   cells_old2new(ncells(),   -1);
+        std::vector<int>  facets_old2new(nfacets(),  -1);
+        std::vector<int> corners_old2new(ncorners(), -1);
+
+        int new_nb_cells   = 0;
+        int new_nb_facets  = 0;
+        int new_nb_corners = 0;
+
+        for (int c=0; c<ncells(); c++) {
+            if constexpr (invocable) {
+                if (to_kill(c)) continue;
+            } else {
+                if (to_kill[c]) continue;
+            }
+
+            for (int lf=0; lf<nfacets_per_cell(); lf++)
+                facets_old2new[facet(c, lf)] = new_nb_facets++;
+            for (int lv=0; lv<nverts_per_cell(); lv++) {
+                cells[new_nb_corners] = vert(c, lv);
+                corners_old2new[corner(c, lv)] = new_nb_corners;
+                new_nb_corners++;
+            }
+            cells_old2new[c] = new_nb_cells++;
+        }
+
+        cells.resize(new_nb_corners);
+
+        for (auto &wp : attr_cells)   if (auto spt = wp.lock())
+            spt->compress(cells_old2new);
+        for (auto &wp : attr_facets)  if (auto spt = wp.lock())
+            spt->compress(facets_old2new);
+        for (auto &wp : attr_corners) if (auto spt = wp.lock())
+            spt->compress(corners_old2new);
+    }
 }
 
 #endif //__VOLUME_H__
