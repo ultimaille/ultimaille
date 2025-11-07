@@ -757,6 +757,10 @@ namespace UM {
 
         cells.resize(new_nb_corners);
 
+        std::erase_if(attr_cells,   [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
+        std::erase_if(attr_facets,  [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
+        std::erase_if(attr_corners, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
+
         for (auto &wp : attr_cells)   if (auto spt = wp.lock())
             spt->compress(cells_old2new);
         for (auto &wp : attr_facets)  if (auto spt = wp.lock())
