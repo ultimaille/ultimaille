@@ -140,7 +140,6 @@ namespace UM {
             Cell cell()           const;
 
             operator Segment3()   const;
-            [[deprecated]] inline Segment3 geom();
 
             auto iter_CCW_around_edge();
         };
@@ -163,7 +162,6 @@ namespace UM {
             Facet opposite()          const;
             Cell cell()               const;
 
-            template<typename T> [[deprecated]] T geom();
             operator Triangle3() const;
             operator Quad3()     const;
             operator Poly3()     const;
@@ -185,7 +183,6 @@ namespace UM {
             Vertex vertex(int lv)     const;
             Halfedge halfedge(int lh) const;
 
-            template<typename T> [[deprecated]] T geom();
             operator Tetrahedron() const;
             operator Hexahedron()  const;
             operator Pyramid()     const;
@@ -447,10 +444,6 @@ namespace UM {
         return { m, id / m.nhalfedges_per_cell() };
     }
 
-    inline Segment3 Volume::Halfedge::geom() {
-        return {from().pos(), to().pos()};
-    }
-
     inline Volume::Halfedge::operator Segment3() const {
         return {from().pos(), to().pos()};
     }
@@ -566,64 +559,24 @@ namespace UM {
         return { m, m.nfacets_per_cell()*id + lf };
     }
 
-    template<> inline Tetrahedron Volume::Cell::geom() {
-        um_assert(nfacets()==4 && nverts()==4);
-        return Tetrahedron(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
-    }
-
-    template<> inline Pyramid Volume::Cell::geom() {
-        um_assert(nfacets()==5 && nverts()==5);
-        return Pyramid(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos());
-    }
-
-    template<> inline Hexahedron Volume::Cell::geom() {
-        um_assert(nfacets()==6 && nverts()==8);
-        return Hexahedron(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos());
-    }
-
-    template<> inline Wedge Volume::Cell::geom() {
-        um_assert(nfacets()==5 && nverts()==6);
-        return Wedge(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos());
-    }
-
     inline Volume::Cell::operator Tetrahedron() const {
-        um_assert(nfacets()==4 && nverts()==4); // TODO check cell_type instead
+        um_assert(m.cell_type == Volume::TETRAHEDRON);
         return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos() };
     }
 
     inline Volume::Cell::operator Pyramid() const {
-        um_assert(nfacets()==5 && nverts()==5);
+        um_assert(m.cell_type == Volume::PYRAMID);
         return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos() };
     }
 
     inline Volume::Cell::operator Hexahedron() const {
-        um_assert(nfacets()==6 && nverts()==8);
+        um_assert(m.cell_type == Volume::HEXAHEDRON);
         return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos() };
     }
 
     inline Volume::Cell::operator Wedge() const {
-        um_assert(nfacets()==5 && nverts()==6);
+        um_assert(m.cell_type == Volume::WEDGE);
         return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos() };
-    }
-
-    template<> inline Triangle3 Volume::Facet::geom() {
-        um_assert(size()==3);
-        return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
-    }
-
-    template<> inline Quad3 Volume::Facet::geom() {
-        um_assert(size()==4);
-        return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
-    }
-
-    template<> inline Poly3 Volume::Facet::geom() {
-        // TODO replace m.facet_size(id) => size() but we have to add size() on volume facet
-        int size = m.facet_size(id);
-        std::vector<vec3> pts(size);
-        for (int i = 0; i < size; i++)
-            pts[i] = vertex(i).pos();
-
-        return Poly3{pts};
     }
 
     inline Volume::Facet::operator Triangle3() const {
