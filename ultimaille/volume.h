@@ -87,8 +87,8 @@ namespace UM {
             operator int& ();
             bool active() const;
 
-        protected:
-            friend struct Volume;
+//      protected:
+//          friend struct Volume;
             Volume& m;
             int id;
         };
@@ -159,7 +159,7 @@ namespace UM {
             Facet(Facet&& he) = default;
             Facet& operator=(Facet& he);
 
-            int nverts()       const;
+            int nverts()       const; // TODO it is all the same??? Choose your side.
             int ncorners()     const;
             int nhalfedges()   const;
 
@@ -203,6 +203,7 @@ namespace UM {
             operator Pyramid()     const;
             operator Wedge()       const;
 
+            auto iter_halfedges();
             auto iter_facets();
             auto iter_corners();
         };
@@ -264,11 +265,11 @@ namespace UM {
     }
 
     inline int Volume::ncells() const {
-        return cells.size()/nverts_per_cell();
+        return cells.size() / nverts_per_cell();
     }
 
     inline int Volume::nfacets() const {
-        return ncells()*nfacets_per_cell();
+        return ncells() * nfacets_per_cell();
     }
 
     inline int Volume::nhalfedges() const {
@@ -277,12 +278,12 @@ namespace UM {
 
     inline constexpr int Volume::cell_from_facet(const int f) const {
         assert(f>=0 && f<nfacets());
-        return f/nfacets_per_cell();
+        return f / nfacets_per_cell();
     }
 
     inline constexpr int Volume::cell_from_corner(const int c) const {
         assert(c>=0 && c<ncorners());
-        return c/nverts_per_cell();
+        return c / nverts_per_cell();
     }
 
     inline int Volume::vert(const int c, const int lv) const {
@@ -487,7 +488,7 @@ namespace UM {
         struct wrapper {
             Halfedge ref;
             auto begin() {
-                if (!ref.active())return iterator{ ref,ref };
+                if (!ref.active()) return iterator{ ref,ref };
                 Halfedge org = ref;
                 do {
                     Halfedge opp = ref.opposite_c();
@@ -531,7 +532,6 @@ namespace UM {
     }
 
     inline Volume::Corner Volume::Facet::corner(int i) const {
-        assert(m.connected());
         return { m, halfedge(i).from_corner() };
     }
 
@@ -550,21 +550,6 @@ namespace UM {
 
     inline int Volume::Facet::id_in_cell() const {
         return id % m.nfacets_per_cell();
-    }
-
-    inline auto Volume::Facet::iter_halfedges() {
-        struct iterator {
-            Halfedge data;
-            void operator++() { int f = data.facet(); ++(data.id); if (data.id % data.m.facet_size(f) == 0) data.id = -1; }
-            bool operator!=(iterator& rhs) { return data != rhs.data; }
-            Halfedge& operator*() { return data; }
-        };
-        struct wrapper {
-            Facet f;
-            auto begin() { return iterator{ f.halfedge(0) }; }
-            auto end()   { return iterator{ Halfedge(f.m,-1) }; }
-        };
-        return wrapper{ *this };
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -604,36 +589,6 @@ namespace UM {
 
     inline Volume::Facet Volume::Cell::facet(int lf) const {
         return { m, m.nfacets_per_cell()*id + lf };
-    }
-
-    inline auto Volume::Cell::iter_facets() {
-        struct iterator {
-            Facet data;
-            void operator++() { ++(data.id); }
-            bool operator!=(iterator& rhs) { return data != rhs.data; }
-            Facet& operator*() { return data; }
-        };
-        struct wrapper {
-            Cell c;
-            auto begin() { return iterator{ c.facet(0) }; }
-            auto end()   { return iterator{ c.facet(c.nfacets()) }; }
-        };
-        return wrapper{ *this };
-    }
-
-    inline auto Volume::Cell::iter_corners() {
-        struct iterator {
-            Corner data;
-            void operator++() { ++(data.id); }
-            bool operator!=(iterator& rhs) { return data != rhs.data; }
-            Corner& operator*() { return data; }
-        };
-        struct wrapper {
-            Cell c;
-            auto begin() { return iterator{ c.corner(0) }; }
-            auto end()   { return iterator{ c.corner(c.ncorners()) }; }
-        };
-        return wrapper{ *this };
     }
 
     template<> inline Tetrahedron Volume::Cell::geom() {
@@ -715,80 +670,57 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline auto Volume::iter_vertices() {
+    template <typename P, typename M>
+    auto custom_iterator(M &m, int from, int to) {
         struct iterator {
-            Vertex v;
-            void operator++() { ++v.id; }
-            bool operator!=(iterator& rhs) { return v != rhs.v; }
-            Vertex& operator*() { return v; }
+            P data;
+            P& operator*()    { return data; }
+            void operator++() { ++data.id;   }
+            bool operator!=(iterator& rhs) { return data != rhs.data; }
         };
         struct wrapper {
-            Volume& m;
-            auto begin() { return iterator{ Vertex(m,0) }; }
-            auto end() { return iterator{ Vertex(m,m.nverts()) }; }
+            M& m;
+            int from, to;
+            iterator begin() { return {{ m, from }}; }
+            iterator end()   { return {{ m, to   }}; }
         };
-        return wrapper{ *this };
+        return wrapper{ m, from, to };
+    }
+
+    inline auto Volume::iter_vertices() {
+        return custom_iterator<Vertex>(*this, 0, nverts());
     }
 
     inline auto Volume::iter_corners() {
-        struct iterator {
-            Corner c;
-            void operator++() { ++c.id; }
-            bool operator!=(iterator& rhs) { return c != rhs.c; }
-            Corner& operator*() { return c; }
-        };
-        struct wrapper {
-            Volume& m;
-            auto begin() { return iterator{ Corner(m,0) }; }
-            auto end() { return iterator{ Corner(m,m.ncorners()) }; }
-        };
-        return wrapper{ *this };
+        return custom_iterator<Corner>(*this, 0, ncorners());
     }
 
     inline auto Volume::iter_halfedges() {
-        assert(connected());
-        struct iterator {
-            Halfedge data;
-            void operator++() { ++data.id; }
-            bool operator!=( iterator& rhs)  { return data != rhs.data; }
-            Halfedge& operator*()  { return data; }
-        };
-        struct wrapper {
-            Volume& m;
-            auto begin() { return iterator{ Halfedge(m,0) }; }
-            auto end() { return iterator{ Halfedge(m,m.nhalfedges()) }; }
-        };
-        return wrapper{ *this };
+        return custom_iterator<Halfedge>(*this, 0, nhalfedges());
     }
 
     inline auto Volume::iter_facets() {
-        struct iterator {
-            Facet data;
-            void operator++() { ++(data.id); }
-            bool operator!=( iterator& rhs)  { return data != rhs.data; }
-             Facet& operator*()  { return data; }
-        };
-        struct wrapper {
-            Volume& m;
-            auto begin() { return iterator{ Facet(m,0) }; }
-            auto end() { return iterator{ Facet(m,m.nfacets()) }; }
-        };
-        return wrapper{ *this };
+        return custom_iterator<Facet>(*this, 0, nfacets());
     }
 
     inline auto Volume::iter_cells() {
-        struct iterator {
-            Cell data;
-            void operator++() { ++data.id; }
-            bool operator!=( iterator& rhs)  { return data != rhs.data; }
-            Cell& operator*()  { return data; }
-        };
-        struct wrapper {
-            Volume& m;
-            auto begin() { return iterator{ Cell(m,0) }; }
-            auto end() { return iterator{ Cell(m,m.ncells()) }; }
-        };
-        return wrapper{ *this };
+        return custom_iterator<Cell>(*this, 0, ncells());
+    }
+
+    inline auto Volume::Facet::iter_halfedges() {
+        return custom_iterator<Halfedge>(m, halfedge(0), halfedge(0) + nhalfedges());
+    }
+
+    inline auto Volume::Cell::iter_halfedges() {
+        return custom_iterator<Halfedge>(m, halfedge(0), halfedge(0) + nhalfedges());
+    }
+
+    inline auto Volume::Cell::iter_facets() {
+        return custom_iterator<Facet>(m, facet(0), facet(0) + nfacets());
+    }
+
+    inline auto Volume::Cell::iter_corners() {
+        return custom_iterator<Cell>(m, corner(0), corner(0) + ncorners());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
