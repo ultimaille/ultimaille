@@ -445,7 +445,7 @@ namespace UM {
     }
 
     inline Volume::Halfedge::operator Segment3() const {
-        return {from().pos(), to().pos()};
+        return { from(), to() };
     }
 
     inline auto Volume::Halfedge::iter_CCW_around_edge() {
@@ -561,38 +561,38 @@ namespace UM {
 
     inline Volume::Cell::operator Tetrahedron() const {
         um_assert(m.cell_type == Volume::TETRAHEDRON);
-        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos() };
+        return { vertex(0), vertex(1), vertex(2), vertex(3) };
     }
 
     inline Volume::Cell::operator Pyramid() const {
         um_assert(m.cell_type == Volume::PYRAMID);
-        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos() };
+        return { vertex(0), vertex(1), vertex(2), vertex(3), vertex(4) };
     }
 
     inline Volume::Cell::operator Hexahedron() const {
         um_assert(m.cell_type == Volume::HEXAHEDRON);
-        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos(), vertex(6).pos(), vertex(7).pos() };
+        return { vertex(0), vertex(1), vertex(2), vertex(3), vertex(4), vertex(5), vertex(6), vertex(7) };
     }
 
     inline Volume::Cell::operator Wedge() const {
         um_assert(m.cell_type == Volume::WEDGE);
-        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos(), vertex(4).pos(), vertex(5).pos() };
+        return { vertex(0), vertex(1), vertex(2), vertex(3), vertex(4), vertex(5) };
     }
 
     inline Volume::Facet::operator Triangle3() const {
         um_assert(size()==3);
-        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos() };
+        return { vertex(0), vertex(1), vertex(2) };
     }
 
     inline Volume::Facet::operator Quad3() const {
         um_assert(size()==4);
-        return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos() };
+        return { vertex(0), vertex(1), vertex(2), vertex(3) };
     }
 
     inline Volume::Facet::operator Poly3() const {
         std::vector<vec3> pts(size());
         for (int i = 0; i < size(); i++)
-            pts[i] = vertex(i).pos();
+            pts[i] = vertex(i);
         return { pts };
     }
 
