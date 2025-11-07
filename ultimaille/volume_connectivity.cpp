@@ -1,5 +1,3 @@
-#include <iostream>
-#include <algorithm>
 #include <cassert>
 
 #include "volume.h"
@@ -54,7 +52,7 @@ namespace UM {
                             // destroy previous links
                             if (adjacent[f1]>=0)  adjacent[adjacent[f1]] = -2;
                             if (adjacent[f2]>=0)  adjacent[adjacent[f2]] = -2; 
-                            
+
                             adjacent[f1] = -2;
                             adjacent[f2] = -2;
                         }
@@ -70,53 +68,10 @@ namespace UM {
 
     }
 
-    // int & OppositeFacet::operator[](const int i)       { assert(i>=0 && i<m.nfacets()); return adjacent[i]; }
-    int   OppositeFacet::operator[](const int i) const { assert(i>=0 && i<m.nfacets()); return adjacent[i]; }
-
-    // int OppositeFacet::opposite_c(const int he) const {
-    //     assert(he>=0 && he<m.heh.nhalfedges());
-    //     int hfacet = m.heh.facet(he);
-    //     assert((int)adjacent.size()>hfacet);
-    //     int opp_hfacet = adjacent[hfacet];
-    //     if (opp_hfacet<0) return -1;
-    //     int opp_cell = m.cell_from_facet(opp_hfacet);
-    //     return m.heh.halfedge_from_verts(opp_cell, m.heh.to(he), m.heh.from(he));
-    // }
-
-    // std::vector<int> OppositeFacet::halfedges_around_edge(const int he) const {
-    //     std::vector<int> result;
-    //     int around_e_cir = he;
-    //     do { // rewind if boundary
-    //         result.push_back(around_e_cir);
-    //         if (opposite_c(around_e_cir)<0) break;
-    //         around_e_cir = m.heh.opposite_f(opposite_c(around_e_cir));
-    //     } while (around_e_cir != he);
-
-    //     if (opposite_c(around_e_cir)>=0 && around_e_cir == he)
-    //         return result;
-
-    //     result.clear(); // iterate forward if the edge is on border
-    //     do {
-    //         result.push_back(around_e_cir);
-    //         around_e_cir = opposite_c(m.heh.opposite_f(around_e_cir));
-    //     } while (around_e_cir>=0);
-    //     return result;
-    // }
-
-    // halfedge_around_edge_iter::halfedge_around_edge_iter(const OppositeFacet &of, const int he) : of(of), heh(of.m.heh) {
-    //     assert(he>=0 && he<heh.nhalfedges());
-    //     int cur = he;
-    //     do {
-    //         int oppc = of.opposite_c(cur);
-    //         if (oppc<0) {
-    //             start = cur;
-    //             return;
-    //         }
-    //         cur = heh.opposite_f(oppc);
-    //     } while (cur != he);
-    //     start = finish = he;
-    // }
-
+    int OppositeFacet::operator[](const int i) const {
+        assert(i>=0 && i<m.nfacets());
+        return adjacent[i];
+    }
 
 }
 
