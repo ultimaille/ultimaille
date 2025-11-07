@@ -102,21 +102,17 @@ namespace UM {
         struct Vertex :  Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Vertex(Vertex& v)  = default;
-            Vertex(Vertex&& v) = default;
-            Vertex& operator=(Vertex& v);
 
-            //TODO cast to vec3 and vec3 &
-            vec3  pos() const;
+            vec3  pos() const; // TODO [[deprecated]]?
             vec3& pos();
+
+            inline operator vec3&();
+            inline operator vec3&() const;
         };
 
         struct Corner : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Corner(Corner& v)  = default;
-            Corner(Corner&& v) = default;
-            Corner& operator=(Corner& v);
 
             int id_in_cell()    const;
             Vertex vertex()     const;
@@ -129,9 +125,6 @@ namespace UM {
         struct Halfedge : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Halfedge(Halfedge& he)  = default;
-            Halfedge(Halfedge&& he) = default;
-            Halfedge& operator=(Halfedge& he);
 
             int id_in_facet()     const;
             int id_in_cell()      const;
@@ -155,9 +148,6 @@ namespace UM {
         struct Facet : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Facet(Facet& he)  = default;
-            Facet(Facet&& he) = default;
-            Facet& operator=(Facet& he);
 
             [[deprecated]] int nverts()       const;
             [[deprecated]] int ncorners()     const;
@@ -184,9 +174,6 @@ namespace UM {
         struct Cell : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
-            Cell(Cell& he)  = default;
-            Cell(Cell&& he) = default;
-            Cell& operator=(Cell& he);
 
             int nfacets()    const;
             int ncorners()   const;
@@ -363,11 +350,6 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Volume::Vertex& Volume::Vertex::operator=(Volume::Vertex& v) {
-        Primitive::operator=(v);
-        return *this;
-    }
-
     inline vec3  Volume::Vertex::pos() const {
         return m.points[id];
     }
@@ -376,12 +358,15 @@ namespace UM {
         return m.points[id];
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline Volume::Corner& Volume::Corner::operator=(Volume::Corner& v) {
-        Primitive::operator=(v);
-        return *this;
+    inline Volume::Vertex::operator vec3&() {
+        return { m.points[id] };
     }
+
+    inline Volume::Vertex::operator vec3&() const {
+        return { m.points[id] };
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline Volume::Vertex Volume::Corner::vertex() const {
         return { m, m.vert(id / m.nverts_per_cell(), id % m.nverts_per_cell()) };
@@ -401,11 +386,6 @@ namespace UM {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline Volume::Halfedge& Volume::Halfedge::operator=(Volume::Halfedge& v) {
-        Primitive::operator=(v);
-        return *this;
-    }
 
     inline int Volume::Halfedge::id_in_facet() const {
         return id - facet().halfedge(0);
@@ -506,11 +486,6 @@ namespace UM {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline Volume::Facet& Volume::Facet::operator=(Volume::Facet& v) {
-        Primitive::operator=(v);
-        return *this;
-    }
-
     inline int Volume::Facet::size() const {
         return m.facet_size(id);
     }
@@ -558,11 +533,6 @@ namespace UM {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline Volume::Cell& Volume::Cell::operator=(Volume::Cell& v) {
-        Primitive::operator=(v);
-        return *this;
-    }
 
     inline int Volume::Cell::nverts() const {
         return m.nverts_per_cell();
