@@ -87,8 +87,8 @@ namespace UM {
             operator int& ();
             bool active() const;
 
-//      protected:
-//          friend struct Volume;
+        protected:
+            friend struct Volume;
             Volume& m;
             int id;
         };
@@ -675,7 +675,7 @@ namespace UM {
         struct iterator {
             P data;
             P& operator*()    { return data; }
-            void operator++() { ++data.id;   }
+            void operator++() { ++data; }
             bool operator!=(iterator& rhs) { return data != rhs.data; }
         };
         struct wrapper {
@@ -720,7 +720,7 @@ namespace UM {
     }
 
     inline auto Volume::Cell::iter_corners() {
-        return custom_iterator<Cell>(m, corner(0), corner(0) + ncorners());
+        return custom_iterator<Corner>(m, corner(0), corner(0) + ncorners());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
