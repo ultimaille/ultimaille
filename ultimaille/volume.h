@@ -159,9 +159,10 @@ namespace UM {
             Facet(Facet&& he) = default;
             Facet& operator=(Facet& he);
 
-            int nverts()       const; // TODO it is all the same??? Choose your side.
-            int ncorners()     const;
-            int nhalfedges()   const;
+            [[deprecated]] int nverts()       const;
+            [[deprecated]] int ncorners()     const;
+            [[deprecated]] int nhalfedges()   const;
+            int size() const;
 
             bool on_boundary() const;
 
@@ -431,15 +432,15 @@ namespace UM {
     }
 
     inline Volume::Halfedge Volume::Halfedge::next() const {
-        if (id_in_facet() < facet().nverts()-1)
+        if (id_in_facet() < facet().size()-1)
             return { m, id + 1 };
-        return { m, id - facet().nverts() + 1 };
+        return { m, id - facet().size() + 1 };
     }
 
     inline Volume::Halfedge Volume::Halfedge::prev() const {
         if (id_in_facet())
             return { m, id - 1 };
-        return { m, id + facet().nverts() - 1 };
+        return { m, id + facet().size() - 1 };
     }
 
     inline Volume::Halfedge Volume::Halfedge::opposite_f() const {
@@ -450,7 +451,7 @@ namespace UM {
         assert(m.connected());
         Facet oppf = facet().opposite();
         if (!oppf.active()) return { m, -1 };
-        for (int lv=0; lv<oppf.nhalfedges(); lv++) {
+        for (int lv=0; lv<oppf.size(); lv++) {
             Halfedge res = oppf.halfedge(lv);
             if (res.from() == to() && res.to() == from()) return res;
         }
@@ -510,6 +511,10 @@ namespace UM {
         return *this;
     }
 
+    inline int Volume::Facet::size() const {
+        return m.facet_size(id);
+    }
+
     inline int Volume::Facet::nverts() const {
         return m.facet_size(id);
     }
@@ -523,7 +528,7 @@ namespace UM {
     }
 
     inline Volume::Halfedge Volume::Facet::halfedge(int i) const{
-        assert(i>=0 && i<nverts());
+        assert(i>=0 && i<size());
         return { m, cell() * m.nhalfedges_per_cell() + reference_cells[m.cell_type].corner(id_in_cell(), i) };
     }
 
@@ -632,12 +637,12 @@ namespace UM {
     }
 
     template<> inline Triangle3 Volume::Facet::geom() {
-        um_assert(nverts()==3);
+        um_assert(size()==3);
         return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
     }
 
     template<> inline Quad3 Volume::Facet::geom() {
-        um_assert(nverts()==4);
+        um_assert(size()==4);
         return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
     }
 
@@ -652,18 +657,18 @@ namespace UM {
     }
 
     inline Volume::Facet::operator Triangle3() const {
-        um_assert(nverts()==3);
+        um_assert(size()==3);
         return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos() };
     }
 
     inline Volume::Facet::operator Quad3() const {
-        um_assert(nverts()==4);
+        um_assert(size()==4);
         return { vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos() };
     }
 
     inline Volume::Facet::operator Poly3() const {
-        std::vector<vec3> pts(nverts());
-        for (int i = 0; i < nverts(); i++)
+        std::vector<vec3> pts(size());
+        for (int i = 0; i < size(); i++)
             pts[i] = vertex(i).pos();
         return { pts };
     }
@@ -708,7 +713,7 @@ namespace UM {
     }
 
     inline auto Volume::Facet::iter_halfedges() {
-        return custom_iterator<Halfedge>(m, halfedge(0), halfedge(0) + nhalfedges());
+        return custom_iterator<Halfedge>(m, halfedge(0), halfedge(0) + size());
     }
 
     inline auto Volume::Cell::iter_halfedges() {
