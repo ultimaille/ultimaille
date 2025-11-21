@@ -489,11 +489,12 @@ TEST_CASE("Test tetra geom", "[geom]") {
     CHECK(std::abs((tet_c.bary_verts() - bary).norm2()) < 1e-4);
 
     // Compute volume of a regular tetrahedron of side length 1 with the formula V = (a^3*sqrt(2))/12
-    double v = sqrt(2.0) / 12.0;
-    INFO("regular tet volume: " << v);
-    INFO("tet volume: " << tet_c.volume());
-    CHECK(std::abs(tet_c.volume() - v) < 1e-4);
-
+    {
+        double v = sqrt(2.0) / 12.0;
+        INFO("regular tet volume: " << v);
+        INFO("tet volume: " << tet_c.volume());
+        CHECK(std::abs(tet_c.volume() - v) < 1e-4);
+    }
     // // Check bary coordinates
     // {
     // 	vec3 tet_c_g = tet_c.bary_verts();
