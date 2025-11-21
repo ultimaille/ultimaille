@@ -26,7 +26,7 @@ double rand_signed_scalar() {
     return (rand()%100) / 100. - .5;
 }
 
-double rand_scalar(float from, float to) {
+double rand_scalar(double from, double to) {
     return from + rand()%100 / 100. * (to - from);
 }
 
@@ -350,8 +350,7 @@ TEST_CASE("Test quad geom", "[geom]") {
     m.vert(1, 3) = 2;
 
     // Get geometry of first face
-    auto f = m.iter_facets().begin().f;
-    Quad3 quad_f = f;
+    Quad3 quad_f = m.iter_facets().begin().f;
 
     INFO("quad: " << quad_f.normal());
 
@@ -438,9 +437,8 @@ TEST_CASE("Test poly geom", "[geom]") {
         m.vert(0, i) = i;
     }
 
-    // // Get geometry of first face
-    auto f = m.iter_facets().begin().f;
-    Poly3 poly_f = f;
+    // Get geometry of first face
+    Poly3 poly_f = m.iter_facets().begin().f;
 
     // // Check normal
     for (auto f : m.iter_facets()) {
@@ -507,13 +505,13 @@ TEST_CASE("Test tetra geom", "[geom]") {
 
         for (int i = 0; i < 10000; i++) {
             // Compute random vec4 that sum up to 1 !
-            float a = 1.;
-            float u = rand_scalar(0., 1.);
+            double a = 1.;
+            double u = rand_scalar(0., 1.);
             a -= u;
-            float v = rand_scalar(0., a);
+            double v = rand_scalar(0., a);
             a -= v;
-            float w = rand_scalar(0., a);
-            float w2 =  1. - (u + v + w);
+            double w = rand_scalar(0., a);
+            double w2 =  1. - (u + v + w);
 
             // vec4 expected_bary_coords{0.2, 0.4, 0.15, 0.25};
             vec4 expected_bary_coords{u, v, w, w2};
@@ -880,10 +878,10 @@ TEST_CASE("Test segment 2", "[geom][segment]") {
             // Distance of degenerated segment to a point
             // is distance from point to point
             vec2 p = rand_v2();
-            vec2 a = rand_v2();
-            vec2 b = a + vec2{0, 1e-16};
-            Segment2 degenerated_s{a, b};
-            vec2 v = p - a;
+            vec2 a2 = rand_v2();
+            vec2 b2 = a2 + vec2{0, 1e-16};
+            Segment2 degenerated_s{a2, b2};
+            vec2 v = p - a2;
             double dist = sqrt(v * v);
 
             double actual_dist = degenerated_s.distance(p);
@@ -916,8 +914,8 @@ TEST_CASE("Test segment 3", "[geom][segment]") {
 
     for (int i = 0; i < 1000; i++) {
         // Compute random u, v that sum up to 1 !
-        float u = rand_scalar(-2., 2.);
-        float v =  1. - u;
+        double u = rand_scalar(-2., 2.);
+        double v =  1. - u;
         // vec2 expected_bary_coords{u, v};
 
         vec3 A = vec3{0,0,0} + rand_v3() * .5;
