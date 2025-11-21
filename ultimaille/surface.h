@@ -59,9 +59,9 @@ namespace UM {
         struct Halfedge;
         struct Facet;
 
-        Vertex   vertex(int id)   { return Vertex(*this, id);   }
+        Vertex     vertex(int id) { return   Vertex(*this, id); }
         Halfedge halfedge(int id) { return Halfedge(*this, id); }
-        Facet    facet(int id)    { return Facet(*this, id);    }
+        Facet       facet(int id) { return    Facet(*this, id); }
 
         struct Connectivity {
             Surface& m;

@@ -9,8 +9,8 @@
 #include "attributes.h"
 #include "pointset.h"
 #include "volume_reference.h"
-#include "volume_connectivity.h"
 #include "primitive_geometry.h"
+#include "polyline.h"
 
 namespace UM {
     struct Volume;
@@ -27,41 +27,49 @@ namespace UM {
         std::vector<std::weak_ptr<ContainerBase> > attr_corners{};
 
         int  create_cells(const int n);
-        void delete_vertices(const std::vector<bool> &to_kill);
+        void delete_vertices(const std::vector<bool> &to_kill); // TODO invocable
         void delete_isolated_vertices();
 
         template <typename T> void delete_cells(const T &to_kill);
 
         void resize_attrs();
 
-        int nverts()   const;
-        int ncells()   const;
-        int nfacets()  const;
-        int ncorners() const;
+        int nverts()     const;
+        int ncells()     const;
+        int nfacets()    const;
+        int ncorners()   const;
         int nhalfedges() const;
 
-        constexpr int cell_from_facet (const int f) const;
-        constexpr int cell_from_corner(const int c) const;
+        struct Vertex; struct Corner; struct Halfedge; struct Facet; struct Cell;
+
+        Vertex     vertex(int id) const { return   Vertex(*this, id); }
+        Corner     corner(int id) const { return   Corner(*this, id); }
+        Halfedge halfedge(int id) const { return Halfedge(*this, id); }
+        Facet       facet(int id) const { return    Facet(*this, id); }
+        Cell         cell(int id) const { return     Cell(*this, id); }
+
+        constexpr int     nverts_per_cell() const;
+        constexpr int    nfacets_per_cell() const;
+        constexpr int nhalfedges_per_cell() const;
+        constexpr int facet_size(const int f) const;
+
+        [[deprecated]] constexpr int cell_from_facet (const int f) const;
+        [[deprecated]] constexpr int cell_from_corner(const int c) const;
+        [[deprecated]] constexpr int  facet(const int c, const int lf) const;
+        [[deprecated]] constexpr int corner(const int c, const int lc) const;
+
+        int facet_vert(const int c, const int lf, const int lv) const;
         int  vert(const int c, const int lv) const;
         int &vert(const int c, const int lv);
 
-        constexpr int  nverts_per_cell() const;
-        constexpr int nfacets_per_cell() const;
-        constexpr int nhalfedges_per_cell() const;
-
-        constexpr int facet_size(const int f) const;
-        int facet_vert(const int c, const int lf, const int lv) const;
-        constexpr int  facet(const int c, const int lf) const;
-        constexpr int corner(const int c, const int lc) const;
-
         Volume(CELL_TYPE cell_type) : cell_type(cell_type) {}
-        Volume(const Volume& m) = delete;
-        Volume(Volume&& m) = delete;
+        Volume(const Volume& m)            = delete;
+        Volume(Volume&& m)                 = delete;
         Volume& operator=(const Volume& m) = delete;
 
         struct Connectivity {
             Volume &m;
-            OppositeFacet oppf;
+            CellFacetAttribute<int> adjacent;
 
             Connectivity(Volume &m);
             void reset();
@@ -76,10 +84,12 @@ namespace UM {
         // TODO careful assert policy, esp. for the iterators
 
         struct Primitive {
-            Primitive(Volume& m, int id) : m(m), id(id) {}
+            Primitive(const Volume& m, int id) : m(m), id(id) {}
             Primitive(Primitive& p)  = default;
             Primitive(Primitive&& p) = default;
+            Primitive(const Primitive& p)  = default;
 
+            Primitive& operator=(const Primitive&& p);
             Primitive& operator=(Primitive& p);
             Primitive& operator=(int i);
 
@@ -89,25 +99,18 @@ namespace UM {
 
         protected:
             friend struct Volume;
-            Volume& m;
+            const Volume& m;
             int id;
         };
 
-        struct Vertex;
-        struct Corner;
-        struct Halfedge;
-        struct Facet;
-        struct Cell;
-
-        struct Vertex :  Primitive {
+        struct Vertex : Primitive {
             using Primitive::Primitive;
             using Primitive::operator=;
 
-            vec3  pos() const; // TODO [[deprecated]]?
-            vec3& pos();
+            [[deprecated]] vec3  pos() const;
+            [[deprecated]] vec3& pos();
 
-            inline operator vec3&();
-            inline operator vec3&() const;
+            inline operator const vec3&() const;
         };
 
         struct Corner : Primitive {
@@ -119,7 +122,7 @@ namespace UM {
             Cell cell()         const;
             Halfedge halfedge() const;
 
-//          auto iter_halfedges() const;
+//          auto iter_halfedges() const; // TODO
         };
 
         struct Halfedge : Primitive {
@@ -148,9 +151,9 @@ namespace UM {
             using Primitive::Primitive;
             using Primitive::operator=;
 
-            [[deprecated]] int nverts()       const;
-            [[deprecated]] int ncorners()     const;
-            [[deprecated]] int nhalfedges()   const;
+            [[deprecated]] int nverts()     const;
+            [[deprecated]] int ncorners()   const;
+            [[deprecated]] int nhalfedges() const;
             int size() const;
 
             bool on_boundary() const;
@@ -193,11 +196,11 @@ namespace UM {
             auto iter_corners();
         };
 
-        auto iter_vertices();
-        auto iter_corners();
-        auto iter_halfedges();
-        auto iter_facets();
-        auto iter_cells();
+        auto iter_vertices()  const;
+        auto iter_corners()   const;
+        auto iter_halfedges() const;
+        auto iter_facets()    const;
+        auto iter_cells()     const;
     };
 
    /*
@@ -273,12 +276,12 @@ namespace UM {
 
     inline int Volume::vert(const int c, const int lv) const {
         assert(c>=0 && c<ncells() && lv>=0 && lv<nverts_per_cell());
-        return cells[corner(c, lv)];
+        return cells[c*nverts_per_cell() + lv];
     }
 
     inline int &Volume::vert(const int c, const int lv) {
         assert(c>=0 && c<ncells() && lv>=0 && lv<nverts_per_cell());
-        return cells[corner(c, lv)];
+        return cells[c*nverts_per_cell() + lv];
     }
 
     inline constexpr int Volume::nverts_per_cell() const {
@@ -334,6 +337,10 @@ namespace UM {
         return id>=0;
     }
 
+    inline Volume::Primitive& Volume::Primitive::operator=(const Volume::Primitive&& p) {
+        return Primitive::operator=(p);
+    }
+
     inline Volume::Primitive& Volume::Primitive::operator=(Volume::Primitive& p) {
         assert(&m == &p.m);
         id = p.id;
@@ -352,14 +359,10 @@ namespace UM {
     }
 
     inline vec3& Volume::Vertex::pos() {
-        return m.points[id];
+        return const_cast<vec3 &>(m.points[id]); // TODO attention!
     }
 
-    inline Volume::Vertex::operator vec3&() {
-        return { m.points[id] };
-    }
-
-    inline Volume::Vertex::operator vec3&() const {
+    inline Volume::Vertex::operator const vec3&() const {
         return { m.points[id] };
     }
 
@@ -437,7 +440,7 @@ namespace UM {
     }
 
     inline Volume::Facet Volume::Halfedge::facet() const {
-        return { m, m.facet(cell(), reference_cells[m.cell_type].facet(id_in_cell())) };
+        return { m, cell() * m.nfacets_per_cell() + reference_cells[m.cell_type].facet(id_in_cell()) };
     }
 
     inline Volume::Cell Volume::Halfedge::cell() const {
@@ -480,19 +483,19 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Volume::Facet::size() const {
-        return m.facet_size(id);
+        return reference_cells[m.cell_type].facet_size(id % m.nfacets_per_cell());
     }
 
     inline int Volume::Facet::nverts() const {
-        return m.facet_size(id);
+        return m.facet(id).size();
     }
 
     inline int Volume::Facet::ncorners() const {
-        return m.facet_size(id);
+        return m.facet(id).size();
     }
 
     inline int Volume::Facet::nhalfedges() const {
-        return m.facet_size(id);
+        return m.facet(id).size();
     }
 
     inline Volume::Halfedge Volume::Facet::halfedge(int i) const{
@@ -501,16 +504,18 @@ namespace UM {
     }
 
     inline Volume::Vertex Volume::Facet::vertex(int i) const {
-        return { m, m.facet_vert(cell(), id_in_cell(), i) };
+        assert(i>=0 && i<size());
+        return { m, m.vert(cell(), reference_cells[m.cell_type].vert(id_in_cell(), i)) };
     }
 
     inline Volume::Corner Volume::Facet::corner(int i) const {
+        assert(i>=0 && i<size());
         return { m, halfedge(i).from_corner() };
     }
 
     inline Volume::Facet Volume::Facet::opposite() const {
         assert(m.connected());
-        return { m, m.conn->oppf.adjacent[id] };
+        return { m, m.conn->adjacent[id] };
     }
 
     inline bool Volume::Facet::on_boundary() const {
@@ -518,7 +523,7 @@ namespace UM {
     }
 
     inline Volume::Cell Volume::Facet::cell() const {
-        return { m, m.cell_from_facet(id) };
+        return { m, id / m.nfacets_per_cell() };
     }
 
     inline int Volume::Facet::id_in_cell() const {
@@ -544,18 +549,22 @@ namespace UM {
     }
 
     inline Volume::Vertex Volume::Cell::vertex(int lv) const {
+        assert(lv>=0 && lv<m.nverts_per_cell());
         return { m, m.vert(id, lv) };
     }
 
     inline Volume::Corner Volume::Cell::corner(int lc) const {
-        return { m, m.corner(id, lc) };
+        assert(lc>=0 && lc<m.nverts_per_cell());
+        return { m, id * m.nverts_per_cell() + lc };
     }
 
     inline Volume::Halfedge Volume::Cell::halfedge(int lh) const {
+        assert(lh>=0 && lh<m.nhalfedges_per_cell());
         return { m, m.nhalfedges_per_cell()*id + lh };
     }
 
     inline Volume::Facet Volume::Cell::facet(int lf) const {
+        assert(lf>=0 && lf<m.nfacets_per_cell());
         return { m, m.nfacets_per_cell()*id + lf };
     }
 
@@ -615,23 +624,23 @@ namespace UM {
         return wrapper{ m, from, to };
     }
 
-    inline auto Volume::iter_vertices() {
+    inline auto Volume::iter_vertices() const {
         return custom_iterator<Vertex>(*this, 0, nverts());
     }
 
-    inline auto Volume::iter_corners() {
+    inline auto Volume::iter_corners() const {
         return custom_iterator<Corner>(*this, 0, ncorners());
     }
 
-    inline auto Volume::iter_halfedges() {
+    inline auto Volume::iter_halfedges() const {
         return custom_iterator<Halfedge>(*this, 0, nhalfedges());
     }
 
-    inline auto Volume::iter_facets() {
+    inline auto Volume::iter_facets() const {
         return custom_iterator<Facet>(*this, 0, nfacets());
     }
 
-    inline auto Volume::iter_cells() {
+    inline auto Volume::iter_cells() const {
         return custom_iterator<Cell>(*this, 0, ncells());
     }
 
@@ -666,18 +675,18 @@ namespace UM {
         int new_nb_facets  = 0;
         int new_nb_corners = 0;
 
-        for (int c=0; c<ncells(); c++) {
+        for (auto c : iter_cells()) {
             if constexpr (invocable) {
                 if (to_kill(c)) continue;
             } else {
                 if (to_kill[c]) continue;
             }
 
-            for (int lf=0; lf<nfacets_per_cell(); lf++)
-                facets_old2new[facet(c, lf)] = new_nb_facets++;
-            for (int lv=0; lv<nverts_per_cell(); lv++) {
-                corners_old2new[corner(c, lv)] = new_nb_corners;
-                cells[new_nb_corners] = vert(c, lv);
+            for (auto f : c.iter_facets())
+                facets_old2new[f] = new_nb_facets++;
+            for (auto corner : c.iter_corners()) {
+                corners_old2new[corner] = new_nb_corners;
+                cells[new_nb_corners] = corner.vertex();
                 new_nb_corners++;
             }
             cells_old2new[c] = new_nb_cells++;

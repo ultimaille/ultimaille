@@ -84,7 +84,7 @@ TEST_CASE("Hexahedra", "[VolumeConnectivity]") {
                 int lv = h.id_in_facet();
 
                 REQUIRE(h.cell() == c);
-                REQUIRE(h.facet() == m.facet(c, lf));
+                REQUIRE(h.facet() == m.cell(c).facet(lf));
                 REQUIRE(h.facet().id_in_cell() == lf);
                 REQUIRE(h.id_in_facet() == lv);
                 REQUIRE(m.facet_size(f) == 4);

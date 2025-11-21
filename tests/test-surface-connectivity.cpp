@@ -48,21 +48,21 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
 
         m.delete_isolated_vertices();
 
-        OppositeFacet conn(m);
+        m.connect();
         CellFacetAttribute<bool> boundary(m);
         int nbrd = 0;
         for (int f : range(m.nfacets())) {
-            boundary[f] = conn[f]<0;
+            boundary[f] = m.conn->adjacent[f]<0;
             nbrd += boundary[f];
         }
 
         q.points = m.points;
         q.create_facets(nbrd);
         int cnt = 0;
-        for (int f : range(m.nfacets())) {
+        for (int f : range(m.nfacets())) { // TODO rewrite that
             if (!boundary[f]) continue;
             for (int lv : range(4))
-                q.vert(cnt, lv) = m.facet_vert(m.cell_from_facet(f), f%m.nfacets_per_cell(), lv);
+                q.vert(cnt, lv) = m.facet_vert(m.facet(f).cell(), f%m.nfacets_per_cell(), lv);
             cnt++;
         }
 

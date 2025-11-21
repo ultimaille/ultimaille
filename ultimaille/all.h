@@ -38,7 +38,6 @@
 #include <ultimaille/polyline.h>
 #include <ultimaille/surface.h>
 #include <ultimaille/volume.h>
-#include <ultimaille/volume_connectivity.h>
 #include <ultimaille/primitive_geometry.h>
 #include <ultimaille/attr_binding.h>
 
