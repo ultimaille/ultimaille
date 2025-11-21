@@ -271,7 +271,7 @@ namespace UM {
 
         std::shared_ptr<ContainerBase> point_attr_ptr = container[0].ptr;
         if (auto point_cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int>>(point_attr_ptr); point_cont_ptr.get()!=nullptr) {
-            return std::move(point_cont_ptr->data);
+            return point_cont_ptr->data;
         } else {
             assert(false);
             return {};
@@ -428,7 +428,7 @@ namespace UM {
         } else {
             std::cerr << "Warning: Volume type : " << m.cell_type << "; not supported in our MEDIT writer";
         }
-        std::vector<NamedContainer> A[4] = {attr.points, {}, attr.cell_facets, attr.cells};
+        std::vector<NamedContainer> A[4] = {attr.points, {}, {}, attr.cells};
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, A);
     }
 
