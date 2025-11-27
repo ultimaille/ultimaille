@@ -239,19 +239,19 @@ namespace UM {
     void drop_attributes(const std::vector<NamedContainer> &nc, std::ofstream &out) {
         for (const auto &[name, genptr] : nc) {
 //          std::cerr << "name " << name << std::endl;
-            if (auto p = std::dynamic_pointer_cast<AttributeContainer<int> >(genptr); p.get()!=nullptr) {
+            if (auto p1 = std::dynamic_pointer_cast<AttributeContainer<int> >(genptr); p1.get()!=nullptr) {
                 out << "SCALARS " << name << " int 1" << std::endl << "LOOKUP_TABLE default" << std::endl;
-                for (auto v : p->data)
+                for (auto v : p1->data)
                     out << v << " ";
                 out << std::endl;
-            } else if (auto p = std::dynamic_pointer_cast<AttributeContainer<double> >(genptr); p.get()!=nullptr) {
+            } else if (auto p2 = std::dynamic_pointer_cast<AttributeContainer<double> >(genptr); p2.get()!=nullptr) {
                 out << "SCALARS " << name << " double 1" << std::endl << "LOOKUP_TABLE default" << std::endl;
-                for (auto v : p->data)
+                for (auto v : p2->data)
                     out << v << " ";
                 out << std::endl;
-            } else if (auto p = std::dynamic_pointer_cast<AttributeContainer<bool> >(genptr); p.get()!=nullptr) {
+            } else if (auto p3 = std::dynamic_pointer_cast<AttributeContainer<bool> >(genptr); p3.get()!=nullptr) {
                 out << "SCALARS " << name << " bit 1" << std::endl << "LOOKUP_TABLE default" << std::endl;
-                for (auto v : p->data)
+                for (auto v : p3->data)
                     out << v << " ";
                 out << std::endl;
             }
@@ -544,18 +544,18 @@ namespace UM {
     }
 
     void append_attribute(std::shared_ptr<ContainerBase> a, std::shared_ptr<ContainerBase> b) {
-        if (auto A = std::dynamic_pointer_cast<AttributeContainer<int> >(a); A.get()!=nullptr) {
+        if (auto A1 = std::dynamic_pointer_cast<AttributeContainer<int> >(a); A1.get()!=nullptr) {
             auto B = std::dynamic_pointer_cast<AttributeContainer<int> >(b);
             um_assert(B.get()!=nullptr);
-            A->data.insert(std::end(A->data), std::begin(B->data), std::end(B->data));
-        } else if (auto A = std::dynamic_pointer_cast<AttributeContainer<double> >(a); A.get()!=nullptr) {
+            A1->data.insert(std::end(A1->data), std::begin(B->data), std::end(B->data));
+        } else if (auto A2 = std::dynamic_pointer_cast<AttributeContainer<double> >(a); A2.get()!=nullptr) {
             auto B = std::dynamic_pointer_cast<AttributeContainer<double> >(b);
             um_assert(B.get()!=nullptr);
-            A->data.insert(std::end(A->data), std::begin(B->data), std::end(B->data));
-        } else if (auto A = std::dynamic_pointer_cast<AttributeContainer<bool> >(a); A.get()!=nullptr) {
+            A2->data.insert(std::end(A2->data), std::begin(B->data), std::end(B->data));
+        } else if (auto A3 = std::dynamic_pointer_cast<AttributeContainer<bool> >(a); A3.get()!=nullptr) {
             auto B = std::dynamic_pointer_cast<AttributeContainer<bool> >(b);
             um_assert(B.get()!=nullptr);
-            A->data.insert(std::end(A->data), std::begin(B->data), std::end(B->data));
+            A3->data.insert(std::end(A3->data), std::begin(B->data), std::end(B->data));
         } else {
             std::cerr << "Warning: unsupported attribute type" << std::endl;
         }

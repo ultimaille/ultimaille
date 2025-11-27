@@ -52,7 +52,7 @@ namespace UM {
         }
 
         int size() const {
-            return m_ids.size();
+            return static_cast<int>(m_ids.size());
         }
 
         // return the number of sets

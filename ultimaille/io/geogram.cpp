@@ -101,7 +101,7 @@ namespace UM {
                     writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr4->data.data()), cont_ptr4->data.size(), 3);
                 } else if (auto cont_ptr5 = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr5.get()!=nullptr) {
                     std::vector<char> tmp(cont_ptr5->data.size());
-                    for (int i=0; i<(int)cont_ptr5->data.size(); i++) tmp[i] = cont_ptr5->data[i];
+                    for (int j=0; j<(int)cont_ptr5->data.size(); j++) tmp[j] = cont_ptr5->data[j];
                     writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                 } else {
                     assert(false);
@@ -151,7 +151,7 @@ namespace UM {
                         writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr4->data.data()), cont_ptr4->data.size(), 3);
                     } else if (auto cont_ptr5 = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr5.get()!=nullptr) {
                         std::vector<char> tmp(cont_ptr5->data.size());
-                        for (int i=0; i<(int)cont_ptr5->data.size(); i++) tmp[i] = cont_ptr5->data[i];
+                        for (int j=0; j<(int)cont_ptr5->data.size(); j++) tmp[j] = cont_ptr5->data[j];
                         writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                     } else {
                         assert(false);
@@ -224,7 +224,7 @@ namespace UM {
                         writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr4->data.data()), cont_ptr4->data.size(), 3);
                     } else if (auto cont_ptr5 = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr5.get()!=nullptr) {
                         std::vector<char> tmp(cont_ptr5->data.size());
-                        for (int i=0; i<(int)cont_ptr5->data.size(); i++) tmp[i] = cont_ptr5->data[i];
+                        for (int j=0; j<(int)cont_ptr5->data.size(); j++) tmp[j] = cont_ptr5->data[j];
                         writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                     } else {
                         assert(false);
