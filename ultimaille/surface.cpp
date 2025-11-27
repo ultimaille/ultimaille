@@ -59,14 +59,14 @@ namespace UM {
     Surface::Facet Surface::Connectivity::create_facet(int *verts, int size) {
         int off = -1;
         auto tmp_conn = std::move(m.conn); // happy assert(conn==nullptr)!
-        if (auto *mesh = dynamic_cast<Triangles*>(&m)) {
+        if (auto *mesh1 = dynamic_cast<Triangles*>(&m)) {
             assert(size==3);
-            off = mesh->create_facets(1);
-        } else if (auto *mesh = dynamic_cast<Quads*>(&m)){
+            off = mesh1->create_facets(1);
+        } else if (auto *mesh2 = dynamic_cast<Quads*>(&m)){
             assert(size==4);
-            off = mesh->create_facets(1);
-        } else if (auto *mesh = dynamic_cast<Polygons*>(&m)){
-            off = mesh->create_facets(1, size);
+            off = mesh2->create_facets(1);
+        } else if (auto *mesh3 = dynamic_cast<Polygons*>(&m)){
+            off = mesh3->create_facets(1, size);
         } else
             um_assert(false);
 

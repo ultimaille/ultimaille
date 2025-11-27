@@ -11,7 +11,7 @@ namespace UM {
             REDUNDANT  = 1,
             SUCCESS    = 2
         };
-        
+
         NullSpaceBuilder(int n, bool free_last=true) : C{lol_identity(n)}, free_last{free_last} { }
 
         // re-express v in terms of free variables
@@ -33,7 +33,7 @@ namespace UM {
             return result;
         }
 
-        inline int size() { return C.rows.size(); }
+        inline int size() { return static_cast<int>(C.rows.size()); }
 
         LOLMatrix C;    // square matrix of constraints C x = 0
         bool free_last; // specify whether last variable can be leading or must be free

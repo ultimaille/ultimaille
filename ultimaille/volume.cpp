@@ -153,12 +153,12 @@ namespace UM {
             if (h.facet().opposite().active())
                 ds.merge(h,h.opposite_c().opposite_f());
 
-        std::vector<int> edges;
-        int nedges = ds.get_sets_id(edges);
+        std::vector<int> edges_;
+        int nedges = ds.get_sets_id(edges_);
         create_edges(nedges);
         m_halfedge_from_edge.resize(nedges,-1);
         for(auto h:m.iter_halfedges()) {
-            int e = edges[h];
+            int e = edges_[h];
             vert(e, 0) = h.from();
             vert(e, 1) = h.to();
             m_halfedge_from_edge[e] = h;

@@ -16,7 +16,7 @@ namespace UM {
         void fix(int var, double value);
         void solve();
         double value(int i) { return X[i]; }
-        int nvars() { return X.size(); }
+        int nvars() { return static_cast<int>(X.size()); }
 
         std::vector<double> X = {};
     protected:

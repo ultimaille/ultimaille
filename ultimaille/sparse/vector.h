@@ -72,7 +72,7 @@ namespace UM {
         SparseVector& operator=(const SparseVector  &) = default;
         SparseVector& operator=(      SparseVector &&) = default;
 
-        inline int size() const { return data.size(); }
+        inline int size() const { return static_cast<int>(data.size()); }
         inline bool empty() const { return data.empty(); }
         inline       SparseElement& front()       { return data.front(); }
         inline const SparseElement& front() const { return data.front(); }

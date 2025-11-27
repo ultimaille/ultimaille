@@ -91,17 +91,17 @@ namespace UM {
                 std::string place = "GEO::Mesh::vertices";
 
                 // TODO externalize that
-                if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr.get()!=nullptr) {
-                    writer.addAttribute(place, name, "int", cont_ptr->data.data(), cont_ptr->data.size(), 1);
-                } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr.get()!=nullptr) {
-                    writer.addAttribute(place, name, "double", cont_ptr->data.data(), cont_ptr->data.size(), 1);
-                } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
-                    writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 2);
-                } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr.get()!=nullptr) {
-                    writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 3);
-                } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr.get()!=nullptr) {
-                    std::vector<char> tmp(cont_ptr->data.size());
-                    for (int i=0; i<(int)cont_ptr->data.size(); i++) tmp[i] = cont_ptr->data[i];
+                if (auto cont_ptr1 = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr1.get()!=nullptr) {
+                    writer.addAttribute(place, name, "int", cont_ptr1->data.data(), cont_ptr1->data.size(), 1);
+                } else if (auto cont_ptr2 = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr2.get()!=nullptr) {
+                    writer.addAttribute(place, name, "double", cont_ptr2->data.data(), cont_ptr2->data.size(), 1);
+                } else if (auto cont_ptr3 = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr3.get()!=nullptr) {
+                    writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr3->data.data()), cont_ptr3->data.size(), 2);
+                } else if (auto cont_ptr4 = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr4.get()!=nullptr) {
+                    writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr4->data.data()), cont_ptr4->data.size(), 3);
+                } else if (auto cont_ptr5 = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr5.get()!=nullptr) {
+                    std::vector<char> tmp(cont_ptr5->data.size());
+                    for (int i=0; i<(int)cont_ptr5->data.size(); i++) tmp[i] = cont_ptr5->data[i];
                     writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                 } else {
                     assert(false);
@@ -141,17 +141,17 @@ namespace UM {
                         place = "GEO::Mesh::edges";
 
                     // TODO externalize that
-                    if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr.get()!=nullptr) {
-                        writer.addAttribute(place, name, "int", cont_ptr->data.data(), cont_ptr->data.size(), 1);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr.get()!=nullptr) {
-                        writer.addAttribute(place, name, "double", cont_ptr->data.data(), cont_ptr->data.size(), 1);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
-                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 2);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr.get()!=nullptr) {
-                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 3);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr.get()!=nullptr) {
-                        std::vector<char> tmp(cont_ptr->data.size());
-                        for (int i=0; i<(int)cont_ptr->data.size(); i++) tmp[i] = cont_ptr->data[i];
+                    if (auto cont_ptr1 = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr1.get()!=nullptr) {
+                        writer.addAttribute(place, name, "int", cont_ptr1->data.data(), cont_ptr1->data.size(), 1);
+                    } else if (auto cont_ptr2 = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr2.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", cont_ptr2->data.data(), cont_ptr2->data.size(), 1);
+                    } else if (auto cont_ptr3 = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr3.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr3->data.data()), cont_ptr3->data.size(), 2);
+                    } else if (auto cont_ptr4 = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr4.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr4->data.data()), cont_ptr4->data.size(), 3);
+                    } else if (auto cont_ptr5 = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr5.get()!=nullptr) {
+                        std::vector<char> tmp(cont_ptr5->data.size());
+                        for (int i=0; i<(int)cont_ptr5->data.size(); i++) tmp[i] = cont_ptr5->data[i];
                         writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                     } else {
                         assert(false);
@@ -214,17 +214,17 @@ namespace UM {
                         place = "GEO::Mesh::facet_corners";
 
                     // TODO externalize that
-                    if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr.get()!=nullptr) {
-                        writer.addAttribute(place, name, "int", cont_ptr->data.data(), cont_ptr->data.size(), 1);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr.get()!=nullptr) {
-                        writer.addAttribute(place, name, "double", cont_ptr->data.data(), cont_ptr->data.size(), 1);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
-                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 2);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr.get()!=nullptr) {
-                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr->data.data()), cont_ptr->data.size(), 3);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr.get()!=nullptr) {
-                        std::vector<char> tmp(cont_ptr->data.size());
-                        for (int i=0; i<(int)cont_ptr->data.size(); i++) tmp[i] = cont_ptr->data[i];
+                    if (auto cont_ptr1 = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr1.get()!=nullptr) {
+                        writer.addAttribute(place, name, "int", cont_ptr1->data.data(), cont_ptr1->data.size(), 1);
+                    } else if (auto cont_ptr2 = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr2.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", cont_ptr2->data.data(), cont_ptr2->data.size(), 1);
+                    } else if (auto cont_ptr3 = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr3.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr3->data.data()), cont_ptr3->data.size(), 2);
+                    } else if (auto cont_ptr4 = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr4.get()!=nullptr) {
+                        writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(cont_ptr4->data.data()), cont_ptr4->data.size(), 3);
+                    } else if (auto cont_ptr5 = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr5.get()!=nullptr) {
+                        std::vector<char> tmp(cont_ptr5->data.size());
+                        for (int i=0; i<(int)cont_ptr5->data.size(); i++) tmp[i] = cont_ptr5->data[i];
                         writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                     } else {
                         assert(false);
@@ -265,7 +265,7 @@ namespace UM {
             writer.addAttributeSize("GEO::Mesh::cells", m.ncells());
 
             std::vector<char> cell_type(m.ncells());
-            for (int c=0; c<m.ncells(); c++) cell_type[c] = m.cell_type;
+            for (int c=0; c<m.ncells(); c++) cell_type[c] = static_cast<char>(m.cell_type);
             writer.addAttribute("GEO::Mesh::cells", "GEO::Mesh::cells::cell_type", "char", cell_type.data(),  m.ncells(), 1);
 
             std::vector<index_t> cell_ptr(m.ncells());
@@ -301,25 +301,25 @@ namespace UM {
                     else
                         place = "GEO::Mesh::cell_corners";
 
-                    if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr.get()!=nullptr) {
-                        std::vector<int> tmp = cont_ptr->data;
+                    if (auto cont_ptr1 = std::dynamic_pointer_cast<AttributeContainer<int> >(ptr); cont_ptr1.get()!=nullptr) {
+                        std::vector<int> tmp = cont_ptr1->data;
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "int", tmp.data(), tmp.size(), 1);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr.get()!=nullptr) {
-                        std::vector<double> tmp = cont_ptr->data;
+                    } else if (auto cont_ptr2 = std::dynamic_pointer_cast<AttributeContainer<double>>(ptr); cont_ptr2.get()!=nullptr) {
+                        std::vector<double> tmp = cont_ptr2->data;
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "double", tmp.data(), tmp.size(), 1);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr.get()!=nullptr) {
-                        std::vector<vec2> tmp = cont_ptr->data;
+                    } else if (auto cont_ptr3 = std::dynamic_pointer_cast<AttributeContainer<vec2>>(ptr); cont_ptr3.get()!=nullptr) {
+                        std::vector<vec2> tmp = cont_ptr3->data;
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(tmp.data()), tmp.size(), 2);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr.get()!=nullptr) {
-                        std::vector<vec3> tmp = cont_ptr->data;
+                    } else if (auto cont_ptr4 = std::dynamic_pointer_cast<AttributeContainer<vec3>>(ptr); cont_ptr4.get()!=nullptr) {
+                        std::vector<vec3> tmp = cont_ptr4->data;
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "double", reinterpret_cast<const double *>(tmp.data()), tmp.size(), 3);
-                    } else if (auto cont_ptr = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr.get()!=nullptr) {
-                        std::vector<char> tmp(cont_ptr->data.size());
-                        for (int i=0; i<(int)cont_ptr->data.size(); i++) tmp[i] = cont_ptr->data[i];
+                    } else if (auto cont_ptr5 = std::dynamic_pointer_cast<AttributeContainer<bool>>(ptr); cont_ptr5.get()!=nullptr) {
+                        std::vector<char> tmp(cont_ptr5->data.size());
+                        for (int j=0; j<(int)cont_ptr5->data.size(); j++) tmp[j] = cont_ptr5->data[j];
                         if (2==z) pad_attribute(m, tmp);
                         writer.addAttribute(place, name, "bool", reinterpret_cast<const char *>(tmp.data()), tmp.size(), 1);
                     } else {

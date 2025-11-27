@@ -9,7 +9,7 @@ namespace UM {
     struct CRSMatrix {
         CRSMatrix transpose() const;
 
-        inline int nrows() const { return offset.size()-1; }
+        inline int nrows() const { return static_cast<int>(offset.size()-1); }
         inline int nnz() const { return offset.back(); }
         int count_columns() const;
 
@@ -44,7 +44,7 @@ namespace UM {
 
         inline       SparseVector& operator[](int i)       { return rows[i]; }
         inline const SparseVector& operator[](int i) const { return rows[i]; }
-        inline int nrows() const { return rows.size(); }
+        inline int nrows() const { return static_cast<int>(rows.size()); }
 
         // sort and aggregate terms, remove near-zero entries
         void compact();

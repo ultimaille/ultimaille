@@ -89,7 +89,7 @@ namespace UM {
             Primitive(Primitive&& p) = default;
             Primitive(const Primitive& p)  = default;
 
-            Primitive& operator=(const Primitive&& p);
+            Primitive& operator=(const Primitive&& p) noexcept;
             Primitive& operator=(Primitive& p);
             Primitive& operator=(int i);
 
@@ -337,7 +337,7 @@ namespace UM {
         return id>=0;
     }
 
-    inline Volume::Primitive& Volume::Primitive::operator=(const Volume::Primitive&& p) {
+    inline Volume::Primitive& Volume::Primitive::operator=(const Volume::Primitive&& p) noexcept {
         return Primitive::operator=(p);
     }
 

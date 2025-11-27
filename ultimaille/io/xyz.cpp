@@ -35,7 +35,7 @@ namespace UM {
         while (!in.eof()) {
             std::getline(in, line);
             std::istringstream iss(line);
-            int nfields = std::distance(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>());
+            int nfields = static_cast<int>(std::distance(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>()));
             if (nfields == 1 && firstline) {
                 // Some xyz files do have number of points specified, some do not. Ignore that number; push_back into the pointset will do the job just fine.
                 // npts = std::stoi(line);

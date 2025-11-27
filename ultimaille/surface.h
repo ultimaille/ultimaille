@@ -100,7 +100,7 @@ namespace UM {
             Primitive(Primitive&& p)       = default;
             Primitive(const Primitive& p)  = default;
 
-            Primitive& operator=(const Primitive&& p);
+            Primitive& operator=(const Primitive&& p) noexcept;
             Primitive& operator=(const Primitive& p);
             Primitive& operator=(int i);
 
@@ -330,7 +330,7 @@ namespace UM {
 
     inline Surface::Primitive::Primitive(Surface& m, int id) : m(m), id(id) {}
 
-    inline Surface::Primitive& Surface::Primitive::operator=(const Surface::Primitive&& p) {
+    inline Surface::Primitive& Surface::Primitive::operator=(const Surface::Primitive&& p) noexcept {
         return Primitive::operator=(p);
     }
 
