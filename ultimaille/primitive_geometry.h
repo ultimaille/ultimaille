@@ -182,6 +182,7 @@ namespace UM {
 
         vec3 bary_verts() const;
         inline double volume() const;
+        double aspect_ratio() const;
         vec4 bary_coords(vec3 G) const;
         mat<3,4> grad_operator() const;
         vec3 grad(vec4 u) const;

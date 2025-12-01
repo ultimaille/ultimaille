@@ -88,6 +88,23 @@ namespace UM {
         return result;
     }
 
+    double Tetrahedron::aspect_ratio() const {
+        // https://coreform.com/papers/verdict_quality_library.pdf
+        double lmax = 0;
+        for (int i=0; i<4; i++)
+            for (int j = i+1; j<4; j++)
+                lmax = std::max(lmax, (v[i]-v[j]).norm());
+
+        double area = 0; // the surface area of the tetrahedron
+        for (int i=0; i<4; i++)
+            for (int j = i+1; j<4; j++)
+                for (int k = j+1; k<4; k++)
+                    area += geo::unsigned_area(v[i], v[j], v[k]);
+
+        double inradius = 3*volume()/area;
+        return lmax / (std::sqrt(24.)*inradius);
+    }
+
     Triangle2 Triangle3::project() const {
         const vec3 &A = v[0];
         const vec3 &B = v[1];
