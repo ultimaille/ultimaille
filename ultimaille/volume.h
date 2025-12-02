@@ -369,7 +369,7 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline Volume::Vertex Volume::Corner::vertex() const {
-        return { m, m.vert(id / m.nverts_per_cell(), id % m.nverts_per_cell()) };
+        return { m, m.vert(cell(), id_in_cell()) };
     }
 
     inline Volume::Cell Volume::Corner::cell() const {
@@ -381,7 +381,7 @@ namespace UM {
     }
 
     inline Volume::Halfedge Volume::Corner::halfedge() const {
-        const int local_halfedge = reference_cells[m.cell_type].v2h[vertex() % m.nverts_per_cell()];
+        const int local_halfedge = reference_cells[m.cell_type].v2h[id_in_cell()];
         return { m,  cell() * m.nhalfedges_per_cell() + local_halfedge };
     }
 
