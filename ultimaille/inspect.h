@@ -49,7 +49,7 @@ namespace UM {
 
         double dihedral_angle() const {
             um_assert(h.opposite().active());
-            return std::acos(std::clamp(Triangle3(h.facet()).normal() * Triangle3(h.opposite().facet()).normal(), -1., 1.));
+            return geo::dihedral_angle(Triangle3(h.facet()).normal(), Triangle3(h.opposite().facet()).normal());
         }
 
         Surface::Halfedge next_on_border() const {

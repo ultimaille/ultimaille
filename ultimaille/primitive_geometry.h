@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <algorithm>
 #include "algebra/vec.h"
 #include "algebra/mat.h"
 #include "syntactic-sugar/assert.h"
@@ -13,6 +14,10 @@ namespace UM {
 
         inline double angle(const vec3 v0, const vec3 v1) {
             return atan2(cross(v0, v1).norm(), v0 * v1);
+        }
+
+        inline double dihedral_angle(const vec3 n0, const vec3 n1) {
+            return std::acos(std::clamp(n0 * n1, -1., 1.));
         }
 
         inline double unsigned_area(const vec3 &A, const vec3 &B, const vec3 &C) {
