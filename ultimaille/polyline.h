@@ -101,7 +101,6 @@ namespace UM {
             Vertex from() const;
             Vertex to() const;
 
-            [[deprecated]] inline Segment3 geom();
             operator Segment3() const;
 
             friend struct Vertex;
