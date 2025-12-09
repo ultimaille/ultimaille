@@ -835,6 +835,26 @@ TEST_CASE("Test polygon facet extraction geom", "[geom]") {
 
 }
 
+
+TEST_CASE("Test segment extraction", "[geom][segment][polyline]") {
+
+    PolyLine m;
+    m.points.create_points(2);
+    vec3 a{0,0,0};
+    vec3 b{1,1,1};
+    m.points[0] = a;
+    m.points[1] = b;
+    m.create_edges(1);
+    m.vert(0, 0) = 0;
+    m.vert(0, 1) = 1;
+
+    Segment3 s = m.edge(0);
+
+    CHECK(std::abs((s.a - a).norm2()) < 1e-4);
+    CHECK(std::abs((s.b - b).norm2()) < 1e-4);
+
+}
+
 TEST_CASE("Test segment 2", "[geom][segment]") {
     srand(SEED);
 

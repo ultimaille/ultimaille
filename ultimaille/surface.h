@@ -147,7 +147,6 @@ namespace UM {
             Vertex from() const;
             Vertex to() const;
 
-            [[deprecated]] inline Segment3 geom();
             inline operator vec3() const;
             inline operator Segment3() const;
 
@@ -165,7 +164,6 @@ namespace UM {
             int size() const;
             bool active() const;
 
-            template<typename T> [[deprecated]] T geom();
             operator Triangle3() const;
             operator Quad3() const;
             operator Poly3() const;
@@ -472,16 +470,12 @@ namespace UM {
         return id - m.corner(facet(), 0);
     }
 
-    inline Segment3 Surface::Halfedge::geom() {
-        return {from().pos(), to().pos()};
-    }
-
     inline Surface::Halfedge::operator vec3() const {
         return {(vec3&)to() - (vec3&)from()};
     }
 
     inline Surface::Halfedge::operator Segment3() const {
-        return {from().pos(), to().pos()};
+        return {from(), to()};
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -506,24 +500,6 @@ namespace UM {
 
     inline bool Surface::Facet::active() const {
         return id>=0 && (!m.connected() || m.conn->active[id]);
-    }
-
-    template<> inline Triangle3 Surface::Facet::geom() {
-        um_assert(size()==3);
-        return Triangle3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos());
-    }
-
-    template<> inline Quad3 Surface::Facet::geom() {
-        um_assert(size()==4);
-        return Quad3(vertex(0).pos(), vertex(1).pos(), vertex(2).pos(), vertex(3).pos());
-    }
-
-    template<> inline Poly3 Surface::Facet::geom() {
-        std::vector<vec3> pts(size());
-        for (int i = 0; i < size(); i++)
-            pts[i] = vertex(i).pos();
-
-        return Poly3{pts};
     }
 
     inline Surface::Facet::operator Triangle3() const {
