@@ -278,12 +278,8 @@ inline PolyLine::Vertex PolyLine::Edge::to() const {
     return { m, m.vert(id, 1) };
 }
 
-inline Segment3 PolyLine::Edge::geom() {
-    return Segment3(from().pos(), to().pos());
-}
-
 inline PolyLine::Edge::operator Segment3() const {
-    return {from().pos(), to().pos()};
+    return {from(), to()};
 }
 
 
