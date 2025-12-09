@@ -80,6 +80,8 @@ namespace UM {
             Vertex(Vertex&& v) = default;
             Vertex& operator=(Vertex& v);
 
+            inline operator vec3&();
+            inline operator vec3&() const;
             vec3  pos() const;
             vec3& pos();
             Edge edge();
@@ -216,6 +218,13 @@ inline PolyLine::Primitive::operator int& () { return id; }
 inline PolyLine::Vertex& PolyLine::Vertex::operator=(PolyLine::Vertex& v) {
     Primitive::operator=(v);
     return *this;
+}
+inline PolyLine::Vertex::operator vec3&() {
+	return { m.points[id] };
+}
+
+inline PolyLine::Vertex::operator vec3&() const {
+	return { m.points[id] };
 }
 
 inline vec3  PolyLine::Vertex::pos() const { return m.points[id]; }
