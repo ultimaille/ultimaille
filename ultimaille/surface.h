@@ -234,47 +234,6 @@ namespace UM {
         return facets.size();
     }
 
-    template <typename T> void Surface::delete_facets(const T &to_kill) {
-        assert(!connected());
-
-        constexpr bool invocable = std::is_invocable_r_v<bool, T, int>;
-        if constexpr (!invocable)
-            assert(to_kill.size()==(size_t)nfacets());
-
-        std::vector<int>  facets_old2new(nfacets(),  -1);
-        std::vector<int> corners_old2new(ncorners(), -1);
-
-        int new_nb_facets  = 0;
-        int new_nb_corners = 0;
-
-        for (auto f : iter_facets()) {
-            if constexpr (invocable) {
-                if (to_kill(f)) continue;
-            } else {
-                if (to_kill[f]) continue;
-            }
-
-            for (int lv=0; lv<facet_size(f); lv++) {
-                int corner = f.halfedge(lv);
-                corners_old2new[corner] = new_nb_corners;
-                facets[new_nb_corners] = vert(f, lv);
-                new_nb_corners++;
-            }
-            facets_old2new[f] = new_nb_facets++;
-
-        }
-
-        facets.resize(new_nb_corners);
-
-        std::erase_if(attr_facets,  [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
-        std::erase_if(attr_corners, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
-
-        for (auto &wp : attr_facets)  if (auto spt = wp.lock())
-            spt->compress(facets_old2new);
-        for (auto &wp : attr_corners) if (auto spt = wp.lock())
-            spt->compress(corners_old2new);
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Triangles::nfacets() const {
@@ -691,6 +650,48 @@ namespace UM {
         };
         return wrapper{ *this };
     }
+
+    template <typename T> void Surface::delete_facets(const T &to_kill) {
+        assert(!connected());
+
+        constexpr bool invocable = std::is_invocable_r_v<bool, T, int>;
+        if constexpr (!invocable)
+            assert(to_kill.size()==(size_t)nfacets());
+
+        std::vector<int>  facets_old2new(nfacets(),  -1);
+        std::vector<int> corners_old2new(ncorners(), -1);
+
+        int new_nb_facets  = 0;
+        int new_nb_corners = 0;
+
+        for (auto f : iter_facets()) {
+            if constexpr (invocable) {
+                if (to_kill(f)) continue;
+            } else {
+                if (to_kill[f]) continue;
+            }
+
+            for (int lv=0; lv<facet_size(f); lv++) {
+                int corner = f.halfedge(lv);
+                corners_old2new[corner] = new_nb_corners;
+                facets[new_nb_corners] = vert(f, lv);
+                new_nb_corners++;
+            }
+            facets_old2new[f] = new_nb_facets++;
+
+        }
+
+        facets.resize(new_nb_corners);
+
+        std::erase_if(attr_facets,  [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
+        std::erase_if(attr_corners, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
+
+        for (auto &wp : attr_facets)  if (auto spt = wp.lock())
+            spt->compress(facets_old2new);
+        for (auto &wp : attr_corners) if (auto spt = wp.lock())
+            spt->compress(corners_old2new);
+    }
+
 }
 
 #endif //__SURFACE_H__
