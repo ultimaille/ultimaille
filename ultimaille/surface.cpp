@@ -163,18 +163,18 @@ namespace UM {
         }
     }
 
-    void Surface::delete_facets(const std::vector<bool> &to_kill) {
-        assert(!connected());
-        assert(to_kill.size()==(size_t)nfacets());
-        compress_attrs(to_kill);  // TODO: if to_kill comes from an attribute, compressing the attribute compromises the code below
-        int new_nb_corners = 0;
-        for (int f=0; f<nfacets(); f++) {
-            if (to_kill[f]) continue;
-            for (int lv=0; lv<facet_size(f); lv++)
-                facets[new_nb_corners++] = vert(f, lv);
-        }
-        facets.resize(new_nb_corners);
-    }
+    // void Surface::delete_facets(const std::vector<bool> &to_kill) {
+    //     assert(!connected());
+    //     assert(to_kill.size()==(size_t)nfacets());
+    //     compress_attrs(to_kill);  // TODO: if to_kill comes from an attribute, compressing the attribute compromises the code below
+    //     int new_nb_corners = 0;
+    //     for (int f=0; f<nfacets(); f++) {
+    //         if (to_kill[f]) continue;
+    //         for (int lv=0; lv<facet_size(f); lv++)
+    //             facets[new_nb_corners++] = vert(f, lv);
+    //     }
+    //     facets.resize(new_nb_corners);
+    // }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 

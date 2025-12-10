@@ -134,5 +134,82 @@ TEST_CASE("Quads", "[SurfaceConnectivity]") {
     }
 
 //  write_geogram("bunny2.geogram", q, {{}, {}, {{"val", val.ptr}}});
+
 }
 
+
+void quad_grid(Quads& m, int n) {
+
+    int n1 = n + 1;
+    int n2 = n1 * n1;
+    m.points.create_points(n2);
+
+    for (int i = 0; i < n2; ++i) {
+        m.points[i] = (1. / double(n1)) * vec3(i / n1, i % n1, 0.);
+    }
+
+    m.create_facets(n * n);
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            int f = i + n * j;
+            m.vert(f, 0) = i + n1 * j;
+            m.vert(f, 1) = i + n1 * (j + 1);
+            m.vert(f, 2) = i + n1 * (j + 1) + 1;
+            m.vert(f, 3) = i + n1 * j + 1;
+        }
+    }
+
+}
+
+void test_surface(Surface& m) {
+    m.connect();
+
+    {
+        bool opposite_h_is_symmetric = true;
+        for (auto h : m.iter_halfedges())
+            if (h.opposite().active())
+                if (h != h.opposite().opposite()) opposite_h_is_symmetric = false;
+        CHECK(opposite_h_is_symmetric);
+    }
+
+    {
+        bool next_prev_is_symmetric = true;
+        for (auto h : m.iter_halfedges())
+            if (h.prev().next() != h) next_prev_is_symmetric = false;
+        for (auto h : m.iter_halfedges())
+            if (h.next().prev() != h) next_prev_is_symmetric = false;
+        CHECK(next_prev_is_symmetric);
+    }
+
+    {
+        bool coherent_number_adjacent_facets_and_halfedges = true;
+        PointAttribute<int> nb_neig_facets(m, 0);
+        PointAttribute<int> nb_neig_halfedges(m, 0);
+
+        for (auto f : m.iter_facets())
+            for (int lv = 0; lv < f.size(); lv++)
+                nb_neig_facets[f.vertex(lv)]++;
+
+        for (auto h : m.iter_halfedges())
+            nb_neig_halfedges[h.from()]++;
+
+        for (auto v : m.iter_vertices())
+            if (nb_neig_facets[v] != nb_neig_halfedges[v])
+                coherent_number_adjacent_facets_and_halfedges = false;
+
+        CHECK(coherent_number_adjacent_facets_and_halfedges);
+    }
+
+    // Must complete here...
+}
+
+TEST_CASE("Quad singular vertex 1", "[surface][connectivity]") {
+    Quads quad;
+    quad_grid(quad, 2);
+    std::vector<bool> to_kill = { true,true,true,false };
+    quad.delete_facets([&to_kill](auto f) { return to_kill[f]; });
+    quad.delete_isolated_vertices();
+
+    test_surface(quad);
+}
