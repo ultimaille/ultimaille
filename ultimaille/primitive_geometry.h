@@ -91,7 +91,6 @@ namespace UM {
         inline Segment2 xy() const;
         inline double bary_coords(const vec3 &P) const;
         inline vec3 nearest_point(const vec3 &P) const;
-        [[deprecated]] inline vec3 closest_point(const vec3 &P) const;
 
         inline vec3& operator[](int i) { return i == 0 ? a : b; }
         inline vec3 operator[](int i) const { return i == 0 ? a : b; }
@@ -248,13 +247,6 @@ namespace UM {
     }
 
     inline vec3 Segment3::nearest_point(const vec3 &P) const {
-        double c = bary_coords(P);
-        if (c < 0) return b;
-        if (c > 1) return a;
-        return c * a + (1. - c) * b;
-    }
-
-    inline vec3 Segment3::closest_point(const vec3 &P) const {
         double c = bary_coords(P);
         if (c < 0) return b;
         if (c > 1) return a;
