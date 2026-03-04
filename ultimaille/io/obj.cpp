@@ -61,46 +61,61 @@ namespace UM {
         std::string line;
         while (!in.eof()) {
             std::getline(in, line);
-            std::istringstream iss(line.c_str());
-            std::string type_token;
-            iss >> type_token;
+            const char *ptr = line.c_str();
 
-            if (type_token=="v") {
+            if (ptr[0]=='v' && ptr[1] == ' ') {
                 vec3 v;
-                for (int i=0;i<3;i++) iss >> v[i];
+                char* end;
+                v[0] = strtod(ptr + 2, &end);
+                v[1] = strtod(end, &end);
+                v[2] = strtod(end, &end);
                 m.points.data->push_back(v);
-            } else if (type_token=="vn") {
+            } else if (ptr[0]=='v' && ptr[1]=='n' && ptr[2]==' ') {
                 vec3 v;
-                for (int i=0;i<3;i++) iss >> v[i];
+                char* end;
+                v[0] = strtod(ptr + 3, &end);
+                v[1] = strtod(end, &end);
+                v[2] = strtod(end, &end);
                 VN.push_back(v);
-            } else if (type_token=="vt") {
+            } else if (ptr[0]=='v' && ptr[1]=='t' && ptr[2]==' ') {
                 vec2 v;
-                for (int i=0;i<2;i++) iss >> v[i];
+                char* end;
+                v[0] = strtod(ptr + 3, &end);
+                v[1] = strtod(end, &end);
                 VT.push_back(v);
-            } else if (type_token=="f") {
+            } else if (ptr[0]=='f' && ptr[1]==' ') {
                 std::vector<int> vid;
                 std::vector<int> vnid;
                 std::vector<int> vtid;
-                int tmp;
-                while (1) { // in wavefront obj all indices start at 1, not zero
-                    while (!iss.eof() && !std::isdigit(iss.peek())) iss.get(); // skip (esp. trailing) white space
-                    if (iss.eof()) break;
-                    iss >> tmp;
-                    vid.push_back(tmp-1);
-                    if (iss.peek() == '/') {
-                        iss.get();
-                        if (iss.peek() == '/') {
-                            iss.get();
-                            iss >> tmp;
-                            vnid.push_back(tmp-1);
-                        } else {
-                            iss >> tmp;
-                            vtid.push_back(tmp-1);
-                            if (iss.peek() == '/') {
-                                iss.get();
-                                iss >> tmp;
-                                vnid.push_back(tmp-1);
-                            }
+
+                ptr += 2; // Skip "f "
+
+                while (*ptr) {
+                    // Skip whitespace
+                    while (*ptr && std::isspace(*ptr)) ptr++;
+                    if (!*ptr) break;
+
+                    char* end;
+                    int v_idx = strtol(ptr, &end, 10) - 1;
+                    vid.push_back(v_idx);
+                    ptr = end;
+
+                    // Check for texture and normal indices
+                    if (*ptr == '/') {
+                        ptr++; // Skip '/'
+                        
+                        if (*ptr != '/') {
+                            // Has texture index (v/vt or v/vt/vn format)
+                            int vt_idx = strtol(ptr, &end, 10) - 1;
+                            vtid.push_back(vt_idx);
+                            ptr = end;
+                        }
+
+                        if (*ptr == '/') {
+                            ptr++; // Skip '/'
+                            int vn_idx = strtol(ptr, &end, 10) - 1;
+                            vnid.push_back(vn_idx);
+                            ptr = end;
                         }
                     }
                 }
