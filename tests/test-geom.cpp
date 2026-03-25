@@ -90,6 +90,15 @@ bool are_vec_equal(vec<n> a, vec<n> b, double eps) {
     return equal;
 }
 
+TEST_CASE("POD", "[vec]") {
+    REQUIRE( std::is_standard_layout_v<vec2> );
+    REQUIRE( std::is_standard_layout_v<vec3> );
+    REQUIRE( std::is_standard_layout_v<vec4> );
+    REQUIRE( std::is_aggregate_v<vec2> );
+    REQUIRE( std::is_aggregate_v<vec3> );
+//  REQUIRE( std::is_aggregate_v<vec4> );
+}
+
 TEST_CASE("aggregate", "[geom]") {
 
     CHECK(std::is_aggregate<Segment2>());
