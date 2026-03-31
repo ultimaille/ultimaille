@@ -87,6 +87,23 @@ f 4/4/1 3/3/1 1/1/1
 f 5/1/1 6/2/1 7/3/1 8/4/1
 )";
 
+// vt per corner, add some trailing spaces
+static const std::string obj5_str =
+R"(
+v  -1 0 -1
+v  1 0 -1
+v     1 0  1
+v -1 0  1
+
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+
+f 3/1 2/2 1/3
+f 4/1 3/3 1/4
+)";
+
 
 TEST_CASE("tex_coord per vertex IO test#1", "[OBJ]") {
     static const std::string filename[2] = { "ultimaille-test-tex_coord1-in.obj", "ultimaille-test-tex_coord1-out.obj" };
@@ -191,3 +208,72 @@ TEST_CASE("Polygons IO test", "[OBJ]") {
     }
 }
 
+TEST_CASE("Read/Write/Read Polygons IO test", "[OBJ]") {
+    static const std::string filename[2] = { "ultimaille-test-tex_coord5-in.obj", "ultimaille-test-tex_coord5-out.obj" };
+    std::ofstream ofs(filename[0], std::ofstream::out);
+    ofs << obj5_str;
+    ofs.close();
+
+    {
+        Polygons m;
+        SurfaceAttributes attr = read_by_extension(filename[0], m);
+        REQUIRE( m.nverts()==4 );
+        REQUIRE( m.nfacets()==2 );
+        write_by_extension(filename[1], m, attr);
+    }
+    {
+        Polygons m;
+        SurfaceAttributes attr = read_by_extension(filename[1], m);
+        CHECK( m.nverts()==4 );
+        CHECK( m.nfacets()==2 );
+    }
+}
+
+TEST_CASE("Performance Polygons IO test", "[OBJ]") {
+    static const std::string filename[2] = { "ultimaille-test-tex_coord6-in.obj", "ultimaille-test-tex_coord6-out.obj" };
+
+    for (int z = 3; z < 7; ++z) {
+
+        std::ofstream ofs(filename[0], std::ofstream::out);
+        const int nfacets = 1 * pow(10, z);
+        for (int i = 0; i < nfacets; ++i) {
+            ofs << "v -1 0 -1" << std::endl;
+            ofs << "v 1 0 -1" << std::endl;
+            ofs << "v 1 0  1" << std::endl;
+        }
+        for (int i = 0; i < nfacets; ++i) {
+            ofs << "f " << i * 3 + 1 << " " << i * 3 + 2 << " " << i * 3 + 3 << std::endl;
+        }
+        ofs.close();
+
+        {
+            Polygons m;
+            read_by_extension(filename[0], m);
+            REQUIRE( m.nverts()==nfacets*3);
+            REQUIRE( m.nfacets()==nfacets);
+            write_by_extension(filename[1], m, {});
+        }
+        INFO("ok");
+
+        const int ntry = 10;
+
+        {
+            auto start = std::chrono::system_clock::now();
+            for (int i = 0; i < ntry; ++i) {
+                Polygons m;
+                read_wavefront_obj_old(filename[1], m);
+            }
+            auto end = std::chrono::system_clock::now();
+            std::cout << "duration old: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << std::endl;
+        }
+        {
+            auto start = std::chrono::system_clock::now();
+            for (int i = 0; i < ntry; ++i) {
+                Polygons m;
+                read_wavefront_obj(filename[1], m);
+            }
+            auto end = std::chrono::system_clock::now();
+            std::cout << "duration new: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << std::endl;
+        }
+    }
+}
