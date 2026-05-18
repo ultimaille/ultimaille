@@ -9,7 +9,7 @@ jobs:
   linux-mac:
     strategy:
       matrix:
-        cfg: [{os: ubuntu-latest, cxx: g++@16},
+        cfg: [{os: ubuntu-latest, cxx: g++-16},
               {os: macos-latest, cxx: /opt/homebrew/opt/llvm@21/bin/clang++}] 
         config: [Release, Debug]
 
