@@ -27,6 +27,7 @@ jobs:
     - name: Install GCC 16 (Linux)
       if: matrix.cfg.os == 'ubuntu-latest'
       run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
         sudo apt-get update
         sudo apt-get install -y g++-16
 
