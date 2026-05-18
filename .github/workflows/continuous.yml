@@ -24,10 +24,17 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Install GCC 16 (Linux)
+      if: matrix.cfg.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++-16
+
     - name: Install Clang 21 (macOS)
       if: matrix.cfg.os == 'macos-latest'
       run: |
         brew install llvm@21
+
 
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DUM_UNIT_TESTS=ON
