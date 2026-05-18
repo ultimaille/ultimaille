@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <cstdint>
 
 #include "ultimaille/io/geogram.h"
 #include <zlib/zlib.h>
