@@ -14,14 +14,11 @@
 namespace UM {
 
     template<int n> struct vec {
-        //vec() = default;
-
         double & operator[](const int i)       { assert(i>=0 && i<n); return data[i]; }
         double   operator[](const int i) const { assert(i>=0 && i<n); return data[i]; }
         double norm2() const { return (*this)*(*this) ; }
         double norm()  const { return std::sqrt(norm2()); }
         double data[n];
-
     };
 
     template<int n> double operator*(const vec<n>& lhs, const vec<n>& rhs) {
@@ -122,6 +119,8 @@ namespace UM {
         void normalize() { *this = *this/norm(); }
         vec<3> normalized() const { return *this/norm(); }
         vec<2> xy() const { return {x, y}; }
+        vec<4> xyz0() const;
+        vec<4> xyz1() const;
 
         double x{}, y{}, z{};
     };
@@ -136,21 +135,28 @@ namespace UM {
         return {x, y, 1};
     }
 
-    /* TODO: unsure about performance of the operator[]
     template<> struct vec<4> {
         vec() = default;
-        vec(double X, double Y, double Z, double W) : x(X), y(Y), z(Z), w(W) {}
-        double& operator[](const int i)       { assert(i>=0 && i<4); return i==0 ? x : (1==i ? y : (2==i ? z : w)); }
-        double  operator[](const int i) const { assert(i>=0 && i<4); return i==0 ? x : (1==i ? y : (2==i ? z : w)); }
+        constexpr vec(vec<3> v, double w) : data{v.x,v.y,v.z,w} {}
+        constexpr vec(double x, double y, double z, double w) : data{x,y,z,w} {}
+        double & operator[](const int i)       { assert(i>=0 && i<4); return data[i]; }
+        double   operator[](const int i) const { assert(i>=0 && i<4); return data[i]; }
         double norm2() const { return (*this)*(*this) ; }
         double norm()  const { return std::sqrt(norm2()); }
-        vec & normalize() { *this = (*this)/norm(); return *this; }
-
-        double x{}, y{}, z{}, w{};
+        vec<3> xyz() const { return { data[0], data[1], data[2] }; }
+        double data[4] = {0,0,0,0};
     };
-    */
 
     /////////////////////////////////////////////////////////////////////////////////
+
+    inline vec<4> vec<3>::xyz0() const {
+        return {x, y, z, 0};
+    }
+
+    inline vec<4> vec<3>::xyz1() const {
+        return {x, y, z, 1};
+    }
+
     typedef vec<2> vec2;
     typedef vec<3> vec3;
     typedef vec<4> vec4;
