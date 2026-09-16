@@ -11,8 +11,8 @@ namespace UM {
     struct ContainerBase;
 
     struct PointSet {
-        PointSet() : data(new std::vector<vec3>()) {}
-        PointSet(std::shared_ptr<std::vector<vec3> > ext) : data(ext) {}
+        PointSet() : data(new std::vector<vec3>()), attr(new std::vector<std::weak_ptr<ContainerBase>>()) {}
+//      PointSet(std::shared_ptr<std::vector<vec3> > ext) : data(ext) {}
 
         PointSet(const PointSet &p)            = default; // We need to be able to share point sets, therefore we allow copying of the pointer
         PointSet(PointSet &&p)                 = default; // N.B. attr pointers are also copied, but this should not have 
@@ -41,8 +41,8 @@ namespace UM {
         void resize_attrs();
         void compress_attrs(const std::vector<int> &old2new);
 
-        std::shared_ptr<std::vector<vec3> > data;
-        std::vector<std::weak_ptr<ContainerBase> > attr = {};
+        std::shared_ptr<std::vector<vec3>> data = nullptr;
+        std::shared_ptr<std::vector<std::weak_ptr<ContainerBase>>> attr = nullptr;
     };
 }
 

@@ -71,9 +71,9 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
     PointAttribute<bool> to_kill(m, false);
     to_kill[5] = true;
 
-    REQUIRE( m.points.attr.size()==3 );
+    REQUIRE( m.points.attr->size()==3 );
     m.delete_vertices(to_kill.ptr->data);
-    REQUIRE( m.points.attr.size()==2 );
+    REQUIRE( m.points.attr->size()==2 );
 
 
     REQUIRE(vbool.ptr->data.size() == 7);

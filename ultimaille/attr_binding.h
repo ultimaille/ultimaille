@@ -21,7 +21,7 @@ namespace UM {
 
     template <typename T> PointAttribute<T>::PointAttribute(T def) : GenericAttribute<T>(def) {}
     template <typename T> PointAttribute<T>::PointAttribute(PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {
-        pts.attr.push_back(this->ptr);
+        pts.attr->push_back(this->ptr);
     }
     template <typename T> PointAttribute<T>::PointAttribute(const PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {}
 
@@ -33,19 +33,19 @@ namespace UM {
     template <typename T> PointAttribute<T>::PointAttribute(const Volume  &m, T def) : PointAttribute(m.points, def) {}
 
     template <typename T> PointAttribute<T>::PointAttribute(std::string name, PointSetAttributes &attributes, PointSet &ps, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, ps.size(), attributes.points, ps.attr);
+        bind_attribute(this, name, ps.size(), attributes.points, *ps.attr);
     }
 
     template <typename T> PointAttribute<T>::PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, seg.nverts(), attributes.points, seg.points.attr);
+        bind_attribute(this, name, seg.nverts(), attributes.points, *seg.points.attr);
     }
 
     template <typename T> PointAttribute<T>::PointAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr);
+        bind_attribute(this, name, m.nverts(), attributes.points, *m.points.attr);
     }
 
     template <typename T> PointAttribute<T>::PointAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr);
+        bind_attribute(this, name, m.nverts(), attributes.points, *m.points.attr);
     }
 
 

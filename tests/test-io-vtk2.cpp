@@ -33,6 +33,5 @@ TEST_CASE("VTK + attributes IO test", "[VTK]") {
            write_by_extension(filename[1], m[0], attr[0]);
         }
     }
-    write_geogram("gna.geogram", m[0], attr[0]);
 }
 

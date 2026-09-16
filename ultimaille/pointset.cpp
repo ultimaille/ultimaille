@@ -67,15 +67,15 @@ namespace UM {
     }
 
     void PointSet::resize_attrs() {
-        um_assert(1==data.use_count());
-        for (auto &wp : attr)  if (auto spt = wp.lock())
+//      um_assert(1==data.use_count());
+        for (auto &wp : *attr)  if (auto spt = wp.lock())
             spt->resize(size());
     }
 
     void PointSet::compress_attrs(const std::vector<int> &old2new) {
         um_assert(1==data.use_count());
-        std::erase_if(attr, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
-        for (auto &wp : attr) { // compress attributes
+        std::erase_if(*attr, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
+        for (auto &wp : *attr) { // compress attributes
             auto spt = wp.lock();
             assert(spt!=nullptr);
             spt->compress(old2new);

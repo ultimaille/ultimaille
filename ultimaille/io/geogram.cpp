@@ -646,7 +646,7 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : va.points      ) m.points.attr->emplace_back(a.ptr);
         for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
         for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
         for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
@@ -664,7 +664,7 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : va.points      ) m.points.attr->emplace_back(a.ptr);
         for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
         for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
         for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
@@ -682,7 +682,7 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : va.points      ) m.points.attr->emplace_back(a.ptr);
         for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
         for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
         for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
@@ -700,7 +700,7 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr.emplace_back(a.ptr);
+        for (auto &a : va.points      ) m.points.attr->emplace_back(a.ptr);
         for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
         for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
         for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
@@ -722,7 +722,7 @@ namespace UM {
         parse_int_array("GEO::Mesh::facets::facet_ptr", polygons.offset, attrib[2]);
         polygons.offset.push_back(polygons.facets.size());
 
-        for (auto &a : attrib[0]) polygons.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) polygons.points.attr->emplace_back(a.ptr);
         for (auto &a : attrib[2]) polygons.attr_facets.emplace_back(a.ptr);
         for (auto &a : attrib[3]) polygons.attr_corners.emplace_back(a.ptr);
 
@@ -776,7 +776,7 @@ namespace UM {
 
         parse_int_array("GEO::Mesh::edges::edge_vertex", pl.edges, attrib[1]);
 
-        for (auto &a : attrib[0]) pl.points.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) pl.points.attr->emplace_back(a.ptr);
         for (auto &a : attrib[1]) pl.attr.emplace_back(a.ptr);
 
         return {attrib[0], attrib[1]};
@@ -789,7 +789,7 @@ namespace UM {
         read_geogram(filename, attrib);
         parse_pointset_attributes(ps, attrib[0]);
 
-        for (auto &a : attrib[0]) ps.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) ps.attr->emplace_back(a.ptr);
 
         return {attrib[0]};
     }
