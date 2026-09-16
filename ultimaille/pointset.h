@@ -1,11 +1,8 @@
 #ifndef __POINTSET_H__
 #define __POINTSET_H__
 #include <vector>
-#include <tuple>
 #include <memory>
 #include "algebra/vec.h"
-#include "algebra/mat.h"
-#include "helpers/hboxes.h"
 
 namespace UM {
     struct ContainerBase;
@@ -14,9 +11,9 @@ namespace UM {
         PointSet() : data(new std::vector<vec3>()), attr(new std::vector<std::weak_ptr<ContainerBase>>()) {}
 //      PointSet(std::shared_ptr<std::vector<vec3> > ext) : data(ext) {}
 
-        PointSet(const PointSet &p)            = default; // We need to be able to share point sets, therefore we allow copying of the pointer
-        PointSet(PointSet &&p)                 = default; // N.B. attr pointers are also copied, but this should not have 
-        PointSet& operator=(const PointSet& p) = default; // serious consequences since use_count()==1 is asserted for modification
+        PointSet(const PointSet &p)            = default; // We need to be able to share point sets, therefore we allow copying of the pointers
+        PointSet(PointSet &&p)                 = default; // N.B. attrs pointer is also shared
+        PointSet& operator=(const PointSet& p) = default;
 
         int size() const { return data->size(); }
         vec3& operator[](const int i) { return data->at(i); }
@@ -27,7 +24,7 @@ namespace UM {
         int push_back(const vec3 &p);
 
         template <typename T> void delete_points(const T &to_kill);
-        template <typename T> void delete_points(const T &to_kill, std::vector<int> &old2new); // TODO: remove old2new
+        template <typename T> void delete_points(const T &to_kill, std::vector<int> &old2new);
         int create_points(const int n);
 
         using       iterator = std::vector<vec3>::iterator;

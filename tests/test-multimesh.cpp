@@ -41,6 +41,6 @@ TEST_CASE("Shared pointset editing", "[MultiMesh]") {
 
     REQUIRE( m1.points.size() == 5 );
 
-    write_by_extension("m1.geogram", m1, {{"a1", a1}, {"a2", a2}});
-    write_by_extension("m2.geogram", m2, {{"a1", a1}, {"a2", a2}});
+//  write_by_extension("m1.geogram", m1, {{"a1", a1}, {"a2", a2}});
+//  write_by_extension("m2.geogram", m2, {{"a1", a1}, {"a2", a2}});
 }
