@@ -28,6 +28,10 @@ TEST_CASE("Shared pointset editing", "[MultiMesh]") {
     for (int i=3; i<5; i++)
         a2[i] = i;
 
+    m1.points.push_back({-1,-1,-1});
+    m2.points.delete_points([&](int id) { return id==5; });
+    REQUIRE( m1.points.size() == 5 );
+
     write_by_extension("m1.geogram", m1, {{"a1", a1}, {"a2", a2}});
     write_by_extension("m2.geogram", m2, {{"a1", a1}, {"a2", a2}});
 }

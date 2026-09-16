@@ -26,8 +26,8 @@ namespace UM {
         void resize(const int n);
         int push_back(const vec3 &p);
 
-        void delete_points(const std::vector<bool> &to_kill);
-        void delete_points(const std::vector<bool> &to_kill, std::vector<int> &old2new); // TODO: remove old2new
+        template <typename T> void delete_points(const T &to_kill);
+        template <typename T> void delete_points(const T &to_kill, std::vector<int> &old2new); // TODO: remove old2new
         int create_points(const int n);
 
         using       iterator = std::vector<vec3>::iterator;
@@ -44,6 +44,33 @@ namespace UM {
         std::shared_ptr<std::vector<vec3>> data = nullptr;
         std::shared_ptr<std::vector<std::weak_ptr<ContainerBase>>> attr = nullptr;
     };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    template <typename T> void PointSet::delete_points(const T &to_kill, std::vector<int> &old2new) {
+        constexpr bool invocable = std::is_invocable_r_v<bool, T, int>;
+        if constexpr (!invocable)
+            assert(to_kill.size()==(size_t)size());
+        old2new = std::vector<int>(size(),  -1);
+
+        int new_nb_pts = 0;
+        for (int v=0; v<size(); v++) {
+            if constexpr (invocable) {
+                if (to_kill(v)) continue;
+            } else {
+                if (to_kill[v]) continue;
+            }
+            data->at(new_nb_pts) = data->at(v);
+            old2new[v] = new_nb_pts++;
+        }
+        data->resize(new_nb_pts);
+        compress_attrs(old2new);
+    }
+
+    template <typename T> void PointSet::delete_points(const T &to_kill) {
+        std::vector<int> old2new;
+        delete_points(to_kill, old2new);
+    }
 }
 
 #endif //__POINTSET_H__
