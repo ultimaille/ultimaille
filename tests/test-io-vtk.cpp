@@ -176,6 +176,22 @@ TEST_CASE("Poly IO test", "[Polygons]") {
     }
 }
 
+
+TEST_CASE("Tristan IO test", "[Polygons]") {
+    static const std::string filename[2] = { std::string(TEST_INPUT_DIR) +   "tristan-pacman.vtk", "tristan-out.vtk" };
+    Polygons m[2] = {};
+    for (int i : range(2)) {
+        read_by_extension(filename[i], m[i]);
+
+        REQUIRE( m[i].nverts()==634 );
+        REQUIRE( m[i].nfacets()==573 );
+        REQUIRE( m[i].facet_size(0)==4 );
+        REQUIRE( m[i].facet_size(572)==40 );
+        if (!i)
+            write_by_extension(filename[1], m[0]);
+    }
+}
+
 static const std::string tet_str =
 R"(# vtk DataFile Version 4.2
 vtk output

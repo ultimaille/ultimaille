@@ -67,7 +67,7 @@ namespace UM {
         return ((prefix.size() <= str.size()) && std::equal(prefix.begin(), prefix.end(), str.begin()));
     }
 
-    void read_vtk_format(const std::string& filename, const int celltype2keep, std::vector<vec3>& verts_, std::vector<int> &cells_, std::vector<NamedContainer> attr[2]) {
+    void read_vtk_format(const std::string& filename, const int celltype2keep, std::vector<vec3>& verts_, std::vector<int> &cells_, std::vector<NamedContainer> attr[2], std::vector<int>* cell_sizes_ = nullptr) {
         LineInput li(filename);
 
         if (!starts_with(li.line, "# vtk DataFile Version"))
@@ -159,10 +159,14 @@ namespace UM {
                 constexpr int pixel2quad[4] = { 0,1,3,2 };
                 constexpr int vtk2geo12[8] = { 0,1,3,2,4,5,7,6 };
                 constexpr int vtk2geo13[6] = { 0,2,1,3,5,4 };
+
+                if (cell_sizes_) cell_sizes_->push_back(cell_size);
+
                 for (int j=0; j<cell_size; j++) {
                     switch (cell_types[i]) {
                         case  3:
                         case  5:
+                        case  7:
                         case  9:
                         case 10:
                         case 11:
@@ -296,57 +300,21 @@ namespace UM {
             }
             out << std::endl << "CELL_TYPES " << m.nedges() << std::endl;
         } else if constexpr (std::is_base_of_v<Surface, M>) {
-            /*
-            if (auto ptr = dynamic_cast<Triangles *>(&m)) {
-            } else if (auto ptr = dynamic_cast<Quads *>(&m)) {
-            } else if (auto ptr = dynamic_cast<Polygons *>(&m)) {
-            }
-            */
-            int nqt = 0;
-            int cnt = 0;
+            int nfacets = 0;
+            int nverts = 0;
             for (int f=0; f<m.nfacets(); f++) {
-                if (m.facet_size(f)!=3 && m.facet_size(f)!=4) continue;
-                nqt++;
-                cnt += 3 + int(m.facet_size(f)==4);
+                nfacets++;
+                nverts += m.facet_size(f);
             }
-            out << std::endl << "CELLS " << nqt << " " << (nqt+cnt) << std::endl;
+            out << std::endl << "CELLS " << nfacets << " " << (nfacets + nverts) << std::endl;
             for (int f=0; f<m.nfacets(); f++) {
-                if (m.facet_size(f)!=3 && m.facet_size(f)!=4) continue;
                 out << m.facet_size(f) << " ";
                 for (int lv=0; lv<m.facet_size(f); lv++)
                     out << m.vert(f, lv) << " ";
                 out << std::endl;
             }
-            out << std::endl << "CELL_TYPES " << nqt << std::endl;
-        } /* else if constexpr (std::is_same_v<M, Triangles> || std::is_same_v<M, Quads>) {
-            out << std::endl << "CELLS " << m.nfacets() << " " << (m.nfacets()*(1+m.facet_size(0))) << std::endl;
-            for (int c=0; c<m.nfacets(); c++) {
-                out << m.facet_size(0) << " ";
-                for (int lv=0; lv<m.facet_size(0); lv++)
-                    out << m.vert(c, lv) << " ";
-                out << std::endl;
-            }
-            out << std::endl << "CELL_TYPES " << m.nfacets() << std::endl;
-        } else if constexpr (std::is_same_v<M, Polygons>) {
-            int nqt = 0;
-            int cnt = 0;
-            for (int f=0; f<m.nfacets(); f++) {
-                if (m.facet_size(f)!=3 && m.facet_size(f)!=4) continue;
-                nqt++;
-                cnt += 3+ int(m.facet_size(f)==4);
-            }
-            out << std::endl << "CELLS " << nqt << " " << (nqt+cnt) << std::endl;
-            for (int f=0; f<m.nfacets(); f++) {
-                if (m.facet_size(f)!=3 && m.facet_size(f)!=4) continue;
-                out << m.facet_size(f) << " ";
-                for (int lv=0; lv<m.facet_size(f); lv++)
-                    out << m.vert(f, lv) << " ";
-                out << std::endl;
-            }
-            out << std::endl << "CELL_TYPES " << nqt << std::endl;
-        }*/
-        else if constexpr (std::is_base_of_v<Volume, M>) {
-//        else if constexpr (std::is_same_v<M, Tetrahedra> || std::is_same_v<M, Hexahedra> || std::is_same_v<M, Wedges> || std::is_same_v<M, Pyramids>) {
+            out << std::endl << "CELL_TYPES " << nfacets << std::endl;
+        } else if constexpr (std::is_base_of_v<Volume, M>) {
             out << std::endl << "CELLS " << m.ncells() << " " << (m.ncells()*(1+m.nverts_per_cell())) << std::endl;
             for (int c=0; c<m.ncells(); c++) {
                 out << m.nverts_per_cell() << " ";
@@ -369,8 +337,10 @@ namespace UM {
             for (int f=0; f<m.nfacets(); f++) {
                 if (m.facet_size(f)==3)
                     out << "5 ";
-                if (m.facet_size(f)==4)
+                else if (m.facet_size(f)==4)
                     out << "9 ";
+                else
+                    out << "7 ";
             }
             out << std::endl;
         } else if constexpr (std::is_base_of_v<Volume, M>) {
@@ -390,40 +360,6 @@ namespace UM {
                 }
             out << std::endl;
         }
-
-        /* if constexpr (std::is_same_v<M, Triangles>) {
-            for (int c=0; c<m.nfacets(); c++)
-                out << "5 ";
-            out << std::endl;
-        } else if constexpr (std::is_same_v<M, Quads>) {
-            for (int c=0; c<m.nfacets(); c++)
-                out << "9 ";
-            out << std::endl;
-        } else if constexpr (std::is_same_v<M, Polygons>) {
-            for (int f=0; f<m.nfacets(); f++) {
-                if (m.facet_size(f)==3)
-                    out << "5 ";
-                if (m.facet_size(f)==4)
-                    out << "9 ";
-            }
-            out << std::endl;
-        } else if constexpr (std::is_same_v<M, Tetrahedra>) {
-            for (int c=0; c<m.ncells(); c++)
-                out << "10 ";
-            out << std::endl;
-        } else if constexpr (std::is_same_v<M, Hexahedra>) {
-             for (int c=0; c<m.ncells(); c++)
-                out << "11 ";
-            out << std::endl;
-        } else if constexpr (std::is_same_v<M, Wedges>) {
-             for (int c=0; c<m.ncells(); c++)
-                out << "13 ";
-            out << std::endl;
-        } else if constexpr (std::is_same_v<M, Pyramids>) {
-             for (int c=0; c<m.ncells(); c++)
-                out << "14 ";
-            out << std::endl;
-        }*/
 
         if constexpr (std::is_same_v<A, PointSetAttributes>) {
         } else if constexpr (std::is_same_v<A, PolyLineAttributes>) {
@@ -469,37 +405,6 @@ namespace UM {
     void write_vtk(const std::string filename, const Volume &m, const VolumeAttributes attr) {
         write_vtk_format(filename, m, attr);
     }
-
-
-/*
-    void write_vtk(const std::string filename, const Triangles& m, const SurfaceAttributes attr) {
-        write_vtk_format(filename, m, attr);
-    }
-
-    void write_vtk(const std::string filename, const Quads& m, const SurfaceAttributes attr) {
-        write_vtk_format(filename, m, attr);
-    }
-
-    void write_vtk(const std::string filename, const Polygons& m, const SurfaceAttributes attr) {
-        write_vtk_format(filename, m, attr);
-    }
-
-    void write_vtk(const std::string filename, const Tetrahedra& m, const VolumeAttributes attr) {
-        write_vtk_format(filename, m, attr);
-    }
-
-    void write_vtk(const std::string filename, const Hexahedra& m, const VolumeAttributes attr) {
-        write_vtk_format(filename, m, attr);
-    }
-
-    void write_vtk(const std::string filename, const Wedges& m, const VolumeAttributes attr) {
-        write_vtk_format(filename, m, attr);
-    }
-
-    void write_vtk(const std::string filename, const Pyramids& m, const VolumeAttributes attr) {
-        write_vtk_format(filename, m, attr);
-    }
-*/
 
     PointSetAttributes read_vtk(const std::string filename, PointSet   &m) {
         um_assert(!m.size());
@@ -589,15 +494,19 @@ namespace UM {
     SurfaceAttributes read_vtk(const std::string filename, Polygons& m) {
         um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
-        std::vector<int> tris, quads;
-        std::vector<NamedContainer> attrib1[2], attrib2[2];
+        std::vector<int> tris, quads, polys, poly_sizes;
+        std::vector<NamedContainer> attrib1[2], attrib2[2], attrib3[2];
         read_vtk_format(filename, 5, verts, tris,  attrib1);
         read_vtk_format(filename, 9, verts, quads, attrib2);
+        read_vtk_format(filename, 7, verts, polys, attrib3, &poly_sizes);
 
         um_assert(attrib2[1].size() == attrib1[1].size());
+        um_assert(attrib3[1].size() == attrib1[1].size());
 
-        FOR(i, attrib1[1].size())
+        FOR(i, attrib1[1].size()) {
             append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
+            append_attribute(attrib1[1][i].ptr, attrib3[1][i].ptr);
+        }
 
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -607,6 +516,13 @@ namespace UM {
 
         int off = m.create_facets(quads.size() / 4, 4);
         FOR(q, quads.size() / 4) FOR(qv, 4) m.vert(off + q, qv) = quads[4 * q + qv];
+
+        int poly_idx = 0;
+        for (int size : poly_sizes) {
+            int off = m.create_facets(1, size);
+            FOR(v, size)
+                m.vert(off, v) = polys[poly_idx++];
+        }
 
         for (auto &a : attrib1[0]) m.points.attr.emplace_back(a.ptr);
         for (auto &a : attrib1[1]) m.attr_facets.emplace_back(a.ptr);
