@@ -71,6 +71,67 @@ namespace UM {
 
 
 
+
+
+
+
+
+
+
+
+    template <typename T> PointSet::Attribute<T>::Attribute(T def) : GenericAttribute<T>(def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {
+        pts.attr->push_back(this->ptr);
+    }
+    template <typename T> PointSet::Attribute<T>::Attribute(const PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {}
+
+    template <typename T> PointSet::Attribute<T>::Attribute(PolyLine &m, T def) : PointSet::Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(Surface  &m, T def) : PointSet::Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(Volume   &m, T def) : PointSet::Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(const PolyLine &m, T def) : PointSet::Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(const Surface &m, T def) : PointSet::Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(const Volume  &m, T def) : PointSet::Attribute(m.points, def) {}
+
+    template <typename T> PointSet::Attribute<T>::Attribute(std::string name, PointSetAttributes &attributes, PointSet &ps, T def) : GenericAttribute<T>(def) {
+        bind_attribute(this, name, ps.size(), attributes.points, *ps.attr);
+    }
+
+    template <typename T> PointSet::Attribute<T>::Attribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def) : GenericAttribute<T>(def) {
+        bind_attribute(this, name, seg.nverts(), attributes.points, *seg.points.attr);
+    }
+
+    template <typename T> PointSet::Attribute<T>::Attribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def) : GenericAttribute<T>(def) {
+        bind_attribute(this, name, m.nverts(), attributes.points, *m.points.attr);
+    }
+
+    template <typename T> PointSet::Attribute<T>::Attribute(std::string name, VolumeAttributes &attributes, Volume &m, T def) : GenericAttribute<T>(def) {
+        bind_attribute(this, name, m.nverts(), attributes.points, *m.points.attr);
+    }
+
+
+    template <typename T> bool PointSet::Attribute<T>::bind(std::string name, PointSetAttributes &attributes, PointSet &ps) {
+        um_assert(!this->bound());
+        return bind_attribute(this, name, ps.size(), attributes.points, ps.attr);
+    }
+
+    template <typename T> bool PointSet::Attribute<T>::bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg) {
+        um_assert(!this->bound());
+        return bind_attribute(this, name, seg.nverts(), attributes.points, seg.points.attr);
+    }
+
+    template <typename T> bool PointSet::Attribute<T>::bind(std::string name, SurfaceAttributes &attributes, Surface &m) {
+        um_assert(!this->bound());
+        return bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr);
+    }
+
+    template <typename T> bool PointSet::Attribute<T>::bind(std::string name, VolumeAttributes &attributes, Volume &m) {
+        um_assert(!this->bound());
+        return bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr);
+    }
+
+
+
+
     template <typename T> EdgeAttribute<T>::EdgeAttribute(T def) : GenericAttribute<T>(def) {}
     template <typename T> EdgeAttribute<T>::EdgeAttribute(PolyLine &seg, T def) : GenericAttribute<T>(def, seg.nedges()) {
         seg.attr.push_back(this->ptr);
