@@ -132,6 +132,7 @@ namespace UM {
 
 
 
+/*
 
     template <typename T> EdgeAttribute<T>::EdgeAttribute(T def) : GenericAttribute<T>(def) {}
     template <typename T> EdgeAttribute<T>::EdgeAttribute(PolyLine &seg, T def) : GenericAttribute<T>(def, seg.nedges()) {
@@ -146,6 +147,25 @@ namespace UM {
     }
 
     template <typename T> bool EdgeAttribute<T>::bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg) {
+        um_assert(!this->bound());
+        return bind_attribute(this, name, seg.nedges(), attributes.edges, seg.attr);
+    }
+
+*/
+
+    template <typename T> PolyLine::Attribute<T>::Attribute(T def) : GenericAttribute<T>(def) {}
+    template <typename T> PolyLine::Attribute<T>::Attribute(PolyLine &seg, T def) : GenericAttribute<T>(def, seg.nedges()) {
+        seg.attr.push_back(this->ptr);
+    }
+
+    template <typename T> PolyLine::Attribute<T>::Attribute(const PolyLine &seg, T def) : GenericAttribute<T>(def, seg.nedges()) {
+    }
+
+    template <typename T> PolyLine::Attribute<T>::Attribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def) : GenericAttribute<T>(def) {
+        bind_attribute(this, name, seg.nedges(), attributes.edges, seg.attr);
+    }
+
+    template <typename T> bool PolyLine::Attribute<T>::bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg) {
         um_assert(!this->bound());
         return bind_attribute(this, name, seg.nedges(), attributes.edges, seg.attr);
     }

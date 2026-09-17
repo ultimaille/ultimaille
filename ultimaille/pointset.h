@@ -6,21 +6,17 @@
 #include "algebra/vec.h"
 
 namespace UM {
+    struct PolyLine;
+    struct Surface;
+    struct Volume;
 
-
-struct PolyLine;
-struct Surface;
-struct Volume;
-
-struct PointSetAttributes;
-struct PolyLineAttributes;
-struct SurfaceAttributes; 
-struct VolumeAttributes;
+    struct PointSetAttributes;
+    struct PolyLineAttributes;
+    struct SurfaceAttributes;
+    struct VolumeAttributes;
 
     struct PointSet {
         PointSet() : data(new std::vector<vec3>()), attr(new std::vector<std::weak_ptr<ContainerBase>>()) {}
-//      PointSet(std::shared_ptr<std::vector<vec3> > ext) : data(ext) {}
-
         PointSet(const PointSet &p)            = default; // We need to be able to share point sets, therefore we allow copying of the pointers
         PointSet(PointSet &&p)                 = default; // N.B. attrs pointer is also shared
         PointSet& operator=(const PointSet& p) = default;
@@ -44,7 +40,6 @@ struct VolumeAttributes;
         iterator end()   { return data->end();   }
         const_iterator begin() const { return data->begin(); }
         const_iterator end()   const { return data->end();   }
-
 
         template <typename T> struct Attribute : GenericAttribute<T> {
             Attribute(T def = T());

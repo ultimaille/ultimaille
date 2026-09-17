@@ -5,13 +5,12 @@
 #include <cassert>
 #include "syntactic-sugar/assert.h"
 #include "attribute_base.h"
-#include "pointset.h"
+//#include "pointset.h"
 //#include "polyline.h"
 //#include "surface.h"
 //#include "volume.h"
 
 namespace UM {
-//    struct PointSet;
     struct PolyLine;
     struct Surface;
     struct Volume;
@@ -47,6 +46,7 @@ namespace UM {
     };
 */
 
+/*
     template <typename T> struct EdgeAttribute : GenericAttribute<T> {
         EdgeAttribute(T def = T());
         EdgeAttribute(PolyLine &seg, T def = T());
@@ -55,6 +55,7 @@ namespace UM {
         bool bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg); // bind on the attribute if found in the collection (return value true), otherwise pushes a new attribute in the collection
         virtual AttributeBase::TYPE kind() const { return AttributeBase::EDGES; }
     };
+*/
 
     template <typename T> struct FacetAttribute : GenericAttribute<T> {
         FacetAttribute(T def = T());

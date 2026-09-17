@@ -10,8 +10,6 @@
 #include "primitive_geometry.h"
 
 namespace UM {
-    struct ContainerBase;
-
     struct PolyLine {
         PointSet points{};
         std::vector<int> edges{};
@@ -36,12 +34,21 @@ namespace UM {
         PolyLine(PolyLine&& m) = delete;
         PolyLine& operator=(const PolyLine& m) = delete;
 
+        template <typename T> struct Attribute : GenericAttribute<T> {
+            Attribute(T def = T());
+            Attribute(PolyLine &seg, T def = T());
+            Attribute(const PolyLine &seg, T def = T());
+            Attribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def = T());
+            bool bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg); // bind on the attribute if found in the collection (return value true), otherwise pushes a new attribute in the collection
+            virtual AttributeBase::TYPE kind() const { return AttributeBase::EDGES; }
+        };
+
         struct Edge;
         struct Connectivity {
             PolyLine& m;
-            PointAttribute<int>     v2e;    // vertex to edge
-            EdgeAttribute<int>      e2e;    // edge to next edge sharing the same origin (unordered)
-            EdgeAttribute<bool>     active; // edges to keep after compacting
+            PointSet::Attribute<int>  v2e;    // vertex to edge
+            PolyLine::Attribute<int>  e2e;    // edge to next edge sharing the same origin (unordered)
+            PolyLine::Attribute<bool> active; // edges to keep after compacting
 
             Connectivity(PolyLine& m);
             void init();
@@ -71,7 +78,6 @@ namespace UM {
             PolyLine& m;
             int id;
         };
-
 
         struct Vertex : Primitive {
             using Primitive::Primitive;
@@ -113,7 +119,7 @@ namespace UM {
         auto iter_edges();
     };
 
-
+    template <typename T> using EdgeAttribute = PolyLine::Attribute<T>;
 
 /*   _ _                 _
     (_) |               | |
