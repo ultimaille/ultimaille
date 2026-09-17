@@ -174,8 +174,6 @@ namespace UM {
         um_assert(!this->bound());
         return bind_attribute(this, name, m.ncorners(), attributes.cell_corners, m.attr_corners);
     }
-
-
 }
 
 #endif //__ATTR_BINDING_H__

@@ -5,10 +5,6 @@
 #include <cassert>
 #include "syntactic-sugar/assert.h"
 #include "attribute_base.h"
-//#include "pointset.h"
-//#include "polyline.h"
-//#include "surface.h"
-//#include "volume.h"
 
 namespace UM {
     struct PolyLine;
@@ -20,91 +16,6 @@ namespace UM {
     struct PolyLineAttributes;
     struct VolumeAttributes;
 
-/*
-    template <typename T> struct PointAttribute : GenericAttribute<T> {
-        PointAttribute(T def = T());
-        PointAttribute(PointSet &pts, T def = T());
-        PointAttribute(PolyLine &m,   T def = T());
-        PointAttribute(Surface &m,    T def = T());
-        PointAttribute(Volume  &m,    T def = T());
-        PointAttribute(const PointSet &pts, T def = T());
-        PointAttribute(const PolyLine &m,   T def = T());
-        PointAttribute(const Surface &m,    T def = T());
-        PointAttribute(const Volume  &m,    T def = T());
-
-        PointAttribute(std::string name, PointSetAttributes &attributes, PointSet &ps,  T def = T());
-        PointAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def = T());
-        PointAttribute(std::string name, SurfaceAttributes  &attributes, Surface  &m,   T def = T());
-        PointAttribute(std::string name, VolumeAttributes   &attributes, Volume   &m,   T def = T());
-
-        bool bind(std::string name, PointSetAttributes &attributes, PointSet &ps  );
-        bool bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg );
-        bool bind(std::string name, SurfaceAttributes  &attributes, Surface  &m   );
-        bool bind(std::string name, VolumeAttributes   &attributes, Volume   &m   );
-
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::POINTS; }
-    };
-*/
-
-/*
-    template <typename T> struct EdgeAttribute : GenericAttribute<T> {
-        EdgeAttribute(T def = T());
-        EdgeAttribute(PolyLine &seg, T def = T());
-        EdgeAttribute(const PolyLine &seg, T def = T());
-        EdgeAttribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def = T());
-        bool bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg); // bind on the attribute if found in the collection (return value true), otherwise pushes a new attribute in the collection
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::EDGES; }
-    };
-*/
-/*
-
-    template <typename T> struct FacetAttribute : GenericAttribute<T> {
-        FacetAttribute(T def = T());
-        FacetAttribute(Surface &m, T def = T());
-        FacetAttribute(const Surface &m, T def = T());
-        FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
-        bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::FACETS; }
-    };
-
-    template <typename T> struct CornerAttribute : GenericAttribute<T> {
-        CornerAttribute(T def = T());
-        CornerAttribute(Surface &m, T def = T());
-        CornerAttribute(const Surface &m, T def = T());
-        CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
-        bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::CORNERS; }
-    };
-*/
-
-/*
-    template <typename T> struct CellAttribute : GenericAttribute<T> {
-        CellAttribute(T def = T());
-        CellAttribute(Volume &m, T def = T());
-        CellAttribute(const Volume &m, T def = T());
-        CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def = T());
-        bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLS; }
-    };
-
-    template <typename T> struct CellFacetAttribute : GenericAttribute<T> {
-        CellFacetAttribute(T def = T());
-        CellFacetAttribute(Volume &m, T def = T());
-        CellFacetAttribute(const Volume &m, T def = T());
-        CellFacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def = T());
-        bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLFACETS; }
-    };
-
-    template <typename T> struct CellCornerAttribute : GenericAttribute<T> {
-        CellCornerAttribute(T def = T());
-        CellCornerAttribute(Volume &m, T def = T());
-        CellCornerAttribute(const Volume &m, T def = T());
-        CellCornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def = T());
-        bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLCORNERS; }
-    };
-*/
     struct NamedContainer {
         std::string name;
         std::shared_ptr<ContainerBase> ptr;
@@ -209,7 +120,6 @@ namespace UM {
 
         std::vector<NamedContainer> points = {}, cells = {}, cell_facets = {}, cell_corners = {};
     };
-
 }
 
 #endif //__ATTRIBUTES_H__
