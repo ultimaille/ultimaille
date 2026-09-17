@@ -19,6 +19,7 @@ namespace UM {
         return false;
     }
 
+/*
     template <typename T> PointAttribute<T>::PointAttribute(T def) : GenericAttribute<T>(def) {}
     template <typename T> PointAttribute<T>::PointAttribute(PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {
         pts.attr->push_back(this->ptr);
@@ -69,7 +70,7 @@ namespace UM {
         return bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr);
     }
 
-
+*/
 
 
 
@@ -85,12 +86,12 @@ namespace UM {
     }
     template <typename T> PointSet::Attribute<T>::Attribute(const PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {}
 
-    template <typename T> PointSet::Attribute<T>::Attribute(PolyLine &m, T def) : PointSet::Attribute(m.points, def) {}
-    template <typename T> PointSet::Attribute<T>::Attribute(Surface  &m, T def) : PointSet::Attribute(m.points, def) {}
-    template <typename T> PointSet::Attribute<T>::Attribute(Volume   &m, T def) : PointSet::Attribute(m.points, def) {}
-    template <typename T> PointSet::Attribute<T>::Attribute(const PolyLine &m, T def) : PointSet::Attribute(m.points, def) {}
-    template <typename T> PointSet::Attribute<T>::Attribute(const Surface &m, T def) : PointSet::Attribute(m.points, def) {}
-    template <typename T> PointSet::Attribute<T>::Attribute(const Volume  &m, T def) : PointSet::Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(PolyLine &m, T def) : Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(Surface  &m, T def) : Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(Volume   &m, T def) : Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(const PolyLine &m, T def) : Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(const Surface &m, T def) : Attribute(m.points, def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(const Volume  &m, T def) : Attribute(m.points, def) {}
 
     template <typename T> PointSet::Attribute<T>::Attribute(std::string name, PointSetAttributes &attributes, PointSet &ps, T def) : GenericAttribute<T>(def) {
         bind_attribute(this, name, ps.size(), attributes.points, *ps.attr);

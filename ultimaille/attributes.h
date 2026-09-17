@@ -21,6 +21,7 @@ namespace UM {
     struct PolyLineAttributes;
     struct VolumeAttributes;
 
+/*
     template <typename T> struct PointAttribute : GenericAttribute<T> {
         PointAttribute(T def = T());
         PointAttribute(PointSet &pts, T def = T());
@@ -44,6 +45,7 @@ namespace UM {
 
         virtual AttributeBase::TYPE kind() const { return AttributeBase::POINTS; }
     };
+*/
 
     template <typename T> struct EdgeAttribute : GenericAttribute<T> {
         EdgeAttribute(T def = T());

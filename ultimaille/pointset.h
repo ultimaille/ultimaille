@@ -77,6 +77,8 @@ struct VolumeAttributes;
         std::shared_ptr<std::vector<std::weak_ptr<ContainerBase>>> attr = nullptr;
     };
 
+    template <typename T> using PointAttribute = PointSet::Attribute<T>;
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     template <typename T> void PointSet::delete_points(const T &to_kill, std::vector<int> &old2new) {
