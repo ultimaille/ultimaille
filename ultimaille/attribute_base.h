@@ -1,8 +1,8 @@
 #ifndef __ATTRIBUTE_BASE_H__
 #define __ATTRIBUTE_BASE_H__
+#include <map>
 #include <vector>
 #include <memory>
-#include <cassert>
 #include "syntactic-sugar/assert.h"
 
 namespace UM {
@@ -73,6 +73,8 @@ namespace UM {
         std::shared_ptr<AttributeContainer<T> > ptr;
     };
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     template <> struct GenericAttribute<bool> : AttributeBase {
         GenericAttribute(bool default_value) : default_value(default_value), ptr(nullptr) {}
         GenericAttribute(bool default_value, int size) : default_value(default_value), ptr(new AttributeContainer<bool>(size, default_value)) {}
@@ -134,6 +136,20 @@ namespace UM {
         bool default_value;
         std::shared_ptr<AttributeContainer<bool> > ptr;
     };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    struct NamedAttribute {
+        std::string name;
+        AttributeBase& attribute;
+    };
+
+    using AttributeMap = std::map<std::string, std::shared_ptr<ContainerBase>>;
+
+    inline void add_attribute(AttributeMap& map, const NamedAttribute& attribute, AttributeBase::TYPE expected) {
+        um_assert(attribute.attribute.kind() == expected);
+        map[attribute.name] = attribute.attribute.get_ptr();
+    }
 }
 
 #endif //__ATTRIBUTE_BASE_H__

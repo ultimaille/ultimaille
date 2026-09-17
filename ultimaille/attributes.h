@@ -1,10 +1,5 @@
 #ifndef __ATTRIBUTES_H__
 #define __ATTRIBUTES_H__
-#include <vector>
-#include <map>
-#include <utility>
-#include <memory>
-#include <cassert>
 #include "syntactic-sugar/assert.h"
 #include "attribute_base.h"
 
@@ -17,18 +12,6 @@ namespace UM {
     struct PointSetAttributes;
     struct PolyLineAttributes;
     struct VolumeAttributes;
-
-    struct NamedAttribute {
-        std::string name;
-        AttributeBase& attribute;
-    };
-
-    using AttributeMap = std::map<std::string, std::shared_ptr<ContainerBase>>;
-
-    inline void add_attribute(AttributeMap& map, const NamedAttribute& attribute, AttributeBase::TYPE expected) {
-        um_assert(attribute.attribute.kind() == expected);
-        map[attribute.name] = attribute.attribute.get_ptr();
-    }
 
     struct PointSetAttributes {
         PointSetAttributes() = default;
