@@ -10,6 +10,9 @@ namespace UM {
         virtual ~ContainerBase() = default;
         virtual void resize(const int n) = 0;
         virtual void compress(const std::vector<int> &old2new) = 0;
+        virtual void append_zeros(size_t n) = 0; // for merging attributes, at least in vtk.cpp
+        virtual void prepend_zeros(size_t n) = 0;
+        virtual void append(const ContainerBase& other) = 0;
     };
 
     struct AttributeBase {
@@ -33,6 +36,21 @@ namespace UM {
             }
             resize(cnt);
         }
+
+        void append_zeros(std::size_t n) override {
+            data.insert(data.end(), n, T{});
+        }
+
+        void prepend_zeros(std::size_t n) override {
+            data.insert(data.begin(), n, T{});
+        }
+
+        void append(const ContainerBase& other) override {
+            auto ptr = dynamic_cast<const AttributeContainer<T>*>(&other);
+            um_assert(ptr != nullptr);
+            data.insert(data.end(), ptr->data.begin(), ptr->data.end());
+        }
+
         std::vector<T> data;
         T default_value;
     };

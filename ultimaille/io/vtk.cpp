@@ -3,8 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
-#include <iterator>
-#include <array>
+#include <numeric>
 #include "ultimaille/io/vtk.h"
 
 #define FOR(i, n) for(int i = 0; i < static_cast<int>(n); i++)
@@ -67,7 +66,7 @@ namespace UM {
         return ((prefix.size() <= str.size()) && std::equal(prefix.begin(), prefix.end(), str.begin()));
     }
 
-    void read_vtk_format(const std::string& filename, const int celltype2keep, std::vector<vec3>& verts_, std::vector<int> &cells_, std::vector<NamedContainer> attr[2], std::vector<int>* cell_sizes_ = nullptr) {
+    void read_vtk_format(const std::string& filename, const int celltype2keep, std::vector<vec3>& verts_, std::vector<int> &cells_, AttributeMap attr[2], std::vector<int>* cell_sizes_ = nullptr) {
         LineInput li(filename);
 
         if (!starts_with(li.line, "# vtk DataFile Version"))
@@ -235,12 +234,12 @@ namespace UM {
                     std::cerr << "Warning: unsupported attribute data type" << std::endl;
                     continue;
                 }
-                attr[place].emplace_back(name, P);
+                attr[place][name] = P;
             }
         }
     }
 
-    void drop_attributes(const std::vector<NamedContainer> &nc, std::ofstream &out) {
+    void drop_attributes(const AttributeMap &nc, std::ofstream &out) {
         for (const auto &[name, genptr] : nc) {
 //          std::cerr << "name " << name << std::endl;
             if (auto p1 = std::dynamic_pointer_cast<AttributeContainer<int> >(genptr); p1.get()!=nullptr) {
@@ -410,11 +409,11 @@ namespace UM {
         um_assert(!m.size());
         std::vector<vec3> verts;
         std::vector<int> cells;
-        std::vector<NamedContainer> attrib[2];
+        AttributeMap attrib[2];
         read_vtk_format(filename, -1, verts, cells, attrib);
         m.create_points(verts.size());
         FOR(v, verts.size()) m[v] = verts[v];
-        for (auto &a : attrib[0]) m.attr->emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.attr->emplace_back(a.second);
         return { attrib[0] };
      }
 
@@ -422,14 +421,14 @@ namespace UM {
         um_assert(!m.nverts() && !m.nedges());
         std::vector<vec3> verts;
         std::vector<int> edges;
-        std::vector<NamedContainer> attrib[2];
+        AttributeMap attrib[2];
         read_vtk_format(filename, 3, verts, edges, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_edges(edges.size()/2);
         FOR(e, m.nedges()) FOR(ev, 2) m.vert(e, ev) = edges[2 * e + ev];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[1]) m.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[1]) m.attr.emplace_back(a.second);
         return { attrib[0], attrib[1] };
     }
 
@@ -437,46 +436,51 @@ namespace UM {
         um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> tris;
-        std::vector<NamedContainer> attrib[2];
+        AttributeMap attrib[2];
         read_vtk_format(filename, 5, verts, tris, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(tris.size() / 3);
         FOR(t, m.nfacets()) FOR(tv, 3) m.vert(t, tv) = tris[3 * t + tv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[1]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[1]) m.attr_facets.emplace_back(a.second);
         return { attrib[0], attrib[1], {} };
     }
 
-    void append_attribute(std::shared_ptr<ContainerBase> a, std::shared_ptr<ContainerBase> b) {
-        if (auto A1 = std::dynamic_pointer_cast<AttributeContainer<int> >(a); A1.get()!=nullptr) {
-            auto B = std::dynamic_pointer_cast<AttributeContainer<int> >(b);
-            um_assert(B.get()!=nullptr);
-            A1->data.insert(std::end(A1->data), std::begin(B->data), std::end(B->data));
-        } else if (auto A2 = std::dynamic_pointer_cast<AttributeContainer<double> >(a); A2.get()!=nullptr) {
-            auto B = std::dynamic_pointer_cast<AttributeContainer<double> >(b);
-            um_assert(B.get()!=nullptr);
-            A2->data.insert(std::end(A2->data), std::begin(B->data), std::end(B->data));
-        } else if (auto A3 = std::dynamic_pointer_cast<AttributeContainer<bool> >(a); A3.get()!=nullptr) {
-            auto B = std::dynamic_pointer_cast<AttributeContainer<bool> >(b);
-            um_assert(B.get()!=nullptr);
-            A3->data.insert(std::end(A3->data), std::begin(B->data), std::end(B->data));
-        } else {
-            std::cerr << "Warning: unsupported attribute type" << std::endl;
+    void merge_attributes(AttributeMap& first,
+            const AttributeMap& second,
+            std::size_t first_size,
+            std::size_t second_size) {
+        for (auto& [name, first_attribute] : first) { // attributes already present in first.
+            auto it = second.find(name);
+            if (it == second.end()) { // only in first
+                first_attribute->append_zeros(second_size); // postpend zeros
+            } else { // in both
+                first_attribute->append(*it->second);
+            }
+        }
+
+        // attributes only present in second.
+        for (const auto& [name, second_attribute] : second) {
+            if (first.contains(name))
+                continue;
+            // add the same container to first, then prepend zeros.
+            first.emplace(name, second_attribute);
+            first.at(name)->prepend_zeros(first_size);
         }
     }
+
 
     SurfaceAttributes read_vtk(const std::string filename, Quads& m) {
         um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> quads, pixel;
-        std::vector<NamedContainer> attrib1[2], attrib2[2];
+        AttributeMap attrib1[2], attrib2[2];
         read_vtk_format(filename, 9, verts, quads, attrib1);
         read_vtk_format(filename, 8, verts, quads, attrib2);
-        um_assert(attrib2[1].size() == attrib1[1].size());
-
-        FOR(i, attrib1[1].size())
-            append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
+        int nquads = quads.size() / 4;
+        int npixels = pixel.size() / 4;
+        merge_attributes(attrib1[1], attrib2[1], nquads, npixels);
 
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -486,8 +490,8 @@ namespace UM {
 
         int off = m.create_facets(pixel.size() / 4);
         FOR(q, pixel.size()/4) FOR(qv, 4) m.vert(off+q, qv) = pixel[4 * q + qv];
-        for (auto &a : attrib1[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib1[1]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib1[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib1[1]) m.attr_facets.emplace_back(a.second);
         return { attrib1[0], attrib1[1], {} };
     }
 
@@ -495,18 +499,16 @@ namespace UM {
         um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> tris, quads, polys, poly_sizes;
-        std::vector<NamedContainer> attrib1[2], attrib2[2], attrib3[2];
+        AttributeMap attrib1[2], attrib2[2], attrib3[2];
         read_vtk_format(filename, 5, verts, tris,  attrib1);
         read_vtk_format(filename, 9, verts, quads, attrib2);
         read_vtk_format(filename, 7, verts, polys, attrib3, &poly_sizes);
 
-        um_assert(attrib2[1].size() == attrib1[1].size());
-        um_assert(attrib3[1].size() == attrib1[1].size());
-
-        FOR(i, attrib1[1].size()) {
-            append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
-            append_attribute(attrib1[1][i].ptr, attrib3[1][i].ptr);
-        }
+        int ntris   = tris.size()  / 3;
+        int nquads = quads.size() / 4;
+        int npolys  = std::accumulate(poly_sizes.begin(), poly_sizes.end(), 0);
+        merge_attributes(attrib1[1], attrib2[1], ntris, nquads);
+        merge_attributes(attrib1[1], attrib3[1], ntris+nquads, npolys);
 
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -524,8 +526,8 @@ namespace UM {
                 m.vert(off, v) = polys[poly_idx++];
         }
 
-        for (auto &a : attrib1[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib1[1]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib1[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib1[1]) m.attr_facets.emplace_back(a.second);
         return { attrib1[0], attrib1[1], {} };
     }
 
@@ -533,14 +535,14 @@ namespace UM {
         um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> tetra;
-        std::vector<NamedContainer> attrib[2];
+        AttributeMap attrib[2];
         read_vtk_format(filename, 10, verts, tetra, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_cells(tetra.size() / 4);
         FOR(t, m.ncells()) FOR(tv, 4) m.vert(t, tv) = tetra[4 * t + tv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.second);
         return { attrib[0], attrib[1], {}, {} };
     }
 
@@ -548,14 +550,11 @@ namespace UM {
         um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> hexa, voxel;
-        std::vector<NamedContainer> attrib1[2], attrib2[2];
+        AttributeMap attrib1[2], attrib2[2];
         read_vtk_format(filename, 11, verts, hexa,  attrib1);
         read_vtk_format(filename, 12, verts, voxel, attrib2);
 
-        um_assert(attrib2[1].size() == attrib1[1].size());
-
-        FOR(i, attrib1[1].size())
-            append_attribute(attrib1[1][i].ptr, attrib2[1][i].ptr);
+        merge_attributes(attrib1[1], attrib2[1], hexa.size()/8, voxel.size()/8);
 
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -564,8 +563,8 @@ namespace UM {
         FOR(h, m.ncells()) FOR(hv, 8) m.vert(h, hv) = hexa[8 * h + hv];
         int off = m.create_cells(voxel.size() / 8);
         FOR(h, voxel.size()/8) FOR(hv, 8) m.vert(off+h, hv) = voxel[8 * h + hv];
-        for (auto &a : attrib1[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib1[1]) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : attrib1[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib1[1]) m.attr_cells.emplace_back(a.second);
         return { attrib1[0], attrib1[1], {}, {} };
     }
 
@@ -573,15 +572,15 @@ namespace UM {
         um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> wedges;
-        std::vector<NamedContainer> attrib[2];
+        AttributeMap attrib[2];
         read_vtk_format(filename, 13, verts, wedges, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
         m.create_cells(wedges.size() / 6);
         FOR(h, m.ncells()) FOR(hv, 6) m.vert(h, hv) = wedges[6 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.second);
         return { attrib[0], attrib[1], {}, {} };
     }
 
@@ -589,15 +588,15 @@ namespace UM {
         um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> pyramids;
-        std::vector<NamedContainer> attrib[2];
+        AttributeMap attrib[2];
         read_vtk_format(filename, 14, verts, pyramids, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
         m.create_cells(pyramids.size() / 5);
         FOR(h, m.ncells()) FOR(hv, 5) m.vert(h, hv) = pyramids[5 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[1]) m.attr_cells.emplace_back(a.second);
         return { attrib[0], attrib[1], {}, {} };
     }
 }

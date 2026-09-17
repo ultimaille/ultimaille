@@ -1,7 +1,4 @@
 #include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <sstream>
 #include <cstdint>
 
 #include "ultimaille/io/geogram.h"
@@ -86,9 +83,7 @@ namespace UM {
 
             auto &att = attr.points;
 
-            for (int i=0; i<static_cast<int>(att.size()); i++) {
-                std::string name = att[i].name;
-                std::shared_ptr<ContainerBase> ptr = att[i].ptr;
+            for (auto& [name, ptr] : att) {
                 std::string place = "GEO::Mesh::vertices";
 
                 // TODO externalize that
@@ -127,13 +122,11 @@ namespace UM {
                 writer.addAttribute("GEO::Mesh::edges", "GEO::Mesh::edges::edge_vertex", "index_t", reinterpret_cast<const index_t *>(edges.data()), pl.nedges(), 2);
             }
 
-            std::vector<NamedContainer> A[2] = {attr.points, attr.edges};
+            AttributeMap A[2] = {attr.points, attr.edges};
             for (int z=0; z<2; z++) {
                 auto &att = A[z];
 
-                for (int i=0; i<static_cast<int>(att.size()); i++) {
-                    std::string name = att[i].name;
-                    std::shared_ptr<ContainerBase> ptr = att[i].ptr;
+                for (auto& [name, ptr] : att) {
                     std::string place = "";
 
                     if (z==0)
@@ -198,13 +191,11 @@ namespace UM {
                 writer.addAttribute("GEO::Mesh::facet_corners", "GEO::Mesh::facet_corners::corner_adjacent_facet", "index_t", corner_adjacent_facet.data(), m.ncorners(), 1);
             }
 
-            std::vector<NamedContainer> A[3] = {attr.points, attr.facets, attr.corners};
+            AttributeMap A[3] = {attr.points, attr.facets, attr.corners};
             for (int z=0; z<3; z++) {
                 auto &att = A[z];
 
-                for (int i=0; i<static_cast<int>(att.size()); i++) {
-                    std::string name = att[i].name;
-                    std::shared_ptr<ContainerBase> ptr = att[i].ptr;
+                for (auto& [name, ptr] : att) {
                     std::string place = "";
 
                     if (z==0)
@@ -284,13 +275,11 @@ namespace UM {
 
             int bruno_nfacets = m.nfacets()+m.ncells()*geogram_nb_padding_per_cell_type[m.cell_type]; // AARGH Bruno!
             writer.addAttributeSize("GEO::Mesh::cell_facets", bruno_nfacets);
-            std::vector<NamedContainer> A[4] = {attr.points, attr.cells, attr.cell_facets, attr.cell_corners};
+            AttributeMap A[4] = {attr.points, attr.cells, attr.cell_facets, attr.cell_corners};
             for (int z=0; z<4; z++) {
                 auto &att = A[z];
 
-                for (int i=0; i<static_cast<int>(att.size()); i++) {
-                    std::string name = att[i].name;
-                    std::shared_ptr<ContainerBase> ptr = att[i].ptr;
+                for (auto& [name, ptr] : att) {
                     std::string place = "";
 
                     if (z==0)
@@ -470,8 +459,8 @@ namespace UM {
         long current_chunk_file_pos_;
     };
 
-    const std::string attrib_set_names[7] = {"GEO::Mesh::vertices", "GEO::Mesh::edges", "GEO::Mesh::facets", "GEO::Mesh::facet_corners", "GEO::Mesh::cells", "GEO::Mesh::cell_facets", "GEO::Mesh::cell_corners"};
-    void read_geogram(const std::string filename, std::vector<NamedContainer> attr[7]) {
+    void read_geogram(const std::string filename, AttributeMap attr[7]) {
+        const std::string attrib_set_names[7] = {"GEO::Mesh::vertices", "GEO::Mesh::edges", "GEO::Mesh::facets", "GEO::Mesh::facet_corners", "GEO::Mesh::cells", "GEO::Mesh::cell_facets", "GEO::Mesh::cell_corners"};
         int set_size[7] = {-1, -1, -1, -1, -1, -1, -1};
         GeogramGZReader in(filename);
         std::string chunk_class;
@@ -543,35 +532,33 @@ namespace UM {
 
                 for (int i=0; i<7; i++)
                     if (attribute_set_name == attrib_set_names[i])
-                        attr[i].emplace_back(attribute_name, P);
+                        attr[i][attribute_name] = P;
             } // chunk_class = ATTR
         } // chunks
     }
 
-    void parse_pointset_attributes(PointSet &pts, std::vector<NamedContainer> &attr) {
-        for (int i=0; i<(int)attr.size(); i++) {
-            if (attr[i].name != "point") continue;
-            std::shared_ptr<AttributeContainer<vec3> > ptr = std::dynamic_pointer_cast<AttributeContainer<vec3> >(attr[i].ptr);
-            pts.resize(ptr->data.size());
-            for (int v=0; v<pts.size(); v++)
-                pts[v] = ptr->data[v];
-            attr.erase(attr.begin()+i);
-            i--;
-        }
+    void parse_pointset_attributes(PointSet& pts, AttributeMap& attr) {
+        auto it = attr.find("point");
+        if (it == attr.end())
+            return;
+        auto ptr = std::dynamic_pointer_cast<AttributeContainer<vec3>>(it->second);
+        um_assert(ptr != nullptr);
+        *pts.data = ptr->data;
+        attr.erase(it);
     }
 
-    void parse_int_array(const std::string &name, std::vector<int> &array, std::vector<NamedContainer> &attr) {
-        for (int i=0; i<(int)attr.size(); i++) {
-            if (attr[i].name != name) continue;
-            std::shared_ptr<AttributeContainer<int> > ptr = std::dynamic_pointer_cast<AttributeContainer<int> >(attr[i].ptr);
-            array = ptr->data;
-            attr.erase(attr.begin()+i);
-            i--;
-        }
+    void parse_int_array(const std::string& name, std::vector<int>& array, AttributeMap& attr) {
+        auto it = attr.find(name);
+        if (it == attr.end())
+            return;
+        auto ptr = std::dynamic_pointer_cast<AttributeContainer<int>>(it->second);
+        um_assert(ptr != nullptr);
+        array = ptr->data;
+        attr.erase(it);
     }
 
     void parse_volume_data(const std::string filename, PointSet &pts, VolumeAttributes &va, std::vector<int> &corner_vertex, Volume::CELL_TYPE type2keep) {
-        std::vector<NamedContainer> attrib[7];
+        AttributeMap attrib[7];
         read_geogram(filename, attrib);
         parse_pointset_attributes(pts, attrib[0]);
 
@@ -585,6 +572,7 @@ namespace UM {
         parse_int_array("GEO::Mesh::cells::cell_ptr",  cell_ptr,  attrib[4]);
 
         int ncells = cell_type.size();
+
         assert(cell_ptr.size()==cell_type.size());
         cell_ptr.push_back(old_corner_vertex.size());
 
@@ -627,11 +615,11 @@ namespace UM {
         }
 
         for (auto &nc : attrib[4])
-            (*nc.ptr).compress(cells_old2new);
+            (*nc.second).compress(cells_old2new);
         for (auto &nc : attrib[5])
-            (*nc.ptr).compress(facets_old2new);
+            (*nc.second).compress(facets_old2new);
         for (auto &nc : attrib[6])
-            (*nc.ptr).compress(corners_old2new);
+            (*nc.second).compress(corners_old2new);
 
         va = {attrib[0], attrib[4], attrib[5], attrib[6]};
     }
@@ -646,10 +634,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
-        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
-        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
+        for (auto &a : va.points      ) m.points.attr->emplace_back(a.second);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
 
         return va;
     }
@@ -664,10 +652,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
-        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
-        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
+        for (auto &a : va.points      ) m.points.attr->emplace_back(a.second);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
 
         return va;
     }
@@ -682,10 +670,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
-        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
-        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
+        for (auto &a : va.points      ) m.points.attr->emplace_back(a.second);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
 
         return va;
     }
@@ -700,10 +688,10 @@ namespace UM {
 
         m.cells = corner_vertex;
 
-        for (auto &a : va.points      ) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.ptr);
-        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.ptr);
-        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.ptr);
+        for (auto &a : va.points      ) m.points.attr->emplace_back(a.second);
+        for (auto &a : va.cells       ) m.attr_cells.emplace_back(a.second);
+        for (auto &a : va.cell_facets ) m.attr_facets.emplace_back(a.second);
+        for (auto &a : va.cell_corners) m.attr_corners.emplace_back(a.second);
 
         return va;
     }
@@ -711,7 +699,7 @@ namespace UM {
     SurfaceAttributes read_geogram(const std::string filename, Polygons &polygons) {
         um_assert(!polygons.nverts() && !polygons.nfacets());
 
-        std::vector<NamedContainer> attrib[7];
+        AttributeMap attrib[7];
         read_geogram(filename, attrib);
         parse_pointset_attributes(polygons.points, attrib[0]);
 
@@ -722,9 +710,9 @@ namespace UM {
         parse_int_array("GEO::Mesh::facets::facet_ptr", polygons.offset, attrib[2]);
         polygons.offset.push_back(polygons.facets.size());
 
-        for (auto &a : attrib[0]) polygons.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[2]) polygons.attr_facets.emplace_back(a.ptr);
-        for (auto &a : attrib[3]) polygons.attr_corners.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) polygons.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[2]) polygons.attr_facets.emplace_back(a.second);
+        for (auto &a : attrib[3]) polygons.attr_corners.emplace_back(a.second);
 
         return {attrib[0], attrib[2], attrib[3]};
     }
@@ -770,14 +758,14 @@ namespace UM {
     PolyLineAttributes read_geogram(const std::string filename, PolyLine &pl) {
         um_assert(!pl.nverts() && !pl.nedges());
 
-        std::vector<NamedContainer> attrib[7];
+        AttributeMap attrib[7];
         read_geogram(filename, attrib);
         parse_pointset_attributes(pl.points, attrib[0]);
 
         parse_int_array("GEO::Mesh::edges::edge_vertex", pl.edges, attrib[1]);
 
-        for (auto &a : attrib[0]) pl.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[1]) pl.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) pl.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[1]) pl.attr.emplace_back(a.second);
 
         return {attrib[0], attrib[1]};
     }
@@ -785,11 +773,11 @@ namespace UM {
     PointSetAttributes read_geogram(const std::string filename, PointSet &ps) {
         um_assert(!ps.size());
 
-        std::vector<NamedContainer> attrib[7];
+        AttributeMap attrib[7];
         read_geogram(filename, attrib);
         parse_pointset_attributes(ps, attrib[0]);
 
-        for (auto &a : attrib[0]) ps.attr->emplace_back(a.ptr);
+        for (auto &a : attrib[0]) ps.attr->emplace_back(a.second);
 
         return {attrib[0]};
     }

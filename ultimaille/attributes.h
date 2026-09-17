@@ -1,6 +1,8 @@
 #ifndef __ATTRIBUTES_H__
 #define __ATTRIBUTES_H__
 #include <vector>
+#include <map>
+#include <utility>
 #include <memory>
 #include <cassert>
 #include "syntactic-sugar/assert.h"
@@ -16,15 +18,17 @@ namespace UM {
     struct PolyLineAttributes;
     struct VolumeAttributes;
 
-    struct NamedContainer {
-        std::string name;
-        std::shared_ptr<ContainerBase> ptr;
-    };
-
     struct NamedAttribute {
         std::string name;
         AttributeBase& attribute;
     };
+
+    using AttributeMap = std::map<std::string, std::shared_ptr<ContainerBase>>;
+
+    inline void add_attribute(AttributeMap& map, const NamedAttribute& attribute, AttributeBase::TYPE expected) {
+        um_assert(attribute.attribute.kind() == expected);
+        map[attribute.name] = attribute.attribute.get_ptr();
+    }
 
     struct PointSetAttributes {
         PointSetAttributes() = default;
@@ -33,16 +37,14 @@ namespace UM {
         PointSetAttributes(const PointSetAttributes& p)  = default;
         PointSetAttributes& operator=(const PointSetAttributes& p)  = default;
 
-        PointSetAttributes(std::vector<NamedContainer> list) : points(list) {}
+        PointSetAttributes(AttributeMap points) : points(std::move(points)) {}
 
         PointSetAttributes(std::initializer_list<NamedAttribute> list) {
-            for (auto na : list) {
-                um_assert(na.attribute.kind()==AttributeBase::POINTS);
-                points.emplace_back(na.name, na.attribute.get_ptr());
-            }
+            for (auto& attribute : list)
+                add_attribute(points, attribute, AttributeBase::POINTS);
         }
 
-        std::vector<NamedContainer> points;
+        AttributeMap points;
     };
 
     struct PolyLineAttributes {
@@ -52,19 +54,20 @@ namespace UM {
         PolyLineAttributes(const PolyLineAttributes& p)  = default;
         PolyLineAttributes& operator=(const PolyLineAttributes& p)  = default;
 
-        PolyLineAttributes(std::vector<NamedContainer> points, std::vector<NamedContainer> edges) : points(points), edges(edges) {}
+        PolyLineAttributes(AttributeMap points, AttributeMap edges) : points(std::move(points)), edges(std::move(edges)) {}
 
         PolyLineAttributes(std::initializer_list<NamedAttribute> list) {
-            for (auto na : list) {
-                switch (na.attribute.kind()) {
-                    case AttributeBase::POINTS:  points.emplace_back(na.name, na.attribute.get_ptr()); break;
-                    case AttributeBase::EDGES:    edges.emplace_back(na.name, na.attribute.get_ptr()); break;
-                    default: um_assert(false);
+            for (auto& attribute : list) {
+                switch (attribute.attribute.kind()) {
+                    case AttributeBase::POINTS: add_attribute(points, attribute, AttributeBase::POINTS); break;
+                    case AttributeBase::EDGES:  add_attribute(edges, attribute, AttributeBase::EDGES);   break;
+                    default:
+                        um_assert(false);
                 }
             }
         }
-
-        std::vector<NamedContainer> points = {}, edges = {};
+        AttributeMap points = {};
+        AttributeMap edges  = {};
     };
 
     struct SurfaceAttributes {
@@ -74,20 +77,23 @@ namespace UM {
         SurfaceAttributes(const SurfaceAttributes& p)  = default;
         SurfaceAttributes& operator=(const SurfaceAttributes& p)  = default;
 
-        SurfaceAttributes(std::vector<NamedContainer> points, std::vector<NamedContainer> facets, std::vector<NamedContainer> corners) : points(points), facets(facets), corners(corners) {}
+        SurfaceAttributes(AttributeMap points, AttributeMap facets, AttributeMap corners) : points(std::move(points)), facets(std::move(facets)), corners(std::move(corners)) {}
 
         SurfaceAttributes(std::initializer_list<NamedAttribute> list) {
-            for (auto na : list) {
-                switch (na.attribute.kind()) {
-                    case AttributeBase::POINTS:   points.emplace_back(na.name, na.attribute.get_ptr()); break;
-                    case AttributeBase::FACETS:   facets.emplace_back(na.name, na.attribute.get_ptr()); break;
-                    case AttributeBase::CORNERS: corners.emplace_back(na.name, na.attribute.get_ptr()); break;
-                    default: um_assert(false);
+            for (auto& attribute : list) {
+                switch (attribute.attribute.kind()) {
+                    case AttributeBase::POINTS:  add_attribute(points, attribute, AttributeBase::POINTS);   break;
+                    case AttributeBase::FACETS:  add_attribute(facets, attribute, AttributeBase::FACETS);   break;
+                    case AttributeBase::CORNERS: add_attribute(corners, attribute, AttributeBase::CORNERS); break;
+                    default:
+                        um_assert(false);
                 }
             }
         }
 
-        std::vector<NamedContainer> points = {}, facets = {}, corners = {};
+        AttributeMap points  = {};
+        AttributeMap facets  = {};
+        AttributeMap corners = {};
     };
 
     struct VolumeAttributes {
@@ -97,28 +103,33 @@ namespace UM {
         VolumeAttributes(const VolumeAttributes& p)  = default;
         VolumeAttributes& operator=(const VolumeAttributes& p)  = default;
 
-        VolumeAttributes(std::vector<NamedContainer> points,
-                         std::vector<NamedContainer> cells,
-                         std::vector<NamedContainer> cell_facets,
-                         std::vector<NamedContainer> cell_corners) : points(points),
-                                                                     cells(cells),
-                                                                     cell_facets(cell_facets),
-                                                                     cell_corners(cell_corners) {
-        }
+        VolumeAttributes(
+                AttributeMap points,
+                AttributeMap cells,
+                AttributeMap cell_facets,
+                AttributeMap cell_corners) :
+            points(std::move(points)),
+            cells(std::move(cells)),
+            cell_facets(std::move(cell_facets)),
+            cell_corners(std::move(cell_corners)) {}
 
         VolumeAttributes(std::initializer_list<NamedAttribute> list) {
-            for (auto na : list) {
-                switch (na.attribute.kind()) {
-                    case AttributeBase::POINTS:            points.emplace_back(na.name, na.attribute.get_ptr()); break;
-                    case AttributeBase::CELLS:              cells.emplace_back(na.name, na.attribute.get_ptr()); break;
-                    case AttributeBase::CELLFACETS:   cell_facets.emplace_back(na.name, na.attribute.get_ptr()); break;
-                    case AttributeBase::CELLCORNERS: cell_corners.emplace_back(na.name, na.attribute.get_ptr()); break;
-                    default: um_assert(false);
+            for (const auto& attribute : list) {
+                switch (attribute.attribute.kind()) {
+                    case AttributeBase::POINTS:      add_attribute(points, attribute, AttributeBase::POINTS);            break;
+                    case AttributeBase::CELLS:       add_attribute(cells, attribute, AttributeBase::CELLS);              break;
+                    case AttributeBase::CELLFACETS:  add_attribute(cell_facets, attribute, AttributeBase::CELLFACETS);   break;
+                    case AttributeBase::CELLCORNERS: add_attribute(cell_corners, attribute, AttributeBase::CELLCORNERS); break;
+                    default:
+                        um_assert(false);
                 }
             }
         }
 
-        std::vector<NamedContainer> points = {}, cells = {}, cell_facets = {}, cell_corners = {};
+        AttributeMap points       = {};
+        AttributeMap cells        = {};
+        AttributeMap cell_facets  = {};
+        AttributeMap cell_corners = {};
     };
 }
 

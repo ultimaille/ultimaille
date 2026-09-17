@@ -30,7 +30,7 @@ namespace UM {
 
     const std::string attrib_set_names[4] = {"GEO::Mesh::vertices", "GEO::Mesh::edges", "GEO::Mesh::facets", "GEO::Mesh::cells"};
 
-    void read_medit_format(const std::string& filename, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_, std::vector<int>& wedges_, std::vector<int>& pyramids_, std::vector<NamedContainer> attr[4]) {
+    void read_medit_format(const std::string& filename, std::vector<vec3>& verts_, std::vector<int>& edges_, std::vector<int>& tris_, std::vector<int>& quads_, std::vector<int>& tets_, std::vector<int>& hexes_, std::vector<int>& wedges_, std::vector<int>& pyramids_, AttributeMap attr[4]) {
         std::ifstream in;
         in.open(filename, std::ifstream::in);
         if (in.fail())
@@ -68,7 +68,7 @@ namespace UM {
                     FOR(i, 3)  iss >> verts_[v][i];
                     iss >> ptr->data[v];
                 }
-                attr[0].emplace_back(attr_name, ptr);
+                attr[0][attr_name] = ptr;
             }
             if (string_start(firstline, "Edges")) {
                 std::string line;
@@ -95,7 +95,7 @@ namespace UM {
                     }
                     iss >> ptr->data[e];
                 }
-                attr[1].emplace_back(attr_name, ptr);
+                attr[1][attr_name] = ptr;
             }
 
             if (string_start(firstline, "Triangles")) {
@@ -251,7 +251,7 @@ namespace UM {
             auto ptr = std::make_shared<AttributeContainer<int>>(nb_facets);
             for (int i = 0; i < static_cast<int>(facet_region.size()); i++)
                 ptr->data[i] = facet_region[i];
-            attr[2].emplace_back(attr_name, ptr);
+            attr[2][attr_name] = ptr;
         }
         // Create cell region attribute
         const int nb_cells = nb_of_tets + nb_of_hexs + nb_of_prisms + nb_of_pyramids;
@@ -259,26 +259,20 @@ namespace UM {
             auto ptr = std::make_shared<AttributeContainer<int>>(nb_cells);
             for (int i = 0; i < static_cast<int>(cell_region.size()); i++)
                 ptr->data[i] = cell_region[i];
-            attr[3].emplace_back(attr_name, ptr);
+            attr[3][attr_name] = ptr;
         }
 
     }
 
-    std::vector<int> load_attr(std::vector<NamedContainer> &container, int size) {
-        if (container.size() <= 0) {
-            return std::vector<int>(size, 1);
+    std::vector<int> load_attr(AttributeMap &map, int size) {
+        for (auto& [name, ptr] : map) { // return the first array of integers, cant do better for medit
+            if (auto point_cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int>>(ptr); point_cont_ptr.get()!=nullptr)
+                return point_cont_ptr->data;
         }
-
-        std::shared_ptr<ContainerBase> point_attr_ptr = container[0].ptr;
-        if (auto point_cont_ptr = std::dynamic_pointer_cast<AttributeContainer<int>>(point_attr_ptr); point_cont_ptr.get()!=nullptr) {
-            return point_cont_ptr->data;
-        } else {
-            assert(false);
-            return {};
-        }
+        return std::vector<int>(size, 1);
     }
 
-    void write_medit_format(const std::string& filename, const std::vector<vec3>& verts_, const std::vector<int>& edges_, const std::vector<int>& tris_, const std::vector<int>& quads_, const std::vector<int>& tets_, const  std::vector<int>& hexes_, const std::vector<int>& wedges_, const  std::vector<int>& pyramids_, std::vector<NamedContainer> attr[4]) {
+    void write_medit_format(const std::string& filename, const std::vector<vec3>& verts_, const std::vector<int>& edges_, const std::vector<int>& tris_, const std::vector<int>& quads_, const std::vector<int>& tets_, const  std::vector<int>& hexes_, const std::vector<int>& wedges_, const  std::vector<int>& pyramids_, AttributeMap attr[4]) {
         std::ofstream out_f;
         out_f.open(filename, std::ifstream::out);
         if (out_f.fail())
@@ -377,7 +371,7 @@ namespace UM {
         std::vector<vec3> verts(ps.size());
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
         FOR(v, ps.size()) verts[v] = ps[v];
-        std::vector<NamedContainer> A[4] = {attr.points, {}, {}, {}};
+        AttributeMap A[4] = {attr.points, {}, {}, {}};
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, A);
     }
 
@@ -387,7 +381,7 @@ namespace UM {
         std::vector<int> tris, quads, tets, hexes, wedges, pyramids;
         FOR(v, pl.nverts()) verts[v] = pl.points[v];
         FOR(e, pl.nedges()) FOR(ev, 2) edges[2 * e + ev] = pl.vert(e, ev);
-        std::vector<NamedContainer> A[4] = {attr.points, attr.edges, {}, {}};
+        AttributeMap A[4] = {attr.points, attr.edges, {}, {}};
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, A);
     }
 
@@ -405,7 +399,7 @@ namespace UM {
             else
                 std::cerr << "Warning: Polygons are not supported in our MEDIT writer";
         }
-        std::vector<NamedContainer> A[4] = {attr.points, {}, attr.facets, {}};
+        AttributeMap A[4] = {attr.points, {}, attr.facets, {}};
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, A);
     }
 
@@ -428,7 +422,7 @@ namespace UM {
         } else {
             std::cerr << "Warning: Volume type : " << m.cell_type << "; not supported in our MEDIT writer";
         }
-        std::vector<NamedContainer> A[4] = {attr.points, {}, {}, attr.cells};
+        AttributeMap A[4] = {attr.points, {}, {}, attr.cells};
         write_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, A);
     }
 
@@ -437,11 +431,11 @@ namespace UM {
         um_assert(!m.size());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
-        std::vector<NamedContainer> attrib[4];
+        AttributeMap attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
         m.create_points(verts.size());
         FOR(v, verts.size()) m[v] = verts[v];
-        for (auto &a : attrib[0]) m.attr->emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.attr->emplace_back(a.second);
         return {attrib[0]};
     }
 
@@ -449,14 +443,14 @@ namespace UM {
         um_assert(!m.nverts() && !m.nedges());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
-        std::vector<NamedContainer> attrib[4];
+        AttributeMap attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_edges(edges.size()/2);
         FOR(e, m.nedges()) FOR(ev, 2) m.vert(e, ev) = edges[2 * e + ev];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[1]) m.attr.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[1]) m.attr.emplace_back(a.second);
         return {attrib[0], attrib[1]};
     }
 
@@ -464,14 +458,14 @@ namespace UM {
         um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
-        std::vector<NamedContainer> attrib[4];
+        AttributeMap attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(tris.size() / 3);
         FOR(t, m.nfacets()) FOR(tv, 3) m.vert(t, tv) = tris[3 * t + tv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
         return {attrib[0], attrib[2], {}};
     }
 
@@ -479,14 +473,14 @@ namespace UM {
         um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
-        std::vector<NamedContainer> attrib[4];
+        AttributeMap attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_facets(quads.size() / 4);
         FOR(q, m.nfacets()) FOR(qv, 4) m.vert(q, qv) = quads[4 * q + qv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
         return {attrib[0], attrib[2], {}};
     }
 
@@ -494,7 +488,7 @@ namespace UM {
         um_assert(!m.nverts() && !m.nfacets());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
-        std::vector<NamedContainer> attrib[4];
+        AttributeMap attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
@@ -504,8 +498,8 @@ namespace UM {
 
         int off = m.create_facets(quads.size() / 4, 4);
         FOR(q, quads.size() / 4) FOR(qv, 4) m.vert(off + q, qv) = quads[4 * q + qv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
         return {attrib[0], attrib[2], {}};
     }
 
@@ -513,15 +507,15 @@ namespace UM {
         um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
-        std::vector<NamedContainer> attrib[4];
+        AttributeMap attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
         m.create_cells(tets.size() / 4);
         FOR(t, m.ncells()) FOR(tv, 4) m.vert(t, tv) = tets[4 * t + tv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.ptr);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.second);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
         return {attrib[0], attrib[3], attrib[2], {}};
     }
 
@@ -529,16 +523,16 @@ namespace UM {
         um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
-        std::vector<NamedContainer> attrib[4];
+        AttributeMap attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
         m.create_cells(hexes.size() / 8);
         FOR(h, m.ncells()) FOR(hv, 8) m.vert(h, hv) = hexes[8 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.ptr);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.second);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
         return {attrib[0], attrib[3], attrib[2], {}};
     }
 
@@ -546,16 +540,16 @@ namespace UM {
         um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
-        std::vector<NamedContainer> attrib[4];
+        AttributeMap attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
         m.create_cells(wedges.size() / 6);
         FOR(h, m.ncells()) FOR(hv, 6) m.vert(h, hv) = wedges[5 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.ptr);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.second);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
         return {attrib[0], attrib[3], attrib[2], {}};
     }
 
@@ -563,19 +557,18 @@ namespace UM {
         um_assert(!m.nverts() && !m.ncells());
         std::vector<vec3> verts;
         std::vector<int> edges, tris, quads, tets, hexes, wedges, pyramids;
-        std::vector<NamedContainer> attrib[4];
+        AttributeMap attrib[4];
         read_medit_format(filename, verts, edges, tris, quads, tets, hexes, wedges, pyramids, attrib);
         m.points.create_points(verts.size());
         FOR(v, verts.size()) m.points[v] = verts[v];
 
         m.create_cells(pyramids.size() / 5);
         FOR(h, m.ncells()) FOR(hv, 5) m.vert(h, hv) = pyramids[5 * h + hv];
-        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.ptr);
-        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.ptr);
-        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.ptr);
+        for (auto &a : attrib[0]) m.points.attr->emplace_back(a.second);
+        for (auto &a : attrib[3]) m.attr_cells.emplace_back(a.second);
+        for (auto &a : attrib[2]) m.attr_facets.emplace_back(a.second);
 
         return {attrib[0], attrib[3], attrib[2], {}};
     }
-
 }
 

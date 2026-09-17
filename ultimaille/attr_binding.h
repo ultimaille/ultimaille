@@ -4,18 +4,19 @@
 #include <memory>
 
 namespace UM {
-    template <typename T> bool bind_attribute(GenericAttribute<T> *A, const std::string name, const int size, std::vector<NamedContainer> &containers, std::vector<std::weak_ptr<ContainerBase> > &callbacks) {
-        for (auto &pair : containers) {
-            if (pair.name!=name) continue;
-            A->ptr = std::dynamic_pointer_cast<AttributeContainer<T> >(pair.ptr);
-            assert(A->ptr.get());
-            A->ptr->default_value = A->default_value;
-            //   callbacks.push_back(ptr); // TODO architectural choice: to bind or not to bind? At the moment the binding is done in mesh_io.cpp
+    template <typename T> bool bind_attribute(GenericAttribute<T>* attribute, const std::string& name, int size, AttributeMap& containers, std::vector<std::weak_ptr<ContainerBase>>& callbacks) {
+        auto it = containers.find(name);
+
+        if (it != containers.end()) {
+            attribute->ptr = std::dynamic_pointer_cast<AttributeContainer<T>>(it->second);
+            um_assert(attribute->ptr != nullptr);
+            attribute->ptr->default_value = attribute->default_value;
             return true;
         }
-        A->ptr = std::make_shared<AttributeContainer<T> >(size, A->default_value);
-        callbacks.push_back(A->ptr);
-        containers.emplace_back(name, A->ptr);
+
+        attribute->ptr = std::make_shared<AttributeContainer<T>>(size, attribute->default_value);
+        callbacks.push_back(attribute->ptr);
+        containers.emplace(name, attribute->ptr);
         return false;
     }
 
