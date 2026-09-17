@@ -67,9 +67,36 @@ namespace UM {
         Volume(Volume&& m)                 = delete;
         Volume& operator=(const Volume& m) = delete;
 
+        template <typename T> struct CellAttribute : GenericAttribute<T> {
+            CellAttribute(T def = T());
+            CellAttribute(Volume &m, T def = T());
+            CellAttribute(const Volume &m, T def = T());
+            CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def = T());
+            bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
+            virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLS; }
+        };
+
+        template <typename T> struct FacetAttribute : GenericAttribute<T> {
+            FacetAttribute(T def = T());
+            FacetAttribute(Volume &m, T def = T());
+            FacetAttribute(const Volume &m, T def = T());
+            FacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def = T());
+            bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
+            virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLFACETS; }
+        };
+
+        template <typename T> struct CornerAttribute : GenericAttribute<T> {
+            CornerAttribute(T def = T());
+            CornerAttribute(Volume &m, T def = T());
+            CornerAttribute(const Volume &m, T def = T());
+            CornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def = T());
+            bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
+            virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLCORNERS; }
+        };
+
         struct Connectivity {
             Volume &m;
-            CellFacetAttribute<int> adjacent;
+            Volume::FacetAttribute<int> adjacent;
 
             Connectivity(Volume &m);
             void reset();
@@ -202,6 +229,10 @@ namespace UM {
         auto iter_facets()    const;
         auto iter_cells()     const;
     };
+
+    template <typename T> using CellAttribute       = Volume::CellAttribute<T>;
+    template <typename T> using CellFacetAttribute  = Volume::FacetAttribute<T>;
+    template <typename T> using CellCornerAttribute = Volume::CornerAttribute<T>;
 
    /*
     * EdgeGraph represents edges of a volumetric mesh

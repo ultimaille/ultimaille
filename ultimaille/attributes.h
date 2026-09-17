@@ -77,6 +77,7 @@ namespace UM {
     };
 */
 
+/*
     template <typename T> struct CellAttribute : GenericAttribute<T> {
         CellAttribute(T def = T());
         CellAttribute(Volume &m, T def = T());
@@ -103,7 +104,7 @@ namespace UM {
         bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
         virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLCORNERS; }
     };
-
+*/
     struct NamedContainer {
         std::string name;
         std::shared_ptr<ContainerBase> ptr;
