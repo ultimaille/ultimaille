@@ -46,6 +46,25 @@ namespace UM {
         Surface(Surface&& m) = delete;
         Surface& operator=(const Surface& m) = delete;
 
+
+    template <typename T> struct FacetAttribute : GenericAttribute<T> {
+        FacetAttribute(T def = T());
+        FacetAttribute(Surface &m, T def = T());
+        FacetAttribute(const Surface &m, T def = T());
+        FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
+        bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::FACETS; }
+    };
+
+    template <typename T> struct CornerAttribute : GenericAttribute<T> {
+        CornerAttribute(T def = T());
+        CornerAttribute(Surface &m, T def = T());
+        CornerAttribute(const Surface &m, T def = T());
+        CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
+        bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::CORNERS; }
+    };
+
 //////////////////////////////////////////////////////////////////////
 //                                      _   _       _ _             //
 //       ___ ___  _ __  _ __   ___  ___| |_(_)_   _(_) |_ _   _     //
@@ -65,10 +84,10 @@ namespace UM {
 
         struct Connectivity {
             Surface& m;
-            PointAttribute<int>  v2c;    // vertex to corner map
-            CornerAttribute<int> c2f;    // corner to facet map
-            CornerAttribute<int> c2c;    // corner to corner (sharing the same vertex) map. Consecutive maps form an unordered linked list terminated by -1.
-            FacetAttribute<bool> active; // facets to keep after compacting
+            PointSet::Attribute<int>      v2c;    // vertex to corner map
+            Surface::CornerAttribute<int> c2f;    // corner to facet map
+            Surface::CornerAttribute<int> c2c;    // corner to corner (sharing the same vertex) map. Consecutive maps form an unordered linked list terminated by -1.
+            Surface::FacetAttribute<bool> active; // facets to keep after compacting
 
             Connectivity(Surface& m);
             void init();
@@ -175,6 +194,10 @@ namespace UM {
         auto iter_halfedges();
         auto iter_facets();
     };
+
+    template <typename T> using FacetAttribute = Surface::FacetAttribute<T>;
+    template <typename T> using CornerAttribute = Surface::CornerAttribute<T>;
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //

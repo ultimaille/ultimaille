@@ -56,6 +56,7 @@ namespace UM {
         virtual AttributeBase::TYPE kind() const { return AttributeBase::EDGES; }
     };
 */
+/*
 
     template <typename T> struct FacetAttribute : GenericAttribute<T> {
         FacetAttribute(T def = T());
@@ -74,6 +75,7 @@ namespace UM {
         bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
         virtual AttributeBase::TYPE kind() const { return AttributeBase::CORNERS; }
     };
+*/
 
     template <typename T> struct CellAttribute : GenericAttribute<T> {
         CellAttribute(T def = T());

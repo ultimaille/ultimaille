@@ -172,6 +172,7 @@ namespace UM {
 
 
 
+/*
 
 
     template <typename T> FacetAttribute<T>::FacetAttribute(T def) : GenericAttribute<T>(def) {}
@@ -207,6 +208,44 @@ namespace UM {
     }
 
     template <typename T> bool CornerAttribute<T>::bind(std::string name, SurfaceAttributes &attributes, Surface &m) {
+        um_assert(!this->bound());
+        return bind_attribute(this, name, m.ncorners(), attributes.corners, m.attr_corners);
+    }
+*/
+
+    template <typename T> Surface::FacetAttribute<T>::FacetAttribute(T def) : GenericAttribute<T>(def) {}
+    template <typename T> Surface::FacetAttribute<T>::FacetAttribute(Surface &m, T def) : GenericAttribute<T>(def, m.nfacets()) {
+        m.attr_facets.push_back(this->ptr);
+    }
+
+    template <typename T> Surface::FacetAttribute<T>::FacetAttribute(const Surface &m, T def) : GenericAttribute<T>(def, m.nfacets()) {
+    }
+
+    template <typename T> Surface::FacetAttribute<T>::FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def) : GenericAttribute<T>(def) {
+        bind_attribute(this, name, m.nfacets(), attributes.facets, m.attr_facets);
+    }
+
+    template <typename T> bool Surface::FacetAttribute<T>::bind(std::string name, SurfaceAttributes &attributes, Surface &m) {
+        um_assert(!this->bound());
+        return bind_attribute(this, name, m.nfacets(), attributes.facets, m.attr_facets);
+    }
+
+
+
+
+    template <typename T> Surface::CornerAttribute<T>::CornerAttribute(T def) : GenericAttribute<T>(def) {}
+    template <typename T> Surface::CornerAttribute<T>::CornerAttribute(Surface &m, T def) : GenericAttribute<T>(def, m.ncorners()) {
+        m.attr_corners.push_back(this->ptr);
+    }
+
+    template <typename T> Surface::CornerAttribute<T>::CornerAttribute(const Surface &m, T def) : GenericAttribute<T>(def, m.ncorners()) {
+    }
+
+    template <typename T> Surface::CornerAttribute<T>::CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def) : GenericAttribute<T>(def) {
+        bind_attribute(this, name, m.ncorners(), attributes.corners, m.attr_corners);
+    }
+
+    template <typename T> bool Surface::CornerAttribute<T>::bind(std::string name, SurfaceAttributes &attributes, Surface &m) {
         um_assert(!this->bound());
         return bind_attribute(this, name, m.ncorners(), attributes.corners, m.attr_corners);
     }
