@@ -26,6 +26,13 @@ namespace UM {
         }
 
         Quaternion &normalize() { *this = (*this)/norm(); return *this; }
+        Quaternion normalized() const { return *this/norm(); }
+
+	Quaternion conjugate() const {
+            return { -v, w };
+	}
+
+        vec3 rotate(const vec3& p) const;
 
         double &operator[](const int i)       { assert(i>=0 && i<4); return i<3 ? v[i] : w; }
         double  operator[](const int i) const { assert(i>=0 && i<4); return i<3 ? v[i] : w; }
@@ -84,6 +91,12 @@ namespace UM {
         res.v = a.w*b.v + b.w*a.v + cross(a.v, b.v);
         return res;
     }
+
+    inline vec3 Quaternion::rotate(const vec3& p) const {
+        Quaternion q = normalized();
+        return (q * Quaternion{p, 0} * q.conjugate()).v;
+    }
+
 
 }
 #endif //__QUATERNION_H__
