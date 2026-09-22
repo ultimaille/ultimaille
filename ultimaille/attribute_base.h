@@ -37,7 +37,7 @@ namespace UM {
             resize(cnt);
         }
 
-        void append_zeros(std::size_t n) override {
+        void append_zeros(std::size_t n) override { // TODO: not zeros, default value
             data.insert(data.end(), n, T{});
         }
 

@@ -46,24 +46,23 @@ namespace UM {
         Surface(Surface&& m) = delete;
         Surface& operator=(const Surface& m) = delete;
 
+        template <typename T> struct FacetAttribute : GenericAttribute<T> {
+            FacetAttribute(T def = T());
+            FacetAttribute(Surface &m, T def = T());
+            FacetAttribute(const Surface &m, T def = T());
+            FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
+            bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
+            virtual AttributeBase::TYPE kind() const { return AttributeBase::FACETS; }
+        };
 
-    template <typename T> struct FacetAttribute : GenericAttribute<T> {
-        FacetAttribute(T def = T());
-        FacetAttribute(Surface &m, T def = T());
-        FacetAttribute(const Surface &m, T def = T());
-        FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
-        bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::FACETS; }
-    };
-
-    template <typename T> struct CornerAttribute : GenericAttribute<T> {
-        CornerAttribute(T def = T());
-        CornerAttribute(Surface &m, T def = T());
-        CornerAttribute(const Surface &m, T def = T());
-        CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
-        bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::CORNERS; }
-    };
+        template <typename T> struct CornerAttribute : GenericAttribute<T> {
+            CornerAttribute(T def = T());
+            CornerAttribute(Surface &m, T def = T());
+            CornerAttribute(const Surface &m, T def = T());
+            CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
+            bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
+            virtual AttributeBase::TYPE kind() const { return AttributeBase::CORNERS; }
+        };
 
 //////////////////////////////////////////////////////////////////////
 //                                      _   _       _ _             //
@@ -195,7 +194,7 @@ namespace UM {
         auto iter_facets();
     };
 
-    template <typename T> using FacetAttribute = Surface::FacetAttribute<T>;
+    template <typename T> using FacetAttribute  = Surface::FacetAttribute<T>;
     template <typename T> using CornerAttribute = Surface::CornerAttribute<T>;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
