@@ -28,9 +28,9 @@ namespace UM {
         Quaternion &normalize() { *this = (*this)/norm(); return *this; }
         Quaternion normalized() const { return *this/norm(); }
 
-	Quaternion conjugate() const {
+        Quaternion conjugate() const {
             return { -v, w };
-	}
+        }
 
         vec3 rotate(const vec3& p) const;
 
@@ -67,6 +67,11 @@ namespace UM {
                 asin(2.*(w*v.y - v.z*v.x)),                            // pitch
                 atan2(2*(w*v.z+v.x*v.y), 1.-2.*(v.y*v.y + v.z*v.z))    // yaw
                 };
+        }
+
+        static Quaternion from_axis_angle(const vec3& axis, double angle) {
+            assert(axis.norm2() > 1e-20);
+            return { axis.normalized() * std::sin(angle/2), std::cos(angle/2) };
         }
 
         vec3 v = {0., 0., 0.};
