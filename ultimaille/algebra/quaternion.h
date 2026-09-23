@@ -74,6 +74,19 @@ namespace UM {
             return { axis.normalized() * std::sin(angle/2), std::cos(angle/2) };
         }
 
+	static Quaternion rotation_between(vec3 v0, vec3 v1) {
+		const vec3 axis = cross(v0, v1);
+		const double d = v0 * v1;
+		if (d >  1 - 1e-12) return {}; // almost same vectors => no rotation
+		if (d < -1 + 1e-12) {          // antipodal case: choose a deterministic perpendicular axis.
+			axis = cross(v0, vec3{1, 0, 0});
+			if (axis.norm2() < 1e-12)
+				axis = cross(v0, vec3{0, 1, 0});
+			return Quaternion::from_axis_angle(axis.normalized(), M_PI);
+		}
+		return Quaternion{axis, 1 + d}.normalized();
+	}
+
         vec3 v = {0., 0., 0.};
         double w = {1.};
     };
