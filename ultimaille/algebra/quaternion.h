@@ -74,7 +74,7 @@ namespace UM {
             return { axis.normalized() * std::sin(angle/2), std::cos(angle/2) };
         }
 
-	static Quaternion rotation_between(vec3 v0, vec3 v1) {
+	static Quaternion shortest_rotation(vec3 v0, vec3 v1) {
 		const vec3 axis = cross(v0, v1);
 		const double d = v0 * v1;
 		if (d >  1 - 1e-12) return {}; // almost same vectors => no rotation
