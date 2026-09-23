@@ -79,7 +79,7 @@ namespace UM {
 		const double d = v0 * v1;
 		if (d >  1 - 1e-12) return {}; // almost same vectors => no rotation
 		if (d < -1 + 1e-12) {          // antipodal case: choose a deterministic perpendicular axis.
-			axis = cross(v0, vec3{1, 0, 0});
+			vec3 axis = cross(v0, vec3{1, 0, 0});
 			if (axis.norm2() < 1e-12)
 				axis = cross(v0, vec3{0, 1, 0});
 			return Quaternion::from_axis_angle(axis.normalized(), M_PI);
