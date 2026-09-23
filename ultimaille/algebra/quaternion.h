@@ -2,6 +2,7 @@
 #define __QUATERNION_H__
 
 #include <cassert>
+#include <numbers>
 
 #include "vec.h"
 #include "mat.h"
