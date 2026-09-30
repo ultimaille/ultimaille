@@ -170,7 +170,7 @@ namespace UM {
 
 
             writer.addFileHeader();
-            if (!m.nverts()) return;
+//          if (!m.nverts()) return;
             writer.addAttributeSize("GEO::Mesh::vertices", m.nverts());
             writer.addAttribute("GEO::Mesh::vertices", "point", "double", reinterpret_cast<const double *>(m.points.data->data()), m.nverts(), 3);
 
@@ -257,7 +257,7 @@ namespace UM {
             GeogramGZWriter writer(filename);
 
             writer.addFileHeader();
-            if (!m.nverts()) return;
+//          if (!m.nverts()) return;
             writer.addAttributeSize("GEO::Mesh::vertices", m.nverts());
             writer.addAttribute("GEO::Mesh::vertices", "point", "double", reinterpret_cast<const double *>(m.points.data->data()), m.nverts(), 3);
 
