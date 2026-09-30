@@ -1,10 +1,8 @@
 #ifndef __QUATERNION_H__
 #define __QUATERNION_H__
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <iostream>
 #include <cassert>
+#include <numbers>
 
 #include "vec.h"
 #include "mat.h"
@@ -26,6 +24,13 @@ namespace UM {
         }
 
         Quaternion &normalize() { *this = (*this)/norm(); return *this; }
+        Quaternion normalized() const { return *this/norm(); }
+
+        Quaternion conjugate() const {
+            return { -v, w };
+        }
+
+        vec3 rotate(const vec3& p) const;
 
         double &operator[](const int i)       { assert(i>=0 && i<4); return i<3 ? v[i] : w; }
         double  operator[](const int i) const { assert(i>=0 && i<4); return i<3 ? v[i] : w; }
@@ -62,6 +67,24 @@ namespace UM {
                 };
         }
 
+        static Quaternion from_axis_angle(const vec3& axis, double angle) {
+            assert(axis.norm2() > 1e-20);
+            return { axis.normalized() * std::sin(angle/2), std::cos(angle/2) };
+        }
+
+        static Quaternion shortest_rotation(vec3 v0, vec3 v1) {
+            const vec3 axis = cross(v0, v1);
+            const double d = v0 * v1;
+            if (d >  1 - 1e-12) return {}; // almost same vectors => no rotation
+            if (d < -1 + 1e-12) {          // antipodal case: choose a deterministic perpendicular axis.
+                vec3 axis = cross(v0, vec3{1, 0, 0});
+                if (axis.norm2() < 1e-12)
+                    axis = cross(v0, vec3{0, 1, 0});
+                return Quaternion::from_axis_angle(axis.normalized(), std::numbers::pi_v<double>);
+            }
+            return Quaternion{axis, 1 + d}.normalized();
+        }
+
         vec3 v = {0., 0., 0.};
         double w = {1.};
     };
@@ -84,6 +107,12 @@ namespace UM {
         res.v = a.w*b.v + b.w*a.v + cross(a.v, b.v);
         return res;
     }
+
+    inline vec3 Quaternion::rotate(const vec3& p) const {
+        Quaternion q = normalized();
+        return (q * Quaternion{p, 0} * q.conjugate()).v;
+    }
+
 
 }
 #endif //__QUATERNION_H__
