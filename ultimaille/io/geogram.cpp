@@ -486,12 +486,12 @@ namespace UM {
                         set_size[i] = nb_items;
             } else if (chunk_class == "ATTR") {
                 std::string attribute_set_name = in.read_string();
-                int nb_items = -1;
+                int nb_items = 0;
                 for (int i=0; i<7; i++)
                     if (attribute_set_name == attrib_set_names[i])
                         nb_items = set_size[i];
 
-                assert(nb_items>0);
+//              assert(nb_items>0);
 
                 std::string attribute_name = in.read_string();
                 std::string element_type   = in.read_string();
