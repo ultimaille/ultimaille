@@ -43,10 +43,7 @@ namespace UM {
         return {};
     }
 
-    // supposes .obj file to have "f " entries without slashes
-    // TODO: improve the parser
-    // TODO: export vn (corner and point) and vt (corner) attributes
-    SurfaceAttributes read_wavefront_obj(const std::string &filename, Polygons &m) {
+    SurfaceAttributes read_wavefront_obj_old(const std::string &filename, Polygons &m) {
         um_assert(!m.nverts() && !m.nfacets());
         SurfaceAttributes sa;
         std::vector<vec3> VN;
@@ -101,6 +98,126 @@ namespace UM {
                                 iss >> tmp;
                                 vnid.push_back(tmp-1);
                             }
+                        }
+                    }
+                }
+                VTID.push_back(vtid);
+                VNID.push_back(vnid);
+
+                int off_f = m.create_facets(1, vid.size());
+                for (int i=0; i<static_cast<int>(vid.size()); i++)
+                    m.vert(off_f, i) = vid[i];
+            }
+        }
+
+        bool vt_pt_attr = ((int)VTID.size()==m.nfacets() && (int)VT.size()==m.nverts()); // check whether tex_coord is a PointAttribute
+        if (vt_pt_attr) for (int f=0; f<m.nfacets(); f++) {
+            vt_pt_attr = vt_pt_attr && ((int)VTID[f].size()==m.facet_size(f));
+            if (vt_pt_attr) for (int v=0; v<m.facet_size(f); v++) {
+                vt_pt_attr = vt_pt_attr && (m.vert(f, v)==VTID[f][v]);
+            }
+        }
+
+        if (vt_pt_attr) {
+            PointAttribute<vec2> tex_coord(m.points);
+            for (int v=0; v<m.nverts(); v++)
+                tex_coord[v] = VT[v];
+            sa.points.emplace_back("tex_coord", tex_coord.ptr);
+        } else {
+            bool vt_c_attr = ((int)VTID.size()==m.nfacets() && (int)VT.size()>0); // check whether tex_coord is a CornerAttribute
+            if (vt_c_attr) for (int f=0; f<m.nfacets(); f++) {
+                vt_c_attr = vt_c_attr && ((int)VTID[f].size()==m.facet_size(f));
+            }
+            if (vt_c_attr) {
+                CornerAttribute<vec2> tex_coord(m);
+                for (int f=0; f<m.nfacets(); f++) {
+                    for (int v=0; v<m.facet_size(f); v++) {
+                        um_assert(VTID[f][v]>=0 && VTID[f][v]<(int)VT.size());
+                        tex_coord[m.corner(f, v)] = VT[VTID[f][v]];
+                    }
+                }
+                sa.corners.emplace_back("tex_coord", tex_coord.ptr);
+            }
+        }
+
+        in.close();
+//      std::cerr << "#v: " << m.nverts() << " #f: "  << m.nfacets() << std::endl;
+        return sa;
+    }
+
+    // supposes .obj file to have "f " entries without slashes
+    // TODO: improve the parser
+    // TODO: export vn (corner and point) and vt (corner) attributes
+    SurfaceAttributes read_wavefront_obj(const std::string &filename, Polygons &m) {
+        um_assert(!m.nverts() && !m.nfacets());
+        SurfaceAttributes sa;
+        std::vector<vec3> VN;
+        std::vector<vec2> VT;
+        std::vector<std::vector<int>> VTID;
+        std::vector<std::vector<int>> VNID;
+
+        std::ifstream in;
+        in.open (filename, std::ifstream::in);
+        if (in.fail())
+            throw std::runtime_error("Failed to open " + filename);
+        std::string line;
+        while (!in.eof()) {
+            std::getline(in, line);
+            const char *ptr = line.c_str();
+
+            if (ptr[0]=='v' && ptr[1] == ' ') {
+                vec3 v;
+                char* end;
+                v[0] = strtod(ptr + 2, &end);
+                v[1] = strtod(end, &end);
+                v[2] = strtod(end, &end);
+                m.points.data->push_back(v);
+            } else if (ptr[0]=='v' && ptr[1]=='n' && ptr[2]==' ') {
+                vec3 v;
+                char* end;
+                v[0] = strtod(ptr + 3, &end);
+                v[1] = strtod(end, &end);
+                v[2] = strtod(end, &end);
+                VN.push_back(v);
+            } else if (ptr[0]=='v' && ptr[1]=='t' && ptr[2]==' ') {
+                vec2 v;
+                char* end;
+                v[0] = strtod(ptr + 3, &end);
+                v[1] = strtod(end, &end);
+                VT.push_back(v);
+            } else if (ptr[0]=='f' && ptr[1]==' ') {
+                std::vector<int> vid;
+                std::vector<int> vnid;
+                std::vector<int> vtid;
+
+                ptr += 2; // Skip "f "
+
+                while (*ptr) {
+                    // Skip whitespace
+                    while (*ptr && std::isspace(*ptr)) ptr++;
+                    if (!*ptr) break;
+
+                    char* end;
+                    int v_idx = strtol(ptr, &end, 10) - 1;
+                    vid.push_back(v_idx);
+                    ptr = end;
+
+                    // Check for texture and normal indices
+                    if (*ptr == '/') {
+                        ptr++; // Skip '/'
+                        
+                        if (*ptr != '/') {
+                            // Has texture index (v/vt or v/vt/vn format)
+                            int vt_idx = strtol(ptr, &end, 10) - 1;
+                            vtid.push_back(vt_idx);
+                            ptr = end;
+                        }
+
+                        if (*ptr == '/') {
+                            ptr++; // Skip '/'
+                            int vn_idx = strtol(ptr, &end, 10) - 1;
+                            vnid.push_back(vn_idx);
+                            ptr = end;
                         }
                     }
                 }
