@@ -95,8 +95,14 @@ TEST_CASE("Polygons Attributes", "[Attributes]") {
     bool present = cint2.bind("cint", attrs, m2);
     CHECK( present );
 
+#if 0
     PointAttribute<bool> vbool2("vbool", attrs, m2, true);
-
+#else
+    PointAttribute<bool> vbool2(true);
+    REQUIRE( !vbool2.bound() );
+    bool present2 = vbool2.bind("vbool", attrs, m2);
+    CHECK( present2 );
+#endif
     m2.create_facets(1, 5);
     CHECK(fint2[m2.nfacets()-1]==18);
     CHECK(cint2[m2.ncorners()-1]==-122);
