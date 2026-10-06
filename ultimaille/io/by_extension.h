@@ -18,7 +18,8 @@ namespace UM {
     inline VolumeAttributes   empty_attr([[maybe_unused]] const Volume   &m) { return {}; }
 
     template <class M> void write_by_extension(const std::string path, const M &m, const decltype(empty_attr(m)) a = {}) {
-        std::string ext = std::filesystem::path(path).extension().string();
+        std::string  ext = std::filesystem::path(path).extension().string();
+        if (ext=="") ext = std::filesystem::path(path).filename().string();
         try {
             if (ext == ".geogram")
                 write_geogram(path, m, a);
@@ -41,7 +42,8 @@ namespace UM {
     }
 
     template <class M> auto read_by_extension(const std::string path, M& m) -> decltype(empty_attr(m)) {
-        std::string ext = std::filesystem::path(path).extension().string();
+        std::string  ext = std::filesystem::path(path).extension().string();
+        if (ext=="") ext = std::filesystem::path(path).filename().string();
         try {
             if (ext == ".geogram")
                 return read_geogram(path, m);
