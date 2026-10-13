@@ -30,7 +30,7 @@ namespace UM {
         virtual void delete_facets(const std::vector<bool>& to_kill);
         void delete_isolated_vertices();
         void resize_attrs();
-        void compress_attrs(const std::vector<bool>& facets_to_kill);
+        void compress_attrs(const std::vector<bool>& facets_to_kill); // TODO remove this
 
         int nverts()   const;
         int ncorners() const;
@@ -81,6 +81,144 @@ namespace UM {
         auto iter_facets();
     };
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    struct Triangles : Surface { // simplicial mesh implementation
+        int create_facets(const int n);
+
+        int nfacets() const;
+        int facet_size(const int) const;
+        int corner(const int fi, const int ci) const;
+        int   vert(const int fi, const int lv) const;
+        int&  vert(const int fi, const int lv);
+
+        Triangles() = default;
+    };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    struct Quads : Surface { // quad mesh implementation
+        int create_facets(const int n);
+
+        int nfacets()  const;
+        int facet_size(const int) const;
+        int corner(const int fi, const int ci) const;
+        int   vert(const int fi, const int lv) const;
+        int&  vert(const int fi, const int lv);
+
+        Quads() = default;
+    };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    struct Polygons : Surface { // polygonal mesh implementation
+        std::vector<int> offset = { 0 };
+        Polygons() = default;
+
+        int create_facets(const int n, const int size);
+        void delete_facets(const std::vector<bool>& to_kill);
+
+        int nfacets()  const;
+        int facet_size(const int fi) const;
+        int corner(const int fi, const int ci) const;
+        int   vert(const int fi, const int lv) const;
+        int&  vert(const int fi, const int lv);
+    };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline int Surface::nverts() const {
+        return points.size();
+    }
+
+    inline int Surface::ncorners() const {
+        return facets.size();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline int Triangles::nfacets() const {
+        assert(0 == facets.size() % 3);
+        return facets.size() / 3;
+    }
+
+    inline int Triangles::facet_size(const int) const {
+        return 3;
+    }
+
+    inline int Triangles::corner(const int fi, const int ci) const {
+        assert(ci >= 0 && ci < 3 && fi >= 0 && fi < nfacets());
+        return fi * 3 + ci;
+    }
+
+    inline int Triangles::vert(const int fi, const int lv) const {
+        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 3);
+        return facets[fi * 3 + lv];
+    }
+
+    inline int& Triangles::vert(const int fi, const int lv) {
+        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 3);
+        return facets[fi * 3 + lv];
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline int Quads::nfacets() const {
+        assert(0 == facets.size() % 4);
+        return facets.size() / 4;
+    }
+
+    inline int Quads::facet_size(const int) const {
+        return 4;
+    }
+
+    inline int Quads::corner(const int fi, const int ci) const {
+        assert(ci >= 0 && ci < 4 && fi >= 0 && fi < nfacets());
+        return fi * 4 + ci;
+    }
+
+    inline int Quads::vert(const int fi, const int lv) const {
+        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 4);
+        return facets[fi * 4 + lv];
+    }
+
+    inline int& Quads::vert(const int fi, const int lv) {
+        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 4);
+        return facets[fi * 4 + lv];
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    inline int Polygons::nfacets() const {
+        return static_cast<int>(offset.size()) - 1;
+    }
+
+    inline int Polygons::facet_size(const int fi) const {
+        assert(fi >= 0 && fi < nfacets());
+        return offset[fi + 1] - offset[fi];
+    }
+
+    inline int Polygons::corner(const int fi, const int ci) const {
+        assert(fi >= 0 && fi < nfacets());
+        return offset[fi] + ci;
+    }
+
+    inline int Polygons::vert(const int fi, const int lv) const {
+        assert(fi >= 0 && fi < nfacets());
+        assert(lv >= 0 && lv < facet_size(fi));
+        return facets[offset[fi] + lv];
+    }
+
+    inline int& Polygons::vert(const int fi, const int lv) {
+        assert(fi >= 0 && fi < nfacets());
+        assert(lv >= 0 && lv < facet_size(fi));
+        return facets[offset[fi] + lv];
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct SurfaceAttributes {
         SurfaceAttributes() = default;
@@ -127,21 +265,20 @@ namespace UM {
     };
 
 
-        struct Surface::Connectivity {
-            Surface& m;
-            PointSet::Attribute<int>      v2c;    // vertex to corner map
-            Surface::CornerAttribute<int> c2f;    // corner to facet map
-            Surface::CornerAttribute<int> c2c;    // corner to corner (sharing the same vertex) map. Consecutive maps form an unordered linked list terminated by -1.
-            Surface::FacetAttribute<bool> active; // facets to keep after compacting
+    struct Surface::Connectivity {
+        Surface& m;
+        PointSet::Attribute<int>      v2c;    // vertex to corner map
+        Surface::CornerAttribute<int> c2f;    // corner to facet map
+        Surface::CornerAttribute<int> c2c;    // corner to corner (sharing the same vertex) map. Consecutive maps form an unordered linked list terminated by -1.
+        Surface::FacetAttribute<bool> active; // facets to keep after compacting
 
-            Connectivity(Surface& m);
-            void init();
-            Surface::Facet create_facet(std::initializer_list<int> verts);
-            Surface::Facet create_facet(int* verts, int size);
+        Connectivity(Surface& m);
+        void init();
+        Surface::Facet create_facet(std::initializer_list<int> verts);
+        Surface::Facet create_facet(int* verts, int size);
 
-            void change_from(Surface::Halfedge he, int new_vertex_id); // TODO move it to the toolbox
-        };
-
+        void change_from(Surface::Halfedge he, int new_vertex_id); // TODO move it to the toolbox
+    };
 
 
     template <typename T> using FacetAttribute  = Surface::FacetAttribute<T>;
@@ -283,148 +420,10 @@ namespace UM {
         };
 
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         inline Surface::Vertex     Surface::vertex(int id) { return   Vertex(*this, id); }
         inline Surface::Halfedge Surface::halfedge(int id) { return Halfedge(*this, id); }
         inline Surface::Facet       Surface::facet(int id) { return    Facet(*this, id); }
 
-
-    struct Triangles : Surface { // simplicial mesh implementation
-        int create_facets(const int n);
-
-        int nfacets() const;
-        int facet_size(const int) const;
-        int corner(const int fi, const int ci) const;
-        int  vert(const int fi, const int lv) const;
-        int& vert(const int fi, const int lv);
-
-        Triangles() = default;
-    };
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    struct Quads : Surface { // quad mesh implementation
-        int create_facets(const int n);
-
-        int nfacets()  const;
-        int facet_size(const int) const;
-        int corner(const int fi, const int ci) const;
-        int  vert(const int fi, const int lv) const;
-        int& vert(const int fi, const int lv);
-
-        Quads() = default;
-    };
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    struct Polygons : Surface { // polygonal mesh implementation
-        std::vector<int> offset = { 0 };
-        Polygons() = default;
-
-        int create_facets(const int n, const int size);
-        void delete_facets(const std::vector<bool>& to_kill);
-
-        int nfacets()  const;
-        int facet_size(const int fi) const;
-        int corner(const int fi, const int ci) const;
-        int  vert(const int fi, const int lv) const;
-        int& vert(const int fi, const int lv);
-    };
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline int Surface::nverts() const {
-        return points.size();
-    }
-
-    inline int Surface::ncorners() const {
-        return facets.size();
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline int Triangles::nfacets() const {
-        assert(0 == facets.size() % 3);
-        return facets.size() / 3;
-    }
-
-    inline int Triangles::facet_size(const int) const {
-        return 3;
-    }
-
-    inline int Triangles::corner(const int fi, const int ci) const {
-        assert(ci >= 0 && ci < 3 && fi >= 0 && fi < nfacets());
-        return fi * 3 + ci;
-    }
-
-    inline int Triangles::vert(const int fi, const int lv) const {
-        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 3);
-        return facets[fi * 3 + lv];
-    }
-
-    inline int& Triangles::vert(const int fi, const int lv) {
-        //      assert(conn==nullptr);
-        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 3);
-        return facets[fi * 3 + lv];
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline int Quads::nfacets() const {
-        assert(0 == facets.size() % 4);
-        return facets.size() / 4;
-    }
-
-    inline int Quads::facet_size(const int) const {
-        return 4;
-    }
-
-    inline int Quads::corner(const int fi, const int ci) const {
-        assert(ci >= 0 && ci < 4 && fi >= 0 && fi < nfacets());
-        return fi * 4 + ci;
-    }
-
-    inline int Quads::vert(const int fi, const int lv) const {
-        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 4);
-        return facets[fi * 4 + lv];
-    }
-
-    inline int& Quads::vert(const int fi, const int lv) {
-        //      assert(conn==nullptr);
-        assert(fi >= 0 && fi < nfacets() && lv >= 0 && lv < 4);
-        return facets[fi * 4 + lv];
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline int Polygons::nfacets() const {
-        return static_cast<int>(offset.size()) - 1;
-    }
-
-    inline int Polygons::facet_size(const int fi) const {
-        assert(fi >= 0 && fi < nfacets());
-        return offset[fi + 1] - offset[fi];
-    }
-
-    inline int Polygons::corner(const int fi, const int ci) const {
-        assert(fi >= 0 && fi < nfacets());
-        return offset[fi] + ci;
-    }
-
-    inline int Polygons::vert(const int fi, const int lv) const {
-        assert(fi >= 0 && fi < nfacets());
-        assert(lv >= 0 && lv < facet_size(fi));
-        return facets[offset[fi] + lv];
-    }
-
-    inline int& Polygons::vert(const int fi, const int lv) {
-        //      assert(conn==nullptr);
-        assert(fi >= 0 && fi < nfacets());
-        assert(lv >= 0 && lv < facet_size(fi));
-        return facets[offset[fi] + lv];
-    }
 
     ////////////////////////////////////////////////////////////////////////
     //      _____                            _   _       _ _         _    //
