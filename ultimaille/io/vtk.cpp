@@ -454,7 +454,7 @@ namespace UM {
         for (auto& [name, first_attribute] : first) { // attributes already present in first.
             auto it = second.find(name);
             if (it == second.end()) { // only in first
-                first_attribute->append_zeros(second_size); // postpend zeros
+                first_attribute->append_default_value(second_size); // postpend zeros
             } else { // in both
                 first_attribute->append(*it->second);
             }
@@ -466,7 +466,7 @@ namespace UM {
                 continue;
             // add the same container to first, then prepend zeros.
             first.emplace(name, second_attribute);
-            first.at(name)->prepend_zeros(first_size);
+            first.at(name)->prepend_default_value(first_size);
         }
     }
 

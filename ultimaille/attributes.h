@@ -15,16 +15,16 @@ namespace UM {
 
     struct PointSetAttributes {
         PointSetAttributes() = default;
-        PointSetAttributes(PointSetAttributes& p)        = default;
-        PointSetAttributes(PointSetAttributes&& p)       = default;
-        PointSetAttributes(const PointSetAttributes& p)  = default;
-        PointSetAttributes& operator=(const PointSetAttributes& p)  = default;
+        PointSetAttributes(PointSetAttributes& p)       = default;
+        PointSetAttributes(PointSetAttributes&& p)      = default;
+        PointSetAttributes(const PointSetAttributes& p) = default;
+        PointSetAttributes& operator=(const PointSetAttributes& p) = default;
 
         PointSetAttributes(AttributeMap points) : points(std::move(points)) {}
 
         PointSetAttributes(std::initializer_list<NamedAttribute> list) {
-            for (auto& attribute : list)
-                add_attribute(points, attribute, AttributeBase::POINTS);
+            for (auto& na : list)
+                points[na.name] = na.attribute.get_ptr();
         }
 
         AttributeMap points;
@@ -32,18 +32,18 @@ namespace UM {
 
     struct PolyLineAttributes {
         PolyLineAttributes() = default;
-        PolyLineAttributes(PolyLineAttributes& p)        = default;
-        PolyLineAttributes(PolyLineAttributes&& p)       = default;
-        PolyLineAttributes(const PolyLineAttributes& p)  = default;
-        PolyLineAttributes& operator=(const PolyLineAttributes& p)  = default;
+        PolyLineAttributes(PolyLineAttributes& p)       = default;
+        PolyLineAttributes(PolyLineAttributes&& p)      = default;
+        PolyLineAttributes(const PolyLineAttributes& p) = default;
+        PolyLineAttributes& operator=(const PolyLineAttributes& p) = default;
 
         PolyLineAttributes(AttributeMap points, AttributeMap edges) : points(std::move(points)), edges(std::move(edges)) {}
 
         PolyLineAttributes(std::initializer_list<NamedAttribute> list) {
-            for (auto& attribute : list) {
-                switch (attribute.attribute.kind()) {
-                    case AttributeBase::POINTS: add_attribute(points, attribute, AttributeBase::POINTS); break;
-                    case AttributeBase::EDGES:  add_attribute(edges, attribute, AttributeBase::EDGES);   break;
+            for (auto& na : list) {
+                switch (na.attribute.kind()) {
+                    case AttributeBase::POINTS: points[na.name] = na.attribute.get_ptr(); break;
+                    case AttributeBase::EDGES:   edges[na.name] = na.attribute.get_ptr(); break;
                     default:
                         um_assert(false);
                 }
@@ -55,19 +55,19 @@ namespace UM {
 
     struct SurfaceAttributes {
         SurfaceAttributes() = default;
-        SurfaceAttributes(SurfaceAttributes& p)        = default;
-        SurfaceAttributes(SurfaceAttributes&& p)       = default;
-        SurfaceAttributes(const SurfaceAttributes& p)  = default;
-        SurfaceAttributes& operator=(const SurfaceAttributes& p)  = default;
+        SurfaceAttributes(SurfaceAttributes& p)       = default;
+        SurfaceAttributes(SurfaceAttributes&& p)      = default;
+        SurfaceAttributes(const SurfaceAttributes& p) = default;
+        SurfaceAttributes& operator=(const SurfaceAttributes& p) = default;
 
         SurfaceAttributes(AttributeMap points, AttributeMap facets, AttributeMap corners) : points(std::move(points)), facets(std::move(facets)), corners(std::move(corners)) {}
 
         SurfaceAttributes(std::initializer_list<NamedAttribute> list) {
-            for (auto& attribute : list) {
-                switch (attribute.attribute.kind()) {
-                    case AttributeBase::POINTS:  add_attribute(points, attribute, AttributeBase::POINTS);   break;
-                    case AttributeBase::FACETS:  add_attribute(facets, attribute, AttributeBase::FACETS);   break;
-                    case AttributeBase::CORNERS: add_attribute(corners, attribute, AttributeBase::CORNERS); break;
+            for (auto& na : list) {
+                switch (na.attribute.kind()) {
+                    case AttributeBase::POINTS:   points[na.name] = na.attribute.get_ptr(); break;
+                    case AttributeBase::FACETS:   facets[na.name] = na.attribute.get_ptr(); break;
+                    case AttributeBase::CORNERS: corners[na.name] = na.attribute.get_ptr(); break;
                     default:
                         um_assert(false);
                 }
@@ -81,10 +81,10 @@ namespace UM {
 
     struct VolumeAttributes {
         VolumeAttributes() = default;
-        VolumeAttributes(VolumeAttributes& p)        = default;
-        VolumeAttributes(VolumeAttributes&& p)       = default;
-        VolumeAttributes(const VolumeAttributes& p)  = default;
-        VolumeAttributes& operator=(const VolumeAttributes& p)  = default;
+        VolumeAttributes(VolumeAttributes& p)       = default;
+        VolumeAttributes(VolumeAttributes&& p)      = default;
+        VolumeAttributes(const VolumeAttributes& p) = default;
+        VolumeAttributes& operator=(const VolumeAttributes& p) = default;
 
         VolumeAttributes(
                 AttributeMap points,
@@ -97,12 +97,12 @@ namespace UM {
             cell_corners(std::move(cell_corners)) {}
 
         VolumeAttributes(std::initializer_list<NamedAttribute> list) {
-            for (const auto& attribute : list) {
-                switch (attribute.attribute.kind()) {
-                    case AttributeBase::POINTS:      add_attribute(points, attribute, AttributeBase::POINTS);            break;
-                    case AttributeBase::CELLS:       add_attribute(cells, attribute, AttributeBase::CELLS);              break;
-                    case AttributeBase::CELLFACETS:  add_attribute(cell_facets, attribute, AttributeBase::CELLFACETS);   break;
-                    case AttributeBase::CELLCORNERS: add_attribute(cell_corners, attribute, AttributeBase::CELLCORNERS); break;
+            for (const auto& na : list) {
+                switch (na.attribute.kind()) {
+                    case AttributeBase::POINTS:            points[na.name] = na.attribute.get_ptr(); break;
+                    case AttributeBase::CELLS:              cells[na.name] = na.attribute.get_ptr(); break;
+                    case AttributeBase::CELLFACETS:   cell_facets[na.name] = na.attribute.get_ptr(); break;
+                    case AttributeBase::CELLCORNERS: cell_corners[na.name] = na.attribute.get_ptr(); break;
                     default:
                         um_assert(false);
                 }

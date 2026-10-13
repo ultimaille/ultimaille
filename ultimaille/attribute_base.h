@@ -10,22 +10,18 @@ namespace UM {
         virtual ~ContainerBase() = default;
         virtual void resize(const int n) = 0;
         virtual void compress(const std::vector<int> &old2new) = 0;
-        virtual void append_zeros(size_t n) = 0; // for merging attributes, at least in vtk.cpp
-        virtual void prepend_zeros(size_t n) = 0;
+        virtual void append_default_value(size_t n) = 0; // for merging attributes, at least in vtk.cpp
+        virtual void prepend_default_value(size_t n) = 0;
         virtual void append(const ContainerBase& other) = 0;
-    };
-
-    struct AttributeBase {
-        enum TYPE { GENERIC=-1, POINTS=0, EDGES=1, FACETS=2, CORNERS=3, CELLS=4, CELLFACETS=5, CELLCORNERS=6 };
-        virtual ~AttributeBase() = default;
-        virtual TYPE kind() const { return GENERIC; }
-        virtual std::shared_ptr<ContainerBase> get_ptr() const = 0;
-        bool bound() const { return get_ptr() != nullptr; }
     };
 
     template <typename T> struct AttributeContainer : ContainerBase {
         AttributeContainer(const int n, T def = T()) : data(n, def), default_value(def) {}
-        void resize(const int n) { data.resize(n, default_value); }
+
+        void resize(const int n) {
+            data.resize(n, default_value);
+        }
+
         void compress(const std::vector<int> &old2new) { // NB: old2new is not a permutation!
             um_assert(old2new.size()==data.size());
             int cnt = 0;
@@ -37,12 +33,12 @@ namespace UM {
             resize(cnt);
         }
 
-        void append_zeros(std::size_t n) override { // TODO: not zeros, default value
-            data.insert(data.end(), n, T{});
+        void append_default_value(std::size_t n) override {
+            data.insert(data.end(), n, default_value);
         }
 
-        void prepend_zeros(std::size_t n) override {
-            data.insert(data.begin(), n, T{});
+        void prepend_default_value(std::size_t n) override {
+            data.insert(data.begin(), n, default_value);
         }
 
         void append(const ContainerBase& other) override {
@@ -53,6 +49,16 @@ namespace UM {
 
         std::vector<T> data;
         T default_value;
+    };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    struct AttributeBase {
+        enum TYPE { GENERIC=-1, POINTS=0, EDGES=1, FACETS=2, CORNERS=3, CELLS=4, CELLFACETS=5, CELLCORNERS=6 }; // necessary for dynamic routing of a std::initializer_list<NamedAttribute>
+        virtual ~AttributeBase() = default;
+        virtual TYPE kind() const { return GENERIC; }
+        virtual std::shared_ptr<ContainerBase> get_ptr() const = 0;
+        bool bound() const { return get_ptr() != nullptr; }
     };
 
     template <typename T> struct GenericAttribute : AttributeBase {
@@ -145,11 +151,6 @@ namespace UM {
     };
 
     using AttributeMap = std::map<std::string, std::shared_ptr<ContainerBase>>;
-
-    inline void add_attribute(AttributeMap& map, const NamedAttribute& attribute, AttributeBase::TYPE expected) {
-        um_assert(attribute.attribute.kind() == expected);
-        map[attribute.name] = attribute.attribute.get_ptr();
-    }
 }
 
 #endif //__ATTRIBUTE_BASE_H__

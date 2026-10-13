@@ -88,6 +88,7 @@ namespace UM {
         return bind_attribute(this, name, seg.nedges(), attributes.edges, seg.attr);
     }
 
+
     template <typename T> Surface::FacetAttribute<T>::FacetAttribute(T def) : GenericAttribute<T>(def) {}
     template <typename T> Surface::FacetAttribute<T>::FacetAttribute(Surface &m, T def) : GenericAttribute<T>(def, m.nfacets()) {
         m.attr_facets.push_back(this->ptr);
