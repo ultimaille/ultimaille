@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <cstdint>
 
 #include "ultimaille/io/geogram.h"
