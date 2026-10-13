@@ -2,7 +2,7 @@
 #define __POINTSET_H__
 #include <vector>
 #include <memory>
-#include "attribute_base.h"
+#include "attributes.h"
 #include "algebra/vec.h"
 
 namespace UM {
@@ -99,6 +99,41 @@ namespace UM {
     template <typename T> void PointSet::delete_points(const T &to_kill) {
         std::vector<int> old2new;
         delete_points(to_kill, old2new);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    struct PointSetAttributes {
+        PointSetAttributes() = default;
+        PointSetAttributes(PointSetAttributes& p)       = default;
+        PointSetAttributes(PointSetAttributes&& p)      = default;
+        PointSetAttributes(const PointSetAttributes& p) = default;
+        PointSetAttributes& operator=(const PointSetAttributes& p) = default;
+
+        PointSetAttributes(AttributeMap points) : points(std::move(points)) {}
+
+        PointSetAttributes(std::initializer_list<NamedAttribute> list) {
+            for (auto& na : list)
+                points[na.name] = na.attribute.get_ptr();
+        }
+
+        AttributeMap points;
+    };
+
+    template <typename T> PointSet::Attribute<T>::Attribute(T def) : GenericAttribute<T>(def) {}
+    template <typename T> PointSet::Attribute<T>::Attribute(PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {
+        pts.attr->push_back(this->ptr);
+    }
+    template <typename T> PointSet::Attribute<T>::Attribute(const PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {}
+
+
+    template <typename T> PointSet::Attribute<T>::Attribute(std::string name, PointSetAttributes &attributes, PointSet &ps, T def) : GenericAttribute<T>(def) {
+        bind_attribute(this, name, ps.size(), attributes.points, *ps.attr);
+    }
+
+    template <typename T> bool PointSet::Attribute<T>::bind(std::string name, PointSetAttributes &attributes, PointSet &ps) {
+        um_assert(!this->bound());
+        return bind_attribute(this, name, ps.size(), attributes.points, ps.attr);
     }
 }
 

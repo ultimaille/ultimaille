@@ -7,7 +7,6 @@
 #include "ultimaille/volume.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/polyline.h"
-#include "ultimaille/attr_binding.h"
 
 namespace UM {
     // TODO: export vn and vt attributes

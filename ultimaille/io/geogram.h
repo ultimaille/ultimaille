@@ -7,7 +7,6 @@
 #include "ultimaille/volume.h"
 #include "ultimaille/surface.h"
 #include "ultimaille/polyline.h"
-#include "ultimaille/attr_binding.h"
 
 namespace UM {
     void write_geogram(const std::string filename, const PointSet &ps, const PointSetAttributes attr = {{}});
