@@ -2,6 +2,7 @@
 #define __ATTRIBUTE_BASE_H__
 #include <map>
 #include <vector>
+#include <string>
 #include <memory>
 #include "syntactic-sugar/assert.h"
 
