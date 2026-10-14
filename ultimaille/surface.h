@@ -1,13 +1,9 @@
 #ifndef __SURFACE_H__
 #define __SURFACE_H__
-#include <initializer_list>
 #include <vector>
 #include <memory>
-#include "algebra/vec.h"
 #include "attributes.h"
 #include "pointset.h"
-#include "primitive_geometry.h"
-#include "syntactic-sugar/assert.h"
 
 namespace UM {
 
@@ -17,19 +13,19 @@ namespace UM {
         std::vector<std::weak_ptr<ContainerBase>> attr_facets  = {};
         std::vector<std::weak_ptr<ContainerBase>> attr_corners = {};
 
-////////////////////////////////////////////////////
-//       _                 _                _     //
-//      | | _____      __ | | _____   _____| |    //
-//      | |/ _ \ \ /\ / / | |/ _ \ \ / / _ \ |    //
-//      | | (_) \ V  V /  | |  __/\ V /  __/ |    //
-//      |_|\___/ \_/\_/   |_|\___| \_/ \___|_|    //
-//                                                //
-////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        //       _                 _                _     //
+        //      | | _____      __ | | _____   _____| |    //
+        //      | |/ _ \ \ /\ / / | |/ _ \ \ / / _ \ |    //
+        //      | | (_) \ V  V /  | |  __/\ V /  __/ |    //
+        //      |_|\___/ \_/\_/   |_|\___| \_/ \___|_|    //
+        //                                                //
+        ////////////////////////////////////////////////////
 
         void delete_vertices(const std::vector<bool>& to_kill);
         virtual void delete_facets(const std::vector<bool>& to_kill);
         void delete_isolated_vertices();
-        void resize_attrs();
+        void resize_attrs(); // TODO hide it
         void compress_attrs(const std::vector<bool>& facets_to_kill); // TODO remove this
 
         int nverts()   const;
@@ -49,15 +45,18 @@ namespace UM {
         template <typename T> struct FacetAttribute;
         template <typename T> struct CornerAttribute;
 
-//////////////////////////////////////////////////////////////////////
-//                                      _   _       _ _             //
-//       ___ ___  _ __  _ __   ___  ___| |_(_)_   _(_) |_ _   _     //
-//      / __/ _ \| '_ \| '_ \ / _ \/ __| __| \ \ / / | __| | | |    //
-//     | (_| (_) | | | | | | |  __/ (__| |_| |\ V /| | |_| |_| |    //
-//      \___\___/|_| |_|_| |_|\___|\___|\__|_| \_/ |_|\__|\__, |    //
-//                                                        |___/     //
-//////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////
+        //       _     _       _       _                _       //
+        //      | |   (_)     | |     | |              | |      //
+        //      | |__  _  __ _| |__   | | _____   _____| |      //
+        //      | '_ \| |/ _` | '_ \  | |/ _ \ \ / / _ \ |      //
+        //      | | | | | (_| | | | | | |  __/\ V /  __/ |      //
+        //      |_| |_|_|\__, |_| |_| |_|\___| \_/ \___|_|      //
+        //                __/ |                                 //
+        //               |___/                                  //
+        //////////////////////////////////////////////////////////
 
+        struct Connectivity;
         struct Primitive;
         struct Vertex;
         struct Halfedge;
@@ -67,23 +66,22 @@ namespace UM {
         Halfedge halfedge(int id);
         Facet       facet(int id);
 
-        struct Connectivity;
+        auto iter_vertices();
+        auto iter_halfedges();
+        auto iter_facets();
 
-        std::unique_ptr<Connectivity> conn = {};
-        inline bool connected() const { return conn != nullptr; }
-
+        inline bool connected() const;
         void connect();
         void disconnect();
         void compact(bool delete_isolated_vertices = true);
 
-        auto iter_vertices();
-        auto iter_halfedges();
-        auto iter_facets();
+        std::unique_ptr<Connectivity> conn = {};
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Triangles : Surface { // simplicial mesh implementation
+        Triangles() = default;
         int create_facets(const int n);
 
         int nfacets() const;
@@ -91,13 +89,12 @@ namespace UM {
         int corner(const int fi, const int ci) const;
         int   vert(const int fi, const int lv) const;
         int&  vert(const int fi, const int lv);
-
-        Triangles() = default;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     struct Quads : Surface { // quad mesh implementation
+        Quads() = default;
         int create_facets(const int n);
 
         int nfacets()  const;
@@ -105,8 +102,6 @@ namespace UM {
         int corner(const int fi, const int ci) const;
         int   vert(const int fi, const int lv) const;
         int&  vert(const int fi, const int lv);
-
-        Quads() = default;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,9 +120,7 @@ namespace UM {
         int&  vert(const int fi, const int lv);
     };
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     inline int Surface::nverts() const {
         return points.size();
@@ -135,6 +128,10 @@ namespace UM {
 
     inline int Surface::ncorners() const {
         return facets.size();
+    }
+
+    inline bool Surface::connected() const {
+        return conn != nullptr;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,548 +214,11 @@ namespace UM {
         return facets[offset[fi] + lv];
     }
 
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    struct SurfaceAttributes {
-        SurfaceAttributes() = default;
-        SurfaceAttributes(SurfaceAttributes& p)       = default;
-        SurfaceAttributes(SurfaceAttributes&& p)      = default;
-        SurfaceAttributes(const SurfaceAttributes& p) = default;
-        SurfaceAttributes& operator=(const SurfaceAttributes& p) = default;
-
-        SurfaceAttributes(AttributeMap points, AttributeMap facets, AttributeMap corners) : points(std::move(points)), facets(std::move(facets)), corners(std::move(corners)) {}
-
-        SurfaceAttributes(std::initializer_list<NamedAttribute> list) {
-            for (auto& na : list) {
-                switch (na.attribute.kind()) {
-                    case AttributeBase::POINTS:   points[na.name] = na.attribute.get_ptr(); break;
-                    case AttributeBase::FACETS:   facets[na.name] = na.attribute.get_ptr(); break;
-                    case AttributeBase::CORNERS: corners[na.name] = na.attribute.get_ptr(); break;
-                    default:
-                        um_assert(false);
-                }
-            }
-        }
-
-        AttributeMap points  = {};
-        AttributeMap facets  = {};
-        AttributeMap corners = {};
-    };
-
-    template <typename T> struct Surface::FacetAttribute : GenericAttribute<T> {
-        FacetAttribute(T def = T());
-        FacetAttribute(Surface &m, T def = T());
-        FacetAttribute(const Surface &m, T def = T());
-        FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
-        bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::FACETS; }
-    };
-
-    template <typename T> struct Surface::CornerAttribute : GenericAttribute<T> {
-        CornerAttribute(T def = T());
-        CornerAttribute(Surface &m, T def = T());
-        CornerAttribute(const Surface &m, T def = T());
-        CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def = T());
-        bool bind(std::string name, SurfaceAttributes &attributes, Surface &m);
-        virtual AttributeBase::TYPE kind() const { return AttributeBase::CORNERS; }
-    };
-
-
-    struct Surface::Connectivity {
-        Surface& m;
-        PointSet::Attribute<int>      v2c;    // vertex to corner map
-        Surface::CornerAttribute<int> c2f;    // corner to facet map
-        Surface::CornerAttribute<int> c2c;    // corner to corner (sharing the same vertex) map. Consecutive maps form an unordered linked list terminated by -1.
-        Surface::FacetAttribute<bool> active; // facets to keep after compacting
-
-        Connectivity(Surface& m);
-        void init();
-        Surface::Facet create_facet(std::initializer_list<int> verts);
-        Surface::Facet create_facet(int* verts, int size);
-
-        void change_from(Surface::Halfedge he, int new_vertex_id); // TODO move it to the toolbox
-    };
-
-
-    template <typename T> using FacetAttribute  = Surface::FacetAttribute<T>;
-    template <typename T> using CornerAttribute = Surface::CornerAttribute<T>;
-
-    template <typename T> PointSet::Attribute<T>::Attribute(const Surface &m, T def) : Attribute(m.points, def) {}
-    template <typename T> PointSet::Attribute<T>::Attribute(Surface  &m, T def) : Attribute(m.points, def) {}
-
-    template <typename T> Surface::FacetAttribute<T>::FacetAttribute(T def) : GenericAttribute<T>(def) {}
-    template <typename T> Surface::FacetAttribute<T>::FacetAttribute(Surface &m, T def) : GenericAttribute<T>(def, m.nfacets()) {
-        m.attr_facets.push_back(this->ptr);
-    }
-
-    template <typename T> Surface::FacetAttribute<T>::FacetAttribute(const Surface &m, T def) : GenericAttribute<T>(def, m.nfacets()) {
-    }
-
-    template <typename T> Surface::FacetAttribute<T>::FacetAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.nfacets(), attributes.facets, m.attr_facets);
-    }
-
-    template <typename T> bool Surface::FacetAttribute<T>::bind(std::string name, SurfaceAttributes &attributes, Surface &m) {
-        um_assert(!this->bound());
-        return bind_attribute(this, name, m.nfacets(), attributes.facets, m.attr_facets);
-    }
-
-
-    template <typename T> Surface::CornerAttribute<T>::CornerAttribute(T def) : GenericAttribute<T>(def) {}
-    template <typename T> Surface::CornerAttribute<T>::CornerAttribute(Surface &m, T def) : GenericAttribute<T>(def, m.ncorners()) {
-        m.attr_corners.push_back(this->ptr);
-    }
-
-    template <typename T> Surface::CornerAttribute<T>::CornerAttribute(const Surface &m, T def) : GenericAttribute<T>(def, m.ncorners()) {
-    }
-
-    template <typename T> Surface::CornerAttribute<T>::CornerAttribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.ncorners(), attributes.corners, m.attr_corners);
-    }
-
-    template <typename T> bool Surface::CornerAttribute<T>::bind(std::string name, SurfaceAttributes &attributes, Surface &m) {
-        um_assert(!this->bound());
-        return bind_attribute(this, name, m.ncorners(), attributes.corners, m.attr_corners);
-    }
-
-    template <typename T> PointSet::Attribute<T>::Attribute(std::string name, SurfaceAttributes &attributes, Surface &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.nverts(), attributes.points, *m.points.attr);
-    }
-
-    template <typename T> bool PointSet::Attribute<T>::bind(std::string name, SurfaceAttributes &attributes, Surface &m) {
-        um_assert(!this->bound());
-        return bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr);
-    }
-
-
-
-//////////////////////////////////////////////////////////////
-//                  _           _ _   _                     //
-//       _ __  _ __(_)_ __ ___ (_) |_(_)_   _____  ___      //
-//      | '_ \| '__| | '_ ` _ \| | __| \ \ / / _ \/ __|     //
-//      | |_) | |  | | | | | | | | |_| |\ V /  __/\__ \     //
-//      | .__/|_|  |_|_| |_| |_|_|\__|_| \_/ \___||___/     //
-//      |_|                                                 //
-//////////////////////////////////////////////////////////////
-
-        struct Surface::Primitive {
-            Primitive(Surface& m, int id);
-            Primitive(Primitive& p)        = default;
-            Primitive(Primitive&& p)       = default;
-            Primitive(const Primitive& p)  = default;
-
-            Primitive& operator=(const Primitive&& p) noexcept;
-            Primitive& operator=(const Primitive& p);
-            Primitive& operator=(int i);
-
-            operator int() const;
-            operator int&();
-
-        protected:
-            friend struct Surface;
-            Surface& m;
-            int id;
-        };
-
-        struct Surface::Vertex : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-
-            inline operator vec3&();
-            inline operator vec3&() const;
-            vec3  pos() const;
-            vec3& pos();
-            Halfedge halfedge() const;
-            bool on_boundary() const;
-            bool active() const;
-            int id_in_facet(Facet f) const;
-
-            auto iter_halfedges() const;
-        };
-
-        struct Surface::Halfedge : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-
-            bool active() const;
-            bool on_boundary() const;
-            Facet facet() const;
-
-            Halfedge next() const;
-            Halfedge prev() const;
-            Halfedge opposite() const;
-
-            int id_in_facet() const;
-
-            friend struct Vertex;
-            Vertex from() const;
-            Vertex to() const;
-
-            inline operator vec3() const;
-            inline operator Segment3() const;
-
-            auto iter_sector_halfedges() const;
-        };
-
-        struct Surface::Facet : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-
-            void deactivate();
-
-            Vertex vertex(int lv) const;
-            Halfedge halfedge(int lh = 0) const;
-            int size() const;
-            bool active() const;
-
-            operator Triangle3() const;
-            operator Quad3() const;
-            operator Poly3() const;
-
-            auto iter_halfedges() const;
-        };
-
-
-        inline Surface::Vertex     Surface::vertex(int id) { return   Vertex(*this, id); }
-        inline Surface::Halfedge Surface::halfedge(int id) { return Halfedge(*this, id); }
-        inline Surface::Facet       Surface::facet(int id) { return    Facet(*this, id); }
-
-
-    ////////////////////////////////////////////////////////////////////////
-    //      _____                            _   _       _ _         _    //
-    //     / ____|                          | | (_)     (_) |       | |   //
-    //    | |     ___  _ __  _ __   ___  ___| |_ ___   ___| |_ _   _| |   //
-    //    | |    / _ \| '_ \| '_ \ / _ \/ __| __| \ \ / / | __| | | | |   //
-    //    | |___| (_) | | | | | | |  __/ (__| |_| |\ V /| | |_| |_| |_|   //
-    //     \_____\___/|_| |_|_| |_|\___|\___|\__|_| \_/ |_|\__|\__, (_)   //
-    //                                                          __/ |     //
-    //                                                         |___/      //
-    ////////////////////////////////////////////////////////////////////////
-
-    inline Surface::Primitive::Primitive(Surface& m, int id) : m(m), id(id) {}
-
-    inline Surface::Primitive& Surface::Primitive::operator=(const Surface::Primitive&& p) noexcept {
-        return Primitive::operator=(p);
-    }
-
-    inline Surface::Primitive& Surface::Primitive::operator=(const Surface::Primitive& p) {
-        assert(&m == &p.m);
-        id = p.id;
-        return *this;
-    }
-
-    inline Surface::Primitive& Surface::Primitive::operator=(int i) {
-        id = i;
-        return *this;
-    }
-
-    inline Surface::Primitive::operator int() const { return id; }
-    inline Surface::Primitive::operator int&()      { return id; }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline Surface::Vertex::operator vec3&() {
-        return { m.points[id] };
-    }
-
-    inline Surface::Vertex::operator vec3&() const {
-        return { m.points[id] };
-    }
-
-    inline vec3  Surface::Vertex::pos() const { return m.points[id]; }
-    inline vec3& Surface::Vertex::pos()       { return m.points[id]; }
-
-    inline Surface::Halfedge Surface::Vertex::halfedge() const {
-        assert(m.connected());
-        Surface::Halfedge res{m, m.conn->v2c[id]};
-        while (res >= 0 && !res.active())
-            res = m.conn->c2c[res];
-        return res;
-    }
-
-    inline bool Surface::Vertex::active() const {
-        return id >= 0;
-    }
-
-    inline int Surface::Vertex::id_in_facet(Facet f) const {
-        for (int lv = 0; lv < f.size(); lv++)
-            if (m.vert(f, lv) == id) return lv;
-        assert(false);
-        return -1;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline bool Surface::Halfedge::active() const {
-        return id >= 0 && facet().active();
-    }
-
-    inline bool Surface::Halfedge::on_boundary() const {
-        assert(m.connected());
-        assert(active());
-
-        int result = -1; // not found
-        Halfedge cir = from().halfedge();
-        while (cir != -1) {
-            Halfedge candidate = cir.prev();
-            if (cir.active()) {
-                if (candidate.from() == to() && candidate.to() == from()) {
-                    if (result == -1) result = candidate;
-                    // found more than one (non manifold)
-                    else
-                        assert(false);
-                }
-                // the edge is non manifold (non-orientable)
-                if (cir != *this && to() == cir.to())
-                    assert(false);
-            }
-            do {
-                cir = m.conn->c2c[cir];
-            } while (cir != -1 && !cir.active());
-        }
-
-        // Found an opposite
-        return result < 0;
-    }
-
-    inline Surface::Facet Surface::Halfedge::facet() const {
-        assert(m.connected());
-        return { m, m.conn->c2f[id] };
-    }
-
-    inline Surface::Halfedge Surface::Halfedge::next() const {
-        auto f = facet();
-        int lh = id - f.halfedge();
-        int n = f.size();
-        return { m, f.halfedge((lh + 1) % n) };
-    }
-
-    inline Surface::Halfedge Surface::Halfedge::prev() const {
-        auto f = facet();
-        int lh = id - f.halfedge();
-        int n = f.size();
-        return { m, f.halfedge((lh - 1 + n) % n) };
-    }
-
-    inline Surface::Halfedge Surface::Halfedge::opposite() const {
-        assert(m.connected());
-        assert(active());
-        Halfedge result = { m, -1 }; // not found
-        Halfedge cir = from().halfedge();
-        while (true) {
-            Halfedge candidate = cir.prev();
-            if (cir.active()) {
-                if (candidate.from() == to() && candidate.to() == from()) {
-                    if (result == -1) result = candidate;
-                    else return { m, -1 }; // found more than one
-                }
-                if (cir != *this && to() == cir.to())
-                    return { m, -1 }; // the edge is non manifold
-            }
-            do {
-                cir = m.conn->c2c[cir];
-                if (cir == -1) return result;
-            } while (!cir.active());
-        }
-    }
-
-    inline Surface::Vertex Surface::Halfedge::from() const {
-        auto f = facet();
-        int lh = id - f.halfedge();
-        return { m, m.vert(f, lh) };
-    }
-
-    inline Surface::Vertex Surface::Halfedge::to() const {
-        auto f = facet();
-        int lh = id - f.halfedge();
-        int n = f.size();
-        return { m, m.vert(f, (lh+1)%n) };
-    }
-
-    inline int Surface::Halfedge::id_in_facet() const {
-        return id - m.corner(facet(), 0);
-    }
-
-    inline Surface::Halfedge::operator vec3() const {
-        return {(vec3&)to() - (vec3&)from()};
-    }
-
-    inline Surface::Halfedge::operator Segment3() const {
-        return {from(), to()};
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline void Surface::Facet::deactivate() {
-        assert(m.connected());
-        m.conn->active[id] = false;
-    }
-
-    inline Surface::Vertex Surface::Facet::vertex(int lv) const {
-        return { m, m.vert(id, lv) };
-    }
-
-    inline Surface::Halfedge Surface::Facet::halfedge(int lh) const {
-        return { m, m.corner(id, lh) };
-    }
-
-
-    inline int Surface::Facet::size() const {
-        return m.facet_size(id);
-    }
-
-    inline bool Surface::Facet::active() const {
-        return id>=0 && (!m.connected() || m.conn->active[id]);
-    }
-
-    inline Surface::Facet::operator Triangle3() const {
-        um_assert(size()==3);
-        return { m.points[m.vert(id, 0)], m.points[m.vert(id, 1)], m.points[m.vert(id, 2)] };
-    }
-
-    inline Surface::Facet::operator Quad3() const {
-        um_assert(size()==4);
-        return { m.points[m.vert(id, 0)], m.points[m.vert(id, 1)], m.points[m.vert(id, 2)], m.points[m.vert(id, 3)] };
-    }
-
-    inline Surface::Facet::operator Poly3() const {
-        std::vector<vec3> pts(size());
-        for (int i = 0; i < size(); i++)
-            pts[i] = m.points[m.vert(id, i)];
-        return {pts};
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline auto Surface::iter_vertices() {
-        struct iterator {
-            Vertex v;
-            iterator & operator++() { ++v.id; return *this; }
-            bool operator!=(const iterator& rhs) const { return v != rhs.v; }
-            Vertex& operator*() { return v; }
-        };
-        struct wrapper {
-            Surface& m;
-            iterator begin() { return {{m,0}}; }
-            iterator end()   { return {{m,m.nverts()}}; }
-        };
-        return wrapper{ *this };
-    }
-
-    inline auto Surface::iter_halfedges() {
-        struct iterator {
-            Halfedge h;
-            const int ncorners; // need to freeze the end in the case the surface is changed in the meantime
-            iterator & operator++() {
-                ++h.id;
-                if (h.m.connected())
-                    while (h.id < ncorners && !h.active()) ++h.id;
-                return *this;
-            }
-            bool operator!=(const iterator& rhs) const { return h != rhs.h; }
-            Halfedge& operator*() { return h; }
-        };
-        struct wrapper {
-            Surface& m;
-            auto begin() { return ++iterator{{m, -1},           m.ncorners()}; } // ++(-1) is to select the first active
-            auto end()   { return   iterator{{m, m.ncorners()}, m.ncorners()}; }
-        };
-        return wrapper{ *this };
-    }
-
-    inline auto Surface::iter_facets() {
-        struct iterator {
-            Facet f;
-            const int nfacets; // need to freeze the end in the case the surface is changed in the meantime
-            iterator & operator++() {
-                ++f.id;
-                if (f.m.connected())
-                    while (f.id < nfacets && !f.active()) ++f.id;
-                return *this;
-            }
-            bool operator!=(const iterator& rhs) const { return f != rhs.f; }
-            Facet& operator*() { return f; }
-        };
-        struct wrapper {
-            Surface& m;
-            auto begin() { return ++iterator{{m, -1},          m.nfacets()}; } // ++(-1) is to select the first active
-            auto end()   { return   iterator{{m, m.nfacets()}, m.nfacets()}; }
-        };
-        return wrapper{ *this };
-    }
-
-    inline auto Surface::Vertex::iter_halfedges() const {
-        assert(m.connected());
-        struct iterator {
-            Surface::Halfedge he;
-            void operator++() {
-                const auto &c2c = he.m.conn->c2c;
-                do {
-                    he = c2c[he];
-                    if (he == -1) return;
-                } while (!he.active());
-            }
-            bool operator!=(const iterator& rhs) const { return he != rhs.he; }
-            Surface::Halfedge& operator*() { return he; }
-        };
-        struct wrapper {
-            Vertex v;
-            iterator begin() { return { v.halfedge() }; }
-            iterator end()   { return { {v.m, -1} }; }
-        };
-        return wrapper{ *this };
-    }
-
-    inline auto Surface::Halfedge::iter_sector_halfedges() const {
-        struct iterator {
-            Surface::Halfedge h, seed;
-            void operator++() {
-                h = h.prev().opposite();
-                if (h == seed) h = -1;
-            }
-            bool operator!=(const iterator& rhs) const { return h != rhs.h; }
-            Surface::Halfedge& operator*() { return h; }
-        };
-        struct wrapper {
-            Surface::Halfedge h;
-            iterator begin() {
-                const auto rewind_CCW = [](Surface::Halfedge h) -> Surface::Halfedge {
-                    assert(h.active());
-                    Halfedge cir = h;
-                    do {
-                        Halfedge opp = cir.opposite();
-                        if (opp<=0) return cir;
-                        cir = opp.next();
-                    } while (cir != h);
-                    return h;
-                };
-                Surface::Halfedge rwd = rewind_CCW(h);
-                return {rwd, rwd};
-            }
-            iterator end() { return {{h.m, -1}, {h.m, -1}}; }
-        };
-        return wrapper{ *this };
-    }
-
-    inline auto Surface::Facet::iter_halfedges() const {
-        struct iterator {
-            Surface::Halfedge he;
-            void operator++() {
-                auto f = he.facet();
-                if (++he == f.halfedge()+f.size()) he = -1;
-            }
-            bool operator!=(const iterator& rhs) const { return he != rhs.he; }
-            Surface::Halfedge& operator*() { return he; }
-        };
-        struct wrapper {
-            Surface::Facet f;
-            iterator begin() { return { f.halfedge() }; }
-            iterator end()   { return { {f.m,-1} }; }
-        };
-        return wrapper{ *this };
-    }
 }
+
+#include "surface_attributes.h"
+#include "surface_primitives.h"
+#include "surface_iterators.h"
 
 #endif //__SURFACE_H__
 
