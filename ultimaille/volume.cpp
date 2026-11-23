@@ -2,7 +2,6 @@
 #include "helpers/disjointset.h"
 #include "volume.h"
 #include "surface.h"
-#include "attr_binding.h"
 
 namespace UM {
 

@@ -39,7 +39,6 @@
 #include <ultimaille/surface.h>
 #include <ultimaille/volume.h>
 #include <ultimaille/primitive_geometry.h>
-#include <ultimaille/attr_binding.h>
 
 #include <stlbfgs.h>
 #include <OpenNL_psm/OpenNL_psm.h>

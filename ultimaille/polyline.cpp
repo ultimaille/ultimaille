@@ -5,7 +5,6 @@
 #include "polyline.h"
 #include "surface.h"
 #include "volume.h"
-#include "attr_binding.h"
 
 namespace UM {
     int PolyLine::nverts() const {
