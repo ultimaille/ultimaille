@@ -106,6 +106,7 @@ namespace UM {
             Edge opposite();
             Vertex from() const;
             Vertex to() const;
+            Vertex vertex(int lv) const;
 
             operator Segment3() const;
 
@@ -335,6 +336,11 @@ inline PolyLine::Vertex PolyLine::Edge::from() const {
 
 inline PolyLine::Vertex PolyLine::Edge::to() const {
     return { m, m.vert(id, 1) };
+}
+
+inline PolyLine::Vertex PolyLine::Edge::vertex(int lv) const {
+    assert(lv == 0 || lv == 1);
+    return { m, m.vert(id, lv) };
 }
 
 inline PolyLine::Edge::operator Segment3() const {

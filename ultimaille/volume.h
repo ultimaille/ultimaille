@@ -160,6 +160,7 @@ namespace UM {
             int id_in_cell()      const;
             Vertex from()         const;
             Vertex to()           const;
+            Vertex vertex(int lv) const;
             Corner from_corner()  const;
             Corner to_corner()    const;
             Halfedge next()       const;
@@ -431,6 +432,12 @@ namespace UM {
 
     inline Volume::Vertex Volume::Halfedge::to() const {
         return next().from();
+    }
+
+    inline Volume::Vertex Volume::Halfedge::vertex(int lv) const {
+        assert(lv == 0 || lv == 1);
+        if (lv) return to();
+        return from();
     }
 
     inline Volume::Corner Volume::Halfedge::from_corner() const {

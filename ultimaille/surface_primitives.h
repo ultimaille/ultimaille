@@ -54,6 +54,7 @@ namespace UM {
         friend struct Vertex;
         Vertex from() const;
         Vertex to() const;
+        Vertex vertex(int lv) const;
 
         inline operator vec3() const;
         inline operator Segment3() const;
@@ -234,6 +235,12 @@ namespace UM {
         int lh = id - f.halfedge();
         int n = f.size();
         return { m, m.vert(f, (lh+1)%n) };
+    }
+
+    inline Surface::Vertex Surface::Halfedge::vertex(int lv) const {
+        assert(lv == 0 || lv == 1);
+        if (lv) return to();
+        return from();
     }
 
     inline int Surface::Halfedge::id_in_facet() const {
