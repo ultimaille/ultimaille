@@ -43,7 +43,6 @@ namespace UM {
 
         template <typename T> struct Attribute;
 
-
         //////////////////////////////////////////////////////////
         //       _     _       _       _                _       //
         //      | |   (_)     | |     | |              | |      //
@@ -78,24 +77,6 @@ namespace UM {
 #include "polyline_attributes.h"                         
 #include "polyline_primitives.h"
 #include "polyline_iterators.h"         
-
-
-namespace UM {
-    inline PolyLine::Edge PolyLine::Edge::opposite() {
-        assert(m.connected());
-        assert(active());
-        Edge result = { m, -1 }; // not found
-        for (auto candidate : to().iter_edges()) {
-            um_assert(candidate.from() == to());
-            if (candidate.to() == from()) {
-                if (result == -1) result = candidate;
-                else return { m, -1 }; // found more than one
-            }
-        }
-        return result;
-    }
-}
-
 
 #endif //__POLYLINE_H__
 

@@ -14,7 +14,7 @@ namespace UM {
                     case AttributeBase::POINTS: points[na.name] = na.attribute.get_ptr(); break;
                     case AttributeBase::EDGES:   edges[na.name] = na.attribute.get_ptr(); break;
                     default:
-                        um_assert(false);
+                                                 um_assert(false);
                 }
             }
         }
@@ -31,12 +31,10 @@ namespace UM {
         virtual AttributeBase::TYPE kind() const { return AttributeBase::EDGES; }
     };
 
-
-
     template <typename T> using EdgeAttribute = PolyLine::Attribute<T>;
+
     template <typename T> PointSet::Attribute<T>::Attribute(PolyLine &m, T def) : Attribute(m.points, def) {}
     template <typename T> PointSet::Attribute<T>::Attribute(const PolyLine &m, T def) : Attribute(m.points, def) {}
-
     template <typename T> PolyLine::Attribute<T>::Attribute(T def) : GenericAttribute<T>(def) {}
     template <typename T> PolyLine::Attribute<T>::Attribute(PolyLine &m, T def) : GenericAttribute<T>(def, m.nedges()) {
         m.attr.push_back(this->ptr);

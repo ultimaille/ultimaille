@@ -142,5 +142,20 @@ namespace UM {
         v2e[org] = e;
         return Edge(m, e);
     }
+
+    PolyLine::Edge PolyLine::Edge::opposite() {
+        assert(m.connected());
+        assert(active());
+        Edge result = { m, -1 }; // not found
+        for (auto candidate : to().iter_edges()) {
+            um_assert(candidate.from() == to());
+            if (candidate.to() == from()) {
+                if (result == -1) result = candidate;
+                else return { m, -1 }; // found more than one
+            }
+        }
+        return result;
+    }
+
 }
 
