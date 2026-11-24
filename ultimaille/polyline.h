@@ -169,7 +169,7 @@ namespace UM {
 
     template <typename T> bool PointSet::Attribute<T>::bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg) {
         um_assert(!this->bound());
-        return bind_attribute(this, name, seg.nverts(), attributes.points, seg.points.attr);
+        return bind_attribute(this, name, seg.nverts(), attributes.points, *seg.points.attr);
     }
 
 

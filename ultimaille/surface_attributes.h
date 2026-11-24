@@ -110,7 +110,7 @@ namespace UM {
 
     template <typename T> bool PointSet::Attribute<T>::bind(std::string name, SurfaceAttributes &attributes, Surface &m) {
         um_assert(!this->bound());
-        return bind_attribute(this, name, m.nverts(), attributes.points, m.points.attr);
+        return bind_attribute(this, name, m.nverts(), attributes.points, *m.points.attr);
     }
 }
 
