@@ -1,5 +1,6 @@
 #ifndef __ATTRIBUTE_BASE_H__
 #define __ATTRIBUTE_BASE_H__
+
 #include <map>
 #include <vector>
 #include <string>

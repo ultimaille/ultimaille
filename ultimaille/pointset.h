@@ -16,13 +16,16 @@ namespace UM {
     struct VolumeAttributes;
 
     struct PointSet {
+        std::shared_ptr<std::vector<vec3>> data = nullptr;
+        std::shared_ptr<std::vector<std::weak_ptr<ContainerBase>>> attr = nullptr;
+
         PointSet() : data(new std::vector<vec3>()), attr(new std::vector<std::weak_ptr<ContainerBase>>()) {}
         PointSet(const PointSet &p)            = default; // We need to be able to share point sets, therefore we allow copying of the pointers
         PointSet(PointSet &&p)                 = default; // N.B. attrs pointer is also shared
         PointSet& operator=(const PointSet& p) = default;
 
         int size() const { return data->size(); }
-        vec3& operator[](const int i) { return data->at(i); }
+              vec3& operator[](const int i)       { return data->at(i); }
         const vec3& operator[](const int i) const { return data->at(i); }
         int use_count() { return data.use_count(); }
 
@@ -41,38 +44,11 @@ namespace UM {
         const_iterator begin() const { return data->begin(); }
         const_iterator end()   const { return data->end();   }
 
-        template <typename T> struct Attribute : GenericAttribute<T> {
-            Attribute(T def = T());
-            Attribute(PointSet &pts, T def = T());
-            Attribute(PolyLine &m,   T def = T());
-            Attribute(Surface &m,    T def = T());
-            Attribute(Volume  &m,    T def = T());
-            Attribute(const PointSet &pts, T def = T());
-            Attribute(const PolyLine &m,   T def = T());
-            Attribute(const Surface &m,    T def = T());
-            Attribute(const Volume  &m,    T def = T());
-
-            Attribute(std::string name, PointSetAttributes &attributes, PointSet &ps,  T def = T());
-            Attribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def = T());
-            Attribute(std::string name, SurfaceAttributes  &attributes, Surface  &m,   T def = T());
-            Attribute(std::string name, VolumeAttributes   &attributes, Volume   &m,   T def = T());
-
-            bool bind(std::string name, PointSetAttributes &attributes, PointSet &ps  );
-            bool bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg );
-            bool bind(std::string name, SurfaceAttributes  &attributes, Surface  &m   );
-            bool bind(std::string name, VolumeAttributes   &attributes, Volume   &m   );
-
-            virtual AttributeBase::TYPE kind() const { return AttributeBase::POINTS; }
-        };
-
         void resize_attrs();
         void compress_attrs(const std::vector<int> &old2new);
 
-        std::shared_ptr<std::vector<vec3>> data = nullptr;
-        std::shared_ptr<std::vector<std::weak_ptr<ContainerBase>>> attr = nullptr;
+        template <typename T> struct Attribute;
     };
-
-    template <typename T> using PointAttribute = PointSet::Attribute<T>;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -120,12 +96,39 @@ namespace UM {
         AttributeMap points;
     };
 
+    template <typename T> struct PointSet::Attribute : GenericAttribute<T> {
+        Attribute(T def = T());
+        Attribute(PointSet &pts, T def = T());
+        Attribute(PolyLine &m,   T def = T());
+        Attribute(Surface &m,    T def = T());
+        Attribute(Volume  &m,    T def = T());
+        Attribute(const PointSet &pts, T def = T());
+        Attribute(const PolyLine &m,   T def = T());
+        Attribute(const Surface &m,    T def = T());
+        Attribute(const Volume  &m,    T def = T());
+
+        Attribute(std::string name, PointSetAttributes &attributes, PointSet &ps,  T def = T());
+        Attribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def = T());
+        Attribute(std::string name, SurfaceAttributes  &attributes, Surface  &m,   T def = T());
+        Attribute(std::string name, VolumeAttributes   &attributes, Volume   &m,   T def = T());
+
+        bool bind(std::string name, PointSetAttributes &attributes, PointSet &ps  );
+        bool bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg );
+        bool bind(std::string name, SurfaceAttributes  &attributes, Surface  &m   );
+        bool bind(std::string name, VolumeAttributes   &attributes, Volume   &m   );
+
+        virtual AttributeBase::TYPE kind() const { return AttributeBase::POINTS; }
+    };
+
+    template <typename T> using PointAttribute = PointSet::Attribute<T>;
+
     template <typename T> PointSet::Attribute<T>::Attribute(T def) : GenericAttribute<T>(def) {}
+
     template <typename T> PointSet::Attribute<T>::Attribute(PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {
         pts.attr->push_back(this->ptr);
     }
-    template <typename T> PointSet::Attribute<T>::Attribute(const PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {}
 
+    template <typename T> PointSet::Attribute<T>::Attribute(const PointSet &pts, T def) : GenericAttribute<T>(def, pts.size()) {}
 
     template <typename T> PointSet::Attribute<T>::Attribute(std::string name, PointSetAttributes &attributes, PointSet &ps, T def) : GenericAttribute<T>(def) {
         bind_attribute(this, name, ps.size(), attributes.points, *ps.attr);
