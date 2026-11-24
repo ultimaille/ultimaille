@@ -3,352 +3,99 @@
 
 #include <vector>
 #include <memory>
-#include "algebra/vec.h"
 #include "pointset.h"
 #include "attributes.h"
 #include "syntactic-sugar/assert.h"
-#include "primitive_geometry.h"
 
 namespace UM {
     struct PolyLine {
-        PointSet points{};
-        std::vector<int> edges{};
-        std::vector<std::weak_ptr<ContainerBase> > attr{};
+        PointSet points = {};
+        std::vector<int> edges = {};
+        std::vector<std::weak_ptr<ContainerBase>> attr = {};
+
+        ////////////////////////////////////////////////////
+        //       _                 _                _     //
+        //      | | _____      __ | | _____   _____| |    //
+        //      | |/ _ \ \ /\ / / | |/ _ \ \ / / _ \ |    //
+        //      | | (_) \ V  V /  | |  __/\ V /  __/ |    //
+        //      |_|\___/ \_/\_/   |_|\___| \_/ \___|_|    //
+        //                                                //
+        ////////////////////////////////////////////////////
+
+        void delete_vertices(const std::vector<bool> &to_kill);
+        void delete_edges(const std::vector<bool> &to_kill);
+        void delete_isolated_vertices();
+        void resize_attrs();
+        void compress_attrs(const std::vector<bool> &edges_to_kill);
 
         int nverts() const;
         int nedges() const;
 
-        void compress_attrs(const std::vector<bool> &edges_to_kill);
-        void delete_vertices(const std::vector<bool> &to_kill);
-        void delete_edges(const std::vector<bool> &to_kill);
-        int create_edges(const int n);
-        void resize_attrs();
-
         int  vert(const int s, const int lv) const;
         int &vert(const int s, const int lv)      ;
 
-        void delete_isolated_vertices();
+        int create_edges(const int n);
 
-        PolyLine() {}
-        PolyLine(const PolyLine& m) = delete;
-        PolyLine(PolyLine&& m) = delete;
+        PolyLine() = default;
+        PolyLine(const PolyLine&  m) = delete;
+        PolyLine(      PolyLine&& m) = delete;
         PolyLine& operator=(const PolyLine& m) = delete;
 
-        template <typename T> struct Attribute : GenericAttribute<T> {
-            Attribute(T def = T());
-            Attribute(PolyLine &seg, T def = T());
-            Attribute(const PolyLine &seg, T def = T());
-            Attribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def = T());
-            bool bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg); // bind on the attribute if found in the collection (return value true), otherwise pushes a new attribute in the collection
-            virtual AttributeBase::TYPE kind() const { return AttributeBase::EDGES; }
-        };
+        template <typename T> struct Attribute;
 
+
+        //////////////////////////////////////////////////////////
+        //       _     _       _       _                _       //
+        //      | |   (_)     | |     | |              | |      //
+        //      | |__  _  __ _| |__   | | _____   _____| |      //
+        //      | '_ \| |/ _` | '_ \  | |/ _ \ \ / / _ \ |      //
+        //      | | | | | (_| | | | | | |  __/\ V /  __/ |      //
+        //      |_| |_|_|\__, |_| |_| |_|\___| \_/ \___|_|      //
+        //                __/ |                                 //
+        //               |___/                                  //
+        //////////////////////////////////////////////////////////
+
+        struct Connectivity;
+        struct Primitive;
+        struct Vertex;
         struct Edge;
-        struct Connectivity {
-            PolyLine& m;
-            PointSet::Attribute<int>  v2e;    // vertex to edge
-            PolyLine::Attribute<int>  e2e;    // edge to next edge sharing the same origin (unordered)
-            PolyLine::Attribute<bool> active; // edges to keep after compacting
 
-            Connectivity(PolyLine& m);
-            void init();
-            Edge create_edge(int v0, int v1);
-        };
+        Vertex vertex(int id);
+        Edge     edge(int id);
 
-        std::unique_ptr<Connectivity> conn = {};
-        inline bool connected() const { return conn != nullptr; }
+        auto iter_vertices();
+        auto iter_edges();
 
+        inline bool connected() const;
         void connect();
         void disconnect();
         void compact(bool delete_isolated_vertices = true);
 
-        struct Primitive {
-            Primitive(PolyLine& m, int id);
-            Primitive(Primitive& p) = default;
-            Primitive(Primitive&& p) = default;
-
-            Primitive& operator=(Primitive& p);
-            Primitive& operator=(int i);
-
-            operator int() const;
-            operator int& ();
-
-        protected:
-            friend struct PolyLine;
-            PolyLine& m;
-            int id;
-        };
-
-        struct Vertex : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-            Vertex(Vertex& v) = default;
-            Vertex(Vertex&& v) = default;
-            Vertex& operator=(Vertex& v);
-
-            inline operator vec3&();
-            inline operator vec3&() const;
-            vec3  pos() const;
-            vec3& pos();
-            Edge edge();
-            bool active();
-            auto iter_edges();
-        };
-
-        struct Edge : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-            Edge(Edge& he) = default;
-            Edge(Edge&& he) = default;
-            Edge& operator=(Edge& he);
-
-            bool active();
-            Edge opposite();
-            Vertex from() const;
-            Vertex to() const;
-            Vertex vertex(int lv) const;
-
-            operator Segment3() const;
-
-            friend struct Vertex;
-        };
-
-        Vertex vertex(int id) { return Vertex(*this, id); }
-        Edge edge(int id) { return Edge(*this, id); }
-
-        auto iter_vertices();
-        auto iter_edges();
+        std::unique_ptr<Connectivity> conn = {};
     };
+}
 
-    struct PolyLineAttributes {
-        PolyLineAttributes() = default;
-        PolyLineAttributes(PolyLineAttributes& p)       = default;
-        PolyLineAttributes(PolyLineAttributes&& p)      = default;
-        PolyLineAttributes(const PolyLineAttributes& p) = default;
-        PolyLineAttributes& operator=(const PolyLineAttributes& p) = default;
+#include "polyline_attributes.h"                         
+#include "polyline_primitives.h"
+#include "polyline_iterators.h"         
 
-        PolyLineAttributes(AttributeMap points, AttributeMap edges) : points(std::move(points)), edges(std::move(edges)) {}
 
-        PolyLineAttributes(std::initializer_list<NamedAttribute> list) {
-            for (auto& na : list) {
-                switch (na.attribute.kind()) {
-                    case AttributeBase::POINTS: points[na.name] = na.attribute.get_ptr(); break;
-                    case AttributeBase::EDGES:   edges[na.name] = na.attribute.get_ptr(); break;
-                    default:
-                        um_assert(false);
-                }
+namespace UM {
+    inline PolyLine::Edge PolyLine::Edge::opposite() {
+        assert(m.connected());
+        assert(active());
+        Edge result = { m, -1 }; // not found
+        for (auto candidate : to().iter_edges()) {
+            um_assert(candidate.from() == to());
+            if (candidate.to() == from()) {
+                if (result == -1) result = candidate;
+                else return { m, -1 }; // found more than one
             }
         }
-        AttributeMap points = {};
-        AttributeMap edges  = {};
-    };
-
-    template <typename T> using EdgeAttribute = PolyLine::Attribute<T>;
-    template <typename T> PointSet::Attribute<T>::Attribute(PolyLine &m, T def) : Attribute(m.points, def) {}
-    template <typename T> PointSet::Attribute<T>::Attribute(const PolyLine &m, T def) : Attribute(m.points, def) {}
-
-    template <typename T> PolyLine::Attribute<T>::Attribute(T def) : GenericAttribute<T>(def) {}
-    template <typename T> PolyLine::Attribute<T>::Attribute(PolyLine &m, T def) : GenericAttribute<T>(def, m.nedges()) {
-        m.attr.push_back(this->ptr);
+        return result;
     }
-
-    template <typename T> PolyLine::Attribute<T>::Attribute(const PolyLine &m, T def) : GenericAttribute<T>(def, m.nedges()) {
-    }
-
-    template <typename T> PolyLine::Attribute<T>::Attribute(std::string name, PolyLineAttributes &attributes, PolyLine &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.nedges(), attributes.edges, m.attr);
-    }
-
-    template <typename T> bool PolyLine::Attribute<T>::bind(std::string name, PolyLineAttributes &attributes, PolyLine &m) {
-        um_assert(!this->bound());
-        return bind_attribute(this, name, m.nedges(), attributes.edges, m.attr);
-    }
-
-    template <typename T> PointSet::Attribute<T>::Attribute(std::string name, PolyLineAttributes &attributes, PolyLine &seg, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, seg.nverts(), attributes.points, *seg.points.attr);
-    }
-
-    template <typename T> bool PointSet::Attribute<T>::bind(std::string name, PolyLineAttributes &attributes, PolyLine &seg) {
-        um_assert(!this->bound());
-        return bind_attribute(this, name, seg.nverts(), attributes.points, *seg.points.attr);
-    }
-
-
-
-
-/*   _ _                 _
-    (_) |               | |
-     _| |_ ___ _ __ __ _| |_ ___  _ __ ___
-    | | __/ _ \ '__/ _` | __/ _ \| '__/ __|
-    | | ||  __/ | | (_| | || (_) | |  \__ \
-    |_|\__\___|_|  \__,_|\__\___/|_|  |___/  */
-
-
-
-inline auto PolyLine::iter_vertices() {
-    struct iterator {
-        Vertex v;
-        void operator++() { ++v.id; }
-        bool operator!=(const iterator& rhs) const { return v != rhs.v; }
-        Vertex& operator*() { return v; }
-    };
-    struct wrapper {
-        PolyLine& m;
-        auto begin() { return iterator{ {m,0} }; }
-        auto end() { return iterator{ {m,m.nverts()} }; }
-    };
-    return wrapper{ *this };
 }
 
-inline auto PolyLine::iter_edges() {
-    struct iterator {
-        Edge h;
-        void operator++() {
-            ++h.id;
-            if (h.m.connected())
-                while (h.id < h.m.nedges() && !h.active()) ++h.id;
-        }
-        bool operator!=(const iterator& rhs) const { return h != rhs.h; }
-        Edge& operator*() { return h; }
-    };
-    struct wrapper {
-        PolyLine& m;
-        auto begin() {
-            iterator res{ {m,0} };
-            if (m.connected())
-                if (m.nedges() > 0 && !res.h.active()) ++res;
-            return res;
-        }
-        auto end() { return iterator{ {m,m.nedges()} }; }
-    };
-    return wrapper{ *this };
-}
-
-
-inline auto PolyLine::Vertex::iter_edges() {
-    assert(m.connected());
-    struct iterator {
-        PolyLine::Edge he;
-        void operator++() {
-            const auto& c2c = he.m.conn->e2e;
-            do {
-                he = c2c[he];
-                if (he == -1) return;
-            } while (!he.active());
-        }
-        bool operator!=(const iterator& rhs) const { return he != rhs.he; }
-        PolyLine::Edge& operator*() { return he; }
-    };
-    struct wrapper {
-        Vertex v;
-        iterator begin() { return { v.edge() }; }
-        iterator end() { return { {v.m, -1} }; }
-    };
-    return wrapper{ *this };
-}
-
-
-
-
-/*  ______     _           _ _   _
-    | ___ \   (_)         (_) | (_)
-    | |_/ / __ _ _ __ ___  _| |_ ___   _____  ___
-    |  __/ '__| | '_ ` _ \| | __| \ \ / / _ \/ __|
-    | |  | |  | | | | | | | | |_| |\ V /  __/\__ \
-    \_|  |_|  |_|_| |_| |_|_|\__|_| \_/ \___||___/  */
-
-inline PolyLine::Primitive::Primitive(PolyLine& m, int id) : m(m), id(id) {}
-
-inline PolyLine::Primitive& PolyLine::Primitive::operator=(PolyLine::Primitive& p) {
-    assert(&m == &p.m);
-    id = p.id;
-    return *this;
-}
-
-inline PolyLine::Primitive& PolyLine::Primitive::operator=(int i) {
-    id = i;
-    return *this;
-}
-
-inline PolyLine::Primitive::operator int() const { return id; }
-inline PolyLine::Primitive::operator int& () { return id; }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-inline PolyLine::Vertex& PolyLine::Vertex::operator=(PolyLine::Vertex& v) {
-    Primitive::operator=(v);
-    return *this;
-}
-inline PolyLine::Vertex::operator vec3&() {
-	return { m.points[id] };
-}
-
-inline PolyLine::Vertex::operator vec3&() const {
-	return { m.points[id] };
-}
-
-inline vec3  PolyLine::Vertex::pos() const { return m.points[id]; }
-inline vec3& PolyLine::Vertex::pos() { return m.points[id]; }
-
-inline PolyLine::Edge PolyLine::Vertex::edge() {
-    assert(m.connected());
-    PolyLine::Edge res{m, m.conn->v2e[id]};
-    while (res >= 0 && !res.active()) {
-        res = m.conn->e2e[res];
-    }
-    return res;
-}
-
-inline bool PolyLine::Vertex::active() {
-    return id >= 0;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-inline PolyLine::Edge& PolyLine::Edge::operator=(PolyLine::Edge& he) {
-    Primitive::operator=(he);
-    return *this;
-}
-
-inline bool PolyLine::Edge::active() {
-    return id >= 0 && m.conn->active[id];
-}
-
-
-inline PolyLine::Edge PolyLine::Edge::opposite() {
-    assert(m.connected());
-    assert(active());
-    Edge result = { m, -1 }; // not found
-    for (auto candidate : to().iter_edges()) {
-        um_assert(candidate.from() == to());
-        if (candidate.to() == from()) {
-            if (result == -1) result = candidate;
-            else return { m, -1 }; // found more than one
-        }
-    }
-    return result;
-}
-
-inline PolyLine::Vertex PolyLine::Edge::from() const {
-    return { m, m.vert(id, 0) };
-}
-
-inline PolyLine::Vertex PolyLine::Edge::to() const {
-    return { m, m.vert(id, 1) };
-}
-
-inline PolyLine::Vertex PolyLine::Edge::vertex(int lv) const {
-    assert(lv == 0 || lv == 1);
-    return { m, m.vert(id, lv) };
-}
-
-inline PolyLine::Edge::operator Segment3() const {
-    return {from(), to()};
-}
-
-
-
-}
 
 #endif //__POLYLINE_H__
+
