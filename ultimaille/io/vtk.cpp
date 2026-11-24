@@ -447,29 +447,78 @@ namespace UM {
         return { attrib[0], attrib[1], {} };
     }
 
-    void merge_attributes(AttributeMap& first,
-            const AttributeMap& second,
-            std::size_t first_size,
-            std::size_t second_size) {
-        for (auto& [name, first_attribute] : first) { // attributes already present in first.
-            auto it = second.find(name);
-            if (it == second.end()) { // only in first
-                first_attribute->append_default_value(second_size); // postpend zeros
-            } else { // in both
-                first_attribute->append(*it->second);
-            }
+
+
+
+
+    template <typename T>
+        bool append_attribute_values(const std::shared_ptr<ContainerBase>& destination, const std::shared_ptr<ContainerBase>& source) {
+            auto dst = std::dynamic_pointer_cast<AttributeContainer<T>>(destination);
+            auto src = std::dynamic_pointer_cast<AttributeContainer<T>>(source);
+            if (!dst || !src) return false;
+            dst->data.insert(dst->data.end(), src->data.begin(), src->data.end());
+            return true;
         }
 
-        // attributes only present in second.
+    void append_attribute_values(const std::shared_ptr<ContainerBase>& destination, const std::shared_ptr<ContainerBase>& source) {
+        if (append_attribute_values<bool>(destination, source) ||
+                append_attribute_values<int>(destination, source) ||
+                append_attribute_values<double>(destination, source))
+            return;
+        throw std::runtime_error("Unsupported attribute type while merging VTK attributes");
+    }
+
+    template <typename T>
+        bool append_default_values(const std::shared_ptr<ContainerBase>& base, std::size_t count) {
+            auto attr = std::dynamic_pointer_cast<AttributeContainer<T>>(base);
+            if (!attr)
+                return false;
+            attr->data.insert(attr->data.end(), count, attr->default_value);
+            return true;
+        }
+
+    void append_default_values(const std::shared_ptr<ContainerBase>& attr, std::size_t count) {
+        if (append_default_values<bool>(attr, count) ||
+                append_default_values<int>(attr, count) ||
+                append_default_values<double>(attr, count))
+            return;
+        throw std::runtime_error("Unsupported attribute type while appending VTK defaults");
+    }
+
+    template <typename T>
+        bool prepend_default_values(const std::shared_ptr<ContainerBase>& base, std::size_t count) {
+            auto attr = std::dynamic_pointer_cast<AttributeContainer<T>>(base);
+            if (!attr)
+                return false;
+            attr->data.insert(attr->data.begin(), count, attr->default_value);
+            return true;
+        }
+
+    void prepend_default_values(const std::shared_ptr<ContainerBase>& attr, std::size_t count) {
+        if (prepend_default_values<bool>(attr, count) ||
+                prepend_default_values<int>(attr, count) ||
+                prepend_default_values<double>(attr, count))
+            return;
+        throw std::runtime_error("Unsupported attribute type while prepending VTK defaults");
+
+    }
+
+    void merge_attributes(AttributeMap& first, const AttributeMap& second, std::size_t first_size, std::size_t second_size) {
+        for (auto& [name, first_attribute] : first) {
+            auto it = second.find(name);
+            if (it == second.end())
+                append_default_values(first_attribute, second_size);
+            else
+                append_attribute_values(first_attribute, it->second);
+        }
+
         for (const auto& [name, second_attribute] : second) {
             if (first.contains(name))
                 continue;
-            // add the same container to first, then prepend zeros.
             first.emplace(name, second_attribute);
-            first.at(name)->prepend_default_value(first_size);
+            prepend_default_values(first.at(name), first_size);
         }
     }
-
 
     SurfaceAttributes read_vtk(const std::string filename, Quads& m) {
         um_assert(!m.nverts() && !m.nfacets());

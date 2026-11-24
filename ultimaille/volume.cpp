@@ -186,16 +186,17 @@ namespace UM {
         Vertex to   = vertex(h.to());
         PolyLine::Edge res(*this,-1);
         for (auto e_manifold : from.iter_edges()){
-            if (e_manifold.to()!=to)
+            if (e_manifold.to() != to)
                 continue;
-            if (res==-1){
+            if (res == -1) {
                 res = e_manifold;
                 continue;
             }
+
             // the edge is non manifold, find the one reachable from h
             for (int cir : h.iter_CCW_around_edge())
                 for (auto e : from.iter_edges())
-                    if (halfedge_from_edge(e)==cir)
+                    if (halfedge_from_edge(e) == cir)
                         return e;
         }
         return res;

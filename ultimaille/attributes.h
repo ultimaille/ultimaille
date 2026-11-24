@@ -11,9 +11,6 @@ namespace UM {
         virtual ~ContainerBase() = default;
         virtual void resize(const int n) = 0;
         virtual void compress(const std::vector<int> &old2new) = 0;
-        virtual void append_default_value(size_t n) = 0; // for merging attributes, at least in vtk.cpp
-        virtual void prepend_default_value(size_t n) = 0;
-        virtual void append(const ContainerBase& other) = 0;
     };
 
     template <typename T> struct AttributeContainer : ContainerBase {
@@ -32,20 +29,6 @@ namespace UM {
                 cnt++;
             }
             resize(cnt);
-        }
-
-        void append_default_value(std::size_t n) override {
-            data.insert(data.end(), n, default_value);
-        }
-
-        void prepend_default_value(std::size_t n) override {
-            data.insert(data.begin(), n, default_value);
-        }
-
-        void append(const ContainerBase& other) override {
-            auto ptr = dynamic_cast<const AttributeContainer<T>*>(&other);
-            um_assert(ptr != nullptr);
-            data.insert(data.end(), ptr->data.begin(), ptr->data.end());
         }
 
         std::vector<T> data;
