@@ -202,6 +202,8 @@ namespace UM {
         return res;
     }
 
-
+    Volume::Halfedge EdgeGraph::halfedge_from_edge(Edge e) {
+        return { m, m_halfedge_from_edge[e] };
+    }
 }
 

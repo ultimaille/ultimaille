@@ -3,36 +3,39 @@
 #include <vector>
 #include <array>
 #include <memory>
+#include <cassert>
 
-#include "syntactic-sugar/assert.h"
-#include "algebra/vec.h"
 #include "attributes.h"
 #include "pointset.h"
 #include "volume_reference.h"
-#include "primitive_geometry.h"
 #include "polyline.h"
 
 namespace UM {
-    struct Volume;
-
     struct Volume {
         enum CELL_TYPE { TETRAHEDRON=0, HEXAHEDRON=1, WEDGE=2, PYRAMID=3 };
         CELL_TYPE cell_type;
 
-        PointSet points{};
-        std::vector<int> cells{};
+        PointSet points = {};
+        std::vector<int> cells = {};
 
-        std::vector<std::weak_ptr<ContainerBase> > attr_cells{};
-        std::vector<std::weak_ptr<ContainerBase> > attr_facets{};
-        std::vector<std::weak_ptr<ContainerBase> > attr_corners{};
+        std::vector<std::weak_ptr<ContainerBase>> attr_cells   = {};
+        std::vector<std::weak_ptr<ContainerBase>> attr_facets  = {};
+        std::vector<std::weak_ptr<ContainerBase>> attr_corners = {};
 
-        int  create_cells(const int n);
+        ////////////////////////////////////////////////////
+        //       _                 _                _     //
+        //      | | _____      __ | | _____   _____| |    //
+        //      | |/ _ \ \ /\ / / | |/ _ \ \ / / _ \ |    //
+        //      | | (_) \ V  V /  | |  __/\ V /  __/ |    //
+        //      |_|\___/ \_/\_/   |_|\___| \_/ \___|_|    //
+        //                                                //
+        ////////////////////////////////////////////////////
+
         void delete_vertices(const std::vector<bool> &to_kill); // TODO invocable
-        void delete_isolated_vertices();
-
         template <typename T> void delete_cells(const T &to_kill);
-
+        void delete_isolated_vertices();
         void resize_attrs();
+        int  create_cells(const int n);
 
         int nverts()     const;
         int ncells()     const;
@@ -40,23 +43,10 @@ namespace UM {
         int ncorners()   const;
         int nhalfedges() const;
 
-        struct Vertex; struct Corner; struct Halfedge; struct Facet; struct Cell;
-
-        Vertex     vertex(int id) const { return   Vertex(*this, id); }
-        Corner     corner(int id) const { return   Corner(*this, id); }
-        Halfedge halfedge(int id) const { return Halfedge(*this, id); }
-        Facet       facet(int id) const { return    Facet(*this, id); }
-        Cell         cell(int id) const { return     Cell(*this, id); }
-
         constexpr int     nverts_per_cell() const;
         constexpr int    nfacets_per_cell() const;
         constexpr int nhalfedges_per_cell() const;
         constexpr int facet_size(const int f) const;
-
-        [[deprecated]] constexpr int cell_from_facet (const int f) const;
-        [[deprecated]] constexpr int cell_from_corner(const int c) const;
-        [[deprecated]] constexpr int  facet(const int c, const int lf) const;
-        [[deprecated]] constexpr int corner(const int c, const int lc) const;
 
         int facet_vert(const int c, const int lf, const int lv) const;
         int  vert(const int c, const int lv) const;
@@ -67,191 +57,47 @@ namespace UM {
         Volume(Volume&& m)                 = delete;
         Volume& operator=(const Volume& m) = delete;
 
-        template <typename T> struct CellAttribute : GenericAttribute<T> {
-            CellAttribute(T def = T());
-            CellAttribute(Volume &m, T def = T());
-            CellAttribute(const Volume &m, T def = T());
-            CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def = T());
-            bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
-            virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLS; }
-        };
+        template <typename T> struct CellAttribute;
+        template <typename T> struct FacetAttribute;
+        template <typename T> struct CornerAttribute;
 
-        template <typename T> struct FacetAttribute : GenericAttribute<T> {
-            FacetAttribute(T def = T());
-            FacetAttribute(Volume &m, T def = T());
-            FacetAttribute(const Volume &m, T def = T());
-            FacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def = T());
-            bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
-            virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLFACETS; }
-        };
+        //////////////////////////////////////////////////////////
+        //       _     _       _       _                _       //
+        //      | |   (_)     | |     | |              | |      //
+        //      | |__  _  __ _| |__   | | _____   _____| |      //
+        //      | '_ \| |/ _` | '_ \  | |/ _ \ \ / / _ \ |      //
+        //      | | | | | (_| | | | | | |  __/\ V /  __/ |      //
+        //      |_| |_|_|\__, |_| |_| |_|\___| \_/ \___|_|      //
+        //                __/ |                                 //
+        //               |___/                                  //
+        //////////////////////////////////////////////////////////
 
-        template <typename T> struct CornerAttribute : GenericAttribute<T> {
-            CornerAttribute(T def = T());
-            CornerAttribute(Volume &m, T def = T());
-            CornerAttribute(const Volume &m, T def = T());
-            CornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def = T());
-            bool bind(std::string name, VolumeAttributes &attributes, Volume &m);
-            virtual AttributeBase::TYPE kind() const { return AttributeBase::CELLCORNERS; }
-        };
+        struct Connectivity;
+        struct Primitive;
+        struct Vertex;
+        struct Corner;
+        struct Halfedge;
+        struct Facet;
+        struct Cell;
 
-        struct Connectivity {
-            Volume &m;
-            Volume::FacetAttribute<int> adjacent;
-
-            Connectivity(Volume &m);
-            void reset();
-        };
-
-        std::unique_ptr<Connectivity> conn = {};
-        inline bool connected() const { return conn != nullptr; }
-
-        void connect();
-        void disconnect();
-
-        // TODO careful assert policy, esp. for the iterators
-
-        struct Primitive {
-            Primitive(const Volume& m, int id) : m(m), id(id) {}
-            Primitive(Primitive& p)  = default;
-            Primitive(Primitive&& p) = default;
-            Primitive(const Primitive& p)  = default;
-
-            Primitive& operator=(const Primitive&& p) noexcept;
-            Primitive& operator=(Primitive& p);
-            Primitive& operator=(int i);
-
-            operator int() const;
-            operator int& ();
-            bool active() const;
-
-        protected:
-            friend struct Volume;
-            const Volume& m;
-            int id;
-        };
-
-        struct Vertex : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-
-            [[deprecated]] vec3  pos() const;
-            [[deprecated]] vec3& pos();
-
-            inline operator const vec3&() const;
-        };
-
-        struct Corner : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-
-            int id_in_cell()    const;
-            Vertex vertex()     const;
-            Cell cell()         const;
-            Halfedge halfedge() const;
-
-//          auto iter_halfedges() const; // TODO
-        };
-
-        struct Halfedge : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-
-            int id_in_facet()     const;
-            int id_in_cell()      const;
-            Vertex from()         const;
-            Vertex to()           const;
-            Vertex vertex(int lv) const;
-            Corner from_corner()  const;
-            Corner to_corner()    const;
-            Halfedge next()       const;
-            Halfedge prev()       const;
-            Halfedge opposite_f() const;
-            Halfedge opposite_c() const;
-            Facet facet()         const;
-            Cell cell()           const;
-
-            operator Segment3()   const;
-
-            auto iter_CCW_around_edge();
-        };
-
-        struct Facet : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-
-            [[deprecated]] int nverts()     const;
-            [[deprecated]] int ncorners()   const;
-            [[deprecated]] int nhalfedges() const;
-            int size() const;
-
-            bool on_boundary() const;
-
-            int id_in_cell()          const;
-            Vertex vertex(int lv)     const;
-            Halfedge halfedge(int lh) const;
-            Corner corner(int lc)     const;
-            Facet opposite()          const;
-            Cell cell()               const;
-
-            operator Triangle3() const;
-            operator Quad3()     const;
-            operator Poly3()     const;
-
-            auto iter_halfedges();
-        };
-
-        struct Cell : Primitive {
-            using Primitive::Primitive;
-            using Primitive::operator=;
-
-            int nfacets()    const;
-            int ncorners()   const;
-            int nverts()     const;
-            int nhalfedges() const;
-
-            Facet facet(int lf)       const;
-            Corner corner(int lc)     const;
-            Vertex vertex(int lv)     const;
-            Halfedge halfedge(int lh) const;
-
-            operator Tetrahedron() const;
-            operator Hexahedron()  const;
-            operator Pyramid()     const;
-            operator Wedge()       const;
-
-            auto iter_halfedges();
-            auto iter_facets();
-            auto iter_corners();
-        };
+        Vertex     vertex(int id) const;
+        Corner     corner(int id) const;
+        Halfedge halfedge(int id) const;
+        Facet       facet(int id) const;
+        Cell         cell(int id) const;
 
         auto iter_vertices()  const;
         auto iter_corners()   const;
         auto iter_halfedges() const;
         auto iter_facets()    const;
         auto iter_cells()     const;
+
+        inline bool connected() const;
+        void connect();
+        void disconnect();
+
+        std::unique_ptr<Connectivity> conn = {};
     };
-
-    template <typename T> using CellAttribute       = Volume::CellAttribute<T>;
-    template <typename T> using CellFacetAttribute  = Volume::FacetAttribute<T>;
-    template <typename T> using CellCornerAttribute = Volume::CornerAttribute<T>;
-
-   /*
-    * EdgeGraph represents edges of a volumetric mesh
-    *    -> Concept: An edge corresponds to a set of halfedges with same from/to vertices
-    *    -> Design choice: Edges are manifold, so a non manifold edge is represented edges with same from/to vertices
-    *   -> Benefits: A) use EdgeAttributes and B) gives acces to vertex neigborhood i.e. all primitives can reach its neigborgs
-    */
-
-    struct EdgeGraph : public PolyLine {
-        EdgeGraph(Volume& m);
-        PolyLine::Edge edge_from_halfedge(Volume::Halfedge h);
-        Volume::Halfedge halfedge_from_edge(Edge e);
-
-        std::vector<int> m_halfedge_from_edge;
-        Volume& m;
-    };
-
-    inline Volume::Halfedge EdgeGraph::halfedge_from_edge(Edge e) { return { m, m_halfedge_from_edge[e] }; }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -270,6 +116,23 @@ namespace UM {
     struct Pyramids : Volume {
         Pyramids() : Volume(Volume::PYRAMID) {}
     };
+
+    /*
+     * EdgeGraph represents edges of a volumetric mesh
+     *    -> Concept: An edge corresponds to a set of halfedges with same from/to vertices
+     *    -> Design choice: Edges are manifold, so a non manifold edge is represented edges with same from/to vertices
+     *   -> Benefits: A) use EdgeAttributes and B) gives acces to vertex neigborhood i.e. all primitives can reach its neigborgs
+     */
+
+    struct EdgeGraph : public PolyLine {
+        EdgeGraph(Volume& m);
+        PolyLine::Edge edge_from_halfedge(Volume::Halfedge h);
+        Volume::Halfedge halfedge_from_edge(Edge e);
+
+        std::vector<int> m_halfedge_from_edge;
+        Volume& m;
+    };
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // these implementations are here and not in the .cpp because all inline functions must be available in all translation units //
@@ -293,16 +156,6 @@ namespace UM {
 
     inline int Volume::nhalfedges() const {
         return ncells() * nhalfedges_per_cell();
-    }
-
-    inline constexpr int Volume::cell_from_facet(const int f) const {
-        assert(f>=0 && f<nfacets());
-        return f / nfacets_per_cell();
-    }
-
-    inline constexpr int Volume::cell_from_corner(const int c) const {
-        assert(c>=0 && c<ncorners());
-        return c / nverts_per_cell();
     }
 
     inline int Volume::vert(const int c, const int lv) const {
@@ -337,369 +190,13 @@ namespace UM {
         return vert(c, reference_cells[cell_type].vert(lf, lv));
     }
 
-    inline constexpr int Volume::facet(const int c, const int lf) const {
-        assert(c>=0 && c<ncells() && lf>=0 && lf<nfacets_per_cell());
-        return c*nfacets_per_cell() + lf;
-    }
-
-    inline constexpr int Volume::corner(const int c, const int lc) const {
-        assert(c>=0 && c<ncells() && lc>=0 && lc<nverts_per_cell());
-        return c*nverts_per_cell() + lc;
-    }
-
-    //////////////////////////////////////////////////////////////
-    //                  _           _ _   _                     //
-    //       _ __  _ __(_)_ __ ___ (_) |_(_)_   _____  ___      //
-    //      | '_ \| '__| | '_ ` _ \| | __| \ \ / / _ \/ __|     //
-    //      | |_) | |  | | | | | | | | |_| |\ V /  __/\__ \     //
-    //      | .__/|_|  |_|_| |_| |_|_|\__|_| \_/ \___||___/     //
-    //      |_|                                                 //
-    //////////////////////////////////////////////////////////////
-
-    inline Volume::Primitive::operator int() const {
-        return id;
-    }
-
-    inline Volume::Primitive::operator int& () {
-        return id;
-    }
-
-    inline bool Volume::Primitive::active() const {
-        return id>=0;
-    }
-
-    inline Volume::Primitive& Volume::Primitive::operator=(const Volume::Primitive&& p) noexcept {
-        return Primitive::operator=(p);
-    }
-
-    inline Volume::Primitive& Volume::Primitive::operator=(Volume::Primitive& p) {
-        assert(&m == &p.m);
-        id = p.id;
-        return *this;
-    }
-
-    inline Volume::Primitive& Volume::Primitive::operator=(int i) {
-        id = i;
-        return *this;
-    }
+#include "volume_attributes.h"
+#include "volume_primitives.h"
+#include "volume_iterators.h"
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    inline vec3  Volume::Vertex::pos() const {
-        return m.points[id];
-    }
-
-    inline vec3& Volume::Vertex::pos() {
-        return const_cast<vec3 &>(m.points[id]); // TODO attention!
-    }
-
-    inline Volume::Vertex::operator const vec3&() const {
-        return { m.points[id] };
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline Volume::Vertex Volume::Corner::vertex() const {
-        return { m, m.vert(cell(), id_in_cell()) };
-    }
-
-    inline Volume::Cell Volume::Corner::cell() const {
-         return { m, id / m.nverts_per_cell() };
-    }
-
-    inline int Volume::Corner::id_in_cell() const {
-        return id % m.nverts_per_cell();
-    }
-
-    inline Volume::Halfedge Volume::Corner::halfedge() const {
-        const int local_halfedge = reference_cells[m.cell_type].v2h[id_in_cell()];
-        return { m,  cell() * m.nhalfedges_per_cell() + local_halfedge };
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline int Volume::Halfedge::id_in_facet() const {
-        return id - facet().halfedge(0);
-    }
-
-    inline int Volume::Halfedge::id_in_cell() const {
-        return id % m.nhalfedges_per_cell();
-    }
-
-    inline Volume::Vertex Volume::Halfedge::from() const {
-        return { m, m.vert(cell(), reference_cells[m.cell_type].from(id_in_cell())) };
-    }
-
-    inline Volume::Vertex Volume::Halfedge::to() const {
-        return next().from();
-    }
-
-    inline Volume::Vertex Volume::Halfedge::vertex(int lv) const {
-        assert(lv == 0 || lv == 1);
-        if (lv) return to();
-        return from();
-    }
-
-    inline Volume::Corner Volume::Halfedge::from_corner() const {
-        return { m, cell() * m.nverts_per_cell() + reference_cells[m.cell_type].from(id_in_cell()) };
-    }
-
-    inline Volume::Corner Volume::Halfedge::to_corner() const {
-        return next().from_corner();
-    }
-
-    inline Volume::Halfedge Volume::Halfedge::next() const {
-        if (id_in_facet() < facet().size()-1)
-            return { m, id + 1 };
-        return { m, id - facet().size() + 1 };
-    }
-
-    inline Volume::Halfedge Volume::Halfedge::prev() const {
-        if (id_in_facet())
-            return { m, id - 1 };
-        return { m, id + facet().size() - 1 };
-    }
-
-    inline Volume::Halfedge Volume::Halfedge::opposite_f() const {
-        return { m, cell() * m.nhalfedges_per_cell() + reference_cells[m.cell_type].opposite(id_in_cell()) };
-    }
-
-    inline Volume::Halfedge Volume::Halfedge::opposite_c() const {
-        assert(m.connected());
-        Facet oppf = facet().opposite();
-        if (!oppf.active()) return { m, -1 };
-        for (int lv=0; lv<oppf.size(); lv++) {
-            Halfedge res = oppf.halfedge(lv);
-            if (res.from() == to() && res.to() == from()) return res;
-        }
-        um_assert(false);
-        return { m, -1 };
-    }
-
-    inline Volume::Facet Volume::Halfedge::facet() const {
-        return { m, cell() * m.nfacets_per_cell() + reference_cells[m.cell_type].facet(id_in_cell()) };
-    }
-
-    inline Volume::Cell Volume::Halfedge::cell() const {
-        return { m, id / m.nhalfedges_per_cell() };
-    }
-
-    inline Volume::Halfedge::operator Segment3() const {
-        return { from(), to() };
-    }
-
-    inline auto Volume::Halfedge::iter_CCW_around_edge() {
-        struct iterator {
-            Halfedge ref;
-            Halfedge data;
-            void operator++() {
-                data = data.opposite_f().opposite_c();
-                if (data == ref) data.id = -1;
-            }
-            bool operator!=(iterator& rhs) { return data != rhs.data; }
-            Halfedge& operator*() { return data; }
-        };
-        struct wrapper {
-            Halfedge ref;
-            auto begin() {
-                if (!ref.active()) return iterator{ ref,ref };
-                Halfedge org = ref;
-                do {
-                    Halfedge opp = ref.opposite_c();
-                    if (!opp.active())
-                        return iterator{ ref , ref };
-                    ref = opp.opposite_f();
-                } while (org != ref);
-                return iterator{ ref , ref };
-            }
-            auto end() { return iterator{ ref , Halfedge(ref.m,-1) }; }
-        };
-        return wrapper{ *this };
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline int Volume::Facet::size() const {
-        return reference_cells[m.cell_type].facet_size(id % m.nfacets_per_cell());
-    }
-
-    inline int Volume::Facet::nverts() const {
-        return m.facet(id).size();
-    }
-
-    inline int Volume::Facet::ncorners() const {
-        return m.facet(id).size();
-    }
-
-    inline int Volume::Facet::nhalfedges() const {
-        return m.facet(id).size();
-    }
-
-    inline Volume::Halfedge Volume::Facet::halfedge(int i) const{
-        assert(i>=0 && i<size());
-        return { m, cell() * m.nhalfedges_per_cell() + reference_cells[m.cell_type].corner(id_in_cell(), i) };
-    }
-
-    inline Volume::Vertex Volume::Facet::vertex(int i) const {
-        assert(i>=0 && i<size());
-        return { m, m.vert(cell(), reference_cells[m.cell_type].vert(id_in_cell(), i)) };
-    }
-
-    inline Volume::Corner Volume::Facet::corner(int i) const {
-        assert(i>=0 && i<size());
-        return { m, halfedge(i).from_corner() };
-    }
-
-    inline Volume::Facet Volume::Facet::opposite() const {
-        assert(m.connected());
-        return { m, m.conn->adjacent[id] };
-    }
-
-    inline bool Volume::Facet::on_boundary() const {
-        return !opposite().active();
-    }
-
-    inline Volume::Cell Volume::Facet::cell() const {
-        return { m, id / m.nfacets_per_cell() };
-    }
-
-    inline int Volume::Facet::id_in_cell() const {
-        return id % m.nfacets_per_cell();
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    inline int Volume::Cell::nverts() const {
-        return m.nverts_per_cell();
-    }
-
-    inline int Volume::Cell::nfacets() const {
-        return m.nfacets_per_cell();
-    }
-
-    inline int Volume::Cell::ncorners() const {
-        return m.nverts_per_cell();
-    }
-
-    inline int Volume::Cell::nhalfedges() const {
-        return m.nhalfedges_per_cell();
-    }
-
-    inline Volume::Vertex Volume::Cell::vertex(int lv) const {
-        assert(lv>=0 && lv<m.nverts_per_cell());
-        return { m, m.vert(id, lv) };
-    }
-
-    inline Volume::Corner Volume::Cell::corner(int lc) const {
-        assert(lc>=0 && lc<m.nverts_per_cell());
-        return { m, id * m.nverts_per_cell() + lc };
-    }
-
-    inline Volume::Halfedge Volume::Cell::halfedge(int lh) const {
-        assert(lh>=0 && lh<m.nhalfedges_per_cell());
-        return { m, m.nhalfedges_per_cell()*id + lh };
-    }
-
-    inline Volume::Facet Volume::Cell::facet(int lf) const {
-        assert(lf>=0 && lf<m.nfacets_per_cell());
-        return { m, m.nfacets_per_cell()*id + lf };
-    }
-
-    inline Volume::Cell::operator Tetrahedron() const {
-        um_assert(m.cell_type == Volume::TETRAHEDRON);
-        return { vertex(0), vertex(1), vertex(2), vertex(3) };
-    }
-
-    inline Volume::Cell::operator Pyramid() const {
-        um_assert(m.cell_type == Volume::PYRAMID);
-        return { vertex(0), vertex(1), vertex(2), vertex(3), vertex(4) };
-    }
-
-    inline Volume::Cell::operator Hexahedron() const {
-        um_assert(m.cell_type == Volume::HEXAHEDRON);
-        return { vertex(0), vertex(1), vertex(2), vertex(3), vertex(4), vertex(5), vertex(6), vertex(7) };
-    }
-
-    inline Volume::Cell::operator Wedge() const {
-        um_assert(m.cell_type == Volume::WEDGE);
-        return { vertex(0), vertex(1), vertex(2), vertex(3), vertex(4), vertex(5) };
-    }
-
-    inline Volume::Facet::operator Triangle3() const {
-        um_assert(size()==3);
-        return { vertex(0), vertex(1), vertex(2) };
-    }
-
-    inline Volume::Facet::operator Quad3() const {
-        um_assert(size()==4);
-        return { vertex(0), vertex(1), vertex(2), vertex(3) };
-    }
-
-    inline Volume::Facet::operator Poly3() const {
-        std::vector<vec3> pts(size());
-        for (int i = 0; i < size(); i++)
-            pts[i] = vertex(i);
-        return { pts };
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    template <typename P, typename M>
-    auto custom_iterator(M &m, int from, int to) {
-        struct iterator {
-            P data;
-            P& operator*()    { return data; }
-            void operator++() { ++data; }
-            bool operator!=(iterator& rhs) { return data != rhs.data; }
-        };
-        struct wrapper {
-            M& m;
-            int from, to;
-            iterator begin() { return {{ m, from }}; }
-            iterator end()   { return {{ m, to   }}; }
-        };
-        return wrapper{ m, from, to };
-    }
-
-    inline auto Volume::iter_vertices() const {
-        return custom_iterator<Vertex>(*this, 0, nverts());
-    }
-
-    inline auto Volume::iter_corners() const {
-        return custom_iterator<Corner>(*this, 0, ncorners());
-    }
-
-    inline auto Volume::iter_halfedges() const {
-        return custom_iterator<Halfedge>(*this, 0, nhalfedges());
-    }
-
-    inline auto Volume::iter_facets() const {
-        return custom_iterator<Facet>(*this, 0, nfacets());
-    }
-
-    inline auto Volume::iter_cells() const {
-        return custom_iterator<Cell>(*this, 0, ncells());
-    }
-
-    inline auto Volume::Facet::iter_halfedges() {
-        return custom_iterator<Halfedge>(m, halfedge(0), halfedge(0) + size());
-    }
-
-    inline auto Volume::Cell::iter_halfedges() {
-        return custom_iterator<Halfedge>(m, halfedge(0), halfedge(0) + nhalfedges());
-    }
-
-    inline auto Volume::Cell::iter_facets() {
-        return custom_iterator<Facet>(m, facet(0), facet(0) + nfacets());
-    }
-
-    inline auto Volume::Cell::iter_corners() {
-        return custom_iterator<Corner>(m, corner(0), corner(0) + ncorners());
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    template <typename T> void Volume::delete_cells(const T &to_kill) {
+    template <typename T> void UM::Volume::delete_cells(const T &to_kill) {
         constexpr bool invocable = std::is_invocable_r_v<bool, T, int>;
         if constexpr (!invocable)
             assert(to_kill.size()==(size_t)ncells());
@@ -742,111 +239,7 @@ namespace UM {
         for (auto &wp : attr_corners) if (auto spt = wp.lock())
             spt->compress(corners_old2new);
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    struct VolumeAttributes {
-        VolumeAttributes() = default;
-        VolumeAttributes(VolumeAttributes& p)       = default;
-        VolumeAttributes(VolumeAttributes&& p)      = default;
-        VolumeAttributes(const VolumeAttributes& p) = default;
-        VolumeAttributes& operator=(const VolumeAttributes& p) = default;
-
-        VolumeAttributes(
-                AttributeMap points,
-                AttributeMap cells,
-                AttributeMap cell_facets,
-                AttributeMap cell_corners) :
-            points(std::move(points)),
-            cells(std::move(cells)),
-            cell_facets(std::move(cell_facets)),
-            cell_corners(std::move(cell_corners)) {}
-
-        VolumeAttributes(std::initializer_list<NamedAttribute> list) {
-            for (const auto& na : list) {
-                switch (na.attribute.kind()) {
-                    case AttributeBase::POINTS:            points[na.name] = na.attribute.get_ptr(); break;
-                    case AttributeBase::CELLS:              cells[na.name] = na.attribute.get_ptr(); break;
-                    case AttributeBase::CELLFACETS:   cell_facets[na.name] = na.attribute.get_ptr(); break;
-                    case AttributeBase::CELLCORNERS: cell_corners[na.name] = na.attribute.get_ptr(); break;
-                    default:
-                                                     um_assert(false);
-                }
-            }
-        }
-
-        AttributeMap points       = {};
-        AttributeMap cells        = {};
-        AttributeMap cell_facets  = {};
-        AttributeMap cell_corners = {};
-    };
-
-
-    template <typename T> PointSet::Attribute<T>::Attribute(const Volume  &m, T def) : Attribute(m.points, def) {}
-    template <typename T> PointSet::Attribute<T>::Attribute(Volume   &m, T def) : Attribute(m.points, def) {}
-
-    template <typename T> Volume::CellAttribute<T>::CellAttribute(T def) : GenericAttribute<T>(def) {}
-    template <typename T> Volume::CellAttribute<T>::CellAttribute(Volume &m, T def) : GenericAttribute<T>(def, m.ncells()) {
-        m.attr_cells.push_back(this->ptr);
-    }
-
-    template <typename T> Volume::CellAttribute<T>::CellAttribute(const Volume &m, T def) : GenericAttribute<T>(def, m.ncells()) {
-    }
-
-    template <typename T> Volume::CellAttribute<T>::CellAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.ncells(), attributes.cells, m.attr_cells);
-    }
-
-    template <typename T> bool Volume::CellAttribute<T>::bind(std::string name, VolumeAttributes &attributes, Volume &m) {
-        um_assert(!this->bound());
-        return bind_attribute(this, name, m.ncells(), attributes.cells, m.attr_cells);
-    }
-
-    template <typename T> Volume::FacetAttribute<T>::FacetAttribute(T def) : GenericAttribute<T>(def) {}
-    template <typename T> Volume::FacetAttribute<T>::FacetAttribute(Volume &m, T def) : GenericAttribute<T>(def, m.nfacets()) {
-        m.attr_facets.push_back(this->ptr);
-    }
-
-    template <typename T> Volume::FacetAttribute<T>::FacetAttribute(const Volume &m, T def) : GenericAttribute<T>(def, m.nfacets()) {
-    }
-
-    template <typename T> Volume::FacetAttribute<T>::FacetAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.nfacets(), attributes.cell_facets, m.attr_facets);
-    }
-
-    template <typename T> bool Volume::FacetAttribute<T>::bind(std::string name, VolumeAttributes &attributes, Volume &m) {
-        um_assert(!this->bound());
-        return bind_attribute(this, name, m.nfacets(), attributes.cell_facets, m.attr_facets);
-    }
-
-
-    template <typename T> Volume::CornerAttribute<T>::CornerAttribute(T def) : GenericAttribute<T>(def) {}
-    template <typename T> Volume::CornerAttribute<T>::CornerAttribute(Volume &m, T def) : GenericAttribute<T>(def, m.ncorners()) {
-        m.attr_corners.push_back(this->ptr);
-    }
-
-    template <typename T> Volume::CornerAttribute<T>::CornerAttribute(const Volume &m, T def) : GenericAttribute<T>(def, m.ncorners()) {
-    }
-
-    template <typename T> Volume::CornerAttribute<T>::CornerAttribute(std::string name, VolumeAttributes &attributes, Volume &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.ncorners(), attributes.cell_corners, m.attr_corners);
-    }
-
-    template <typename T> bool Volume::CornerAttribute<T>::bind(std::string name, VolumeAttributes &attributes, Volume &m) {
-        um_assert(!this->bound());
-        return bind_attribute(this, name, m.ncorners(), attributes.cell_corners, m.attr_corners);
-    }
-
-    template <typename T> PointSet::Attribute<T>::Attribute(std::string name, VolumeAttributes &attributes, Volume &m, T def) : GenericAttribute<T>(def) {
-        bind_attribute(this, name, m.nverts(), attributes.points, *m.points.attr);
-    }
-
-    template <typename T> bool PointSet::Attribute<T>::bind(std::string name, VolumeAttributes &attributes, Volume &m) {
-        um_assert(!this->bound());
-        return bind_attribute(this, name, m.nverts(), attributes.points, *m.points.attr);
-    }
-
-
 }
 
 #endif //__VOLUME_H__
+

@@ -17,7 +17,7 @@ namespace UM {
         constexpr int ncorners() const { return nc; }
         constexpr int facet_size(const int f) const { return offset[f+1]-offset[f]; }
 
-        // Get half-edge  in facet
+        // Get half-edge in facet
         constexpr int corner(const int f, const int lc) const { return offset[f]+lc; }
         constexpr int vert(const int f, const int lv)   const { return facets[offset[f]+lv]; }
 
