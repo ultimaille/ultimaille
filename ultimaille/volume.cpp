@@ -148,9 +148,25 @@ namespace UM {
         points = m.points;
 
         DisjointSet ds(m.nhalfedges());
-        for(auto h:m.iter_halfedges())
-            if (h.facet().opposite().active())
-                ds.merge(h,h.opposite_c().opposite_f());
+//      the following loop conceptually does this, but avoids opposite_c() calls
+//      for (auto h:m.iter_halfedges())
+//          if (h.facet().opposite().active())
+//              ds.merge(h, h.opposite_c().opposite_f());
+
+        for (auto f : m.iter_facets()) {
+            if (f.opposite().active() && f > f.opposite())
+                continue;
+
+            Volume::Halfedge h = f.halfedge(0);
+            Volume::Halfedge opp = h.opposite_c();
+
+            for (int lh = 0; lh < f.size(); lh++) {
+                ds.merge(h, opp.opposite_f());
+                ds.merge(h.opposite_f(), opp);
+                h = h.next();
+                opp = opp.prev();
+            }
+        }
 
         std::vector<int> edges_;
         int nedges = ds.get_sets_id(edges_);
