@@ -1,18 +1,8 @@
-namespace UM {
+#include "syntactic-sugar/iterator.h"
 
+namespace UM {
     inline auto PolyLine::iter_vertices() {
-        struct iterator {
-            Vertex v;
-            void operator++() { ++v.id; }
-            bool operator!=(const iterator& rhs) const { return v != rhs.v; }
-            Vertex& operator*() { return v; }
-        };
-        struct wrapper {
-            PolyLine& m;
-            auto begin() { return iterator{ {m,0} }; }
-            auto end() { return iterator{ {m,m.nverts()} }; }
-        };
-        return wrapper{ *this };
+        return custom_iterator<Vertex>(*this, 0, nverts());
     }
 
     inline auto PolyLine::iter_edges() {
@@ -60,6 +50,5 @@ namespace UM {
         };
         return wrapper{ *this };
     }
-
 }
 

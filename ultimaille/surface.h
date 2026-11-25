@@ -212,7 +212,6 @@ namespace UM {
         assert(lv >= 0 && lv < facet_size(fi));
         return facets[offset[fi] + lv];
     }
-
 }
 
 #include "surface_attributes.h"
