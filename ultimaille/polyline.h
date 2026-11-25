@@ -27,7 +27,6 @@ namespace UM {
         template <typename T> void delete_edges(const T &to_kill);
 
         void delete_isolated_vertices();
-        void resize_attrs();
 
         int nverts() const;
         int nedges() const;
@@ -72,6 +71,8 @@ namespace UM {
         void compact(bool delete_isolated_vertices = true);
 
         std::unique_ptr<Connectivity> conn = {};
+        private:
+        void resize_attrs();
     };
 }
 

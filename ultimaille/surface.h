@@ -25,7 +25,6 @@ namespace UM {
         void delete_vertices(const std::vector<bool>& to_kill);
         virtual void delete_facets(const std::vector<bool>& to_kill);
         void delete_isolated_vertices();
-        void resize_attrs(); // TODO hide it
 
         int nverts()   const;
         int ncorners() const;
@@ -75,6 +74,9 @@ namespace UM {
         void compact(bool delete_isolated_vertices = true);
 
         std::unique_ptr<Connectivity> conn = {};
+
+        protected:
+        void resize_attrs();
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

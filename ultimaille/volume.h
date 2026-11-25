@@ -34,7 +34,6 @@ namespace UM {
         template <typename T> void delete_vertices(const T&to_kill);
         template <typename T> void delete_cells(const T &to_kill);
         void delete_isolated_vertices();
-        void resize_attrs();
         int  create_cells(const int n);
 
         int nverts()     const;
@@ -99,6 +98,7 @@ namespace UM {
         std::unique_ptr<Connectivity> conn = {};
         private:
         void compute_corner_to_corner_map(std::vector<int> &v2c, std::vector<int> &c2c) const;
+        void resize_attrs();
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
