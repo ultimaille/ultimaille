@@ -123,35 +123,6 @@ namespace UM {
             spt->resize(ncorners());
     }
 
-    void Surface::compress_attrs(const std::vector<bool> &facets_to_kill) {
-        assert(facets_to_kill.size()==(size_t)nfacets());
-        std::vector<int>  facets_old2new(nfacets(),  -1);
-        std::vector<int> corners_old2new(ncorners(), -1);
-
-        int new_nb_facets  = 0;
-        int new_nb_corners = 0;
-
-        for (int f=0; f<nfacets(); f++) {
-            if (facets_to_kill[f]) continue;
-            for (int lv=0; lv<facet_size(f); lv++)
-                corners_old2new[corner(f, lv)] = new_nb_corners++;
-            facets_old2new[f] = new_nb_facets++;
-        }
-
-        std::erase_if(attr_facets,  [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
-        std::erase_if(attr_corners, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
-        for (auto &wp : attr_facets) { // compress attributes
-            auto spt = wp.lock();
-            assert(spt!=nullptr);
-            spt->compress(facets_old2new);
-        }
-        for (auto &wp : attr_corners) {
-            auto spt = wp.lock();
-            assert(spt!=nullptr);
-            spt->compress(corners_old2new);
-        }
-    }
-
     void Surface::delete_vertices(const std::vector<bool> &to_kill) {
         assert(to_kill.size()==(size_t)nverts());
         std::vector<int> old2new;
@@ -165,14 +136,37 @@ namespace UM {
     void Surface::delete_facets(const std::vector<bool> &to_kill) {
         assert(!connected());
         assert(to_kill.size()==(size_t)nfacets());
-        compress_attrs(to_kill);  // TODO: if to_kill comes from an attribute, compressing the attribute compromises the code below
+
+        std::vector<int>  facets_old2new(nfacets(),  -1);
+        std::vector<int> corners_old2new(ncorners(), -1);
+
+        int new_nb_facets  = 0;
         int new_nb_corners = 0;
-        for (int f=0; f<nfacets(); f++) {
+
+        for (auto f : iter_facets()) {
             if (to_kill[f]) continue;
-            for (int lv=0; lv<facet_size(f); lv++)
-                facets[new_nb_corners++] = vert(f, lv);
+            for (auto c : f.iter_halfedges()) {
+                corners_old2new[c] = new_nb_corners;
+                facets[new_nb_corners++] = c.from();
+            }
+            facets_old2new[f] = new_nb_facets++;
         }
+
         facets.resize(new_nb_corners);
+
+        std::erase_if(attr_facets,  [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
+        std::erase_if(attr_corners, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
+
+        for (auto &wp : attr_facets) { // compress attributes
+            auto spt = wp.lock();
+            assert(spt!=nullptr);
+            spt->compress(facets_old2new);
+        }
+        for (auto &wp : attr_corners) {
+            auto spt = wp.lock();
+            assert(spt!=nullptr);
+            spt->compress(corners_old2new);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

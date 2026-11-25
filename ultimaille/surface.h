@@ -26,7 +26,6 @@ namespace UM {
         virtual void delete_facets(const std::vector<bool>& to_kill);
         void delete_isolated_vertices();
         void resize_attrs(); // TODO hide it
-        void compress_attrs(const std::vector<bool>& facets_to_kill); // TODO remove this
 
         int nverts()   const;
         int ncorners() const;
