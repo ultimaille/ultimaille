@@ -37,20 +37,6 @@ namespace UM {
             spt->resize(nedges());
     }
 
-    void PolyLine::compress_attrs(const std::vector<bool> &edges_to_kill) {
-        assert(edges_to_kill.size()==(size_t)nedges());
-        std::vector<int>  edges_old2new(nedges(),  -1);
-
-        int new_nb_edges = 0;
-
-        for (int s=0; s<nedges(); s++)
-            if (!edges_to_kill[s])
-                edges_old2new[s] = new_nb_edges++;
-
-        for (auto &wp : attr) if (auto spt = wp.lock())
-            spt->compress(edges_old2new);
-    }
-
     void PolyLine::delete_vertices(const std::vector<bool> &to_kill) {
         assert(to_kill.size()==(size_t)nverts());
         std::vector<bool> edges_to_kill(nedges(), false);
@@ -69,15 +55,24 @@ namespace UM {
     }
 
     void PolyLine::delete_edges(const std::vector<bool> &to_kill) {
+        assert(!connected());
         assert(to_kill.size()==(size_t)nedges());
-        compress_attrs(to_kill);
 
+        std::vector<int> edges_old2new(nedges(),  -1);
         int new_nb_endpoints = 0;
-        for (int s=0; s<nedges(); s++)
-            if (!to_kill[s])
-                for (int lv=0; lv<2; lv++)
-                    edges[new_nb_endpoints++] = vert(s, lv);
+
+        for (int s=0; s<nedges(); s++) {
+            if (!to_kill[s]) continue;
+            edges_old2new[s] = new_nb_endpoints/2;
+            for (int lv=0; lv<2; lv++)
+                edges[new_nb_endpoints++] = vert(s, lv);
+        }
+
         edges.resize(new_nb_endpoints);
+
+        std::erase_if(attr, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
+        for (auto &wp : attr) if (auto spt = wp.lock())
+            spt->compress(edges_old2new);
     }
 
     void PolyLine::connect() {

@@ -26,7 +26,6 @@ namespace UM {
         void delete_edges(const std::vector<bool> &to_kill);
         void delete_isolated_vertices();
         void resize_attrs();
-        void compress_attrs(const std::vector<bool> &edges_to_kill);
 
         int nverts() const;
         int nedges() const;
