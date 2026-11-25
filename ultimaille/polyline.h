@@ -90,7 +90,6 @@ namespace UM {
 
         std::vector<int> edges_old2new(nedges(),  -1);
         int new_nb_endpoints = 0;
-
         for (int s=0; s<nedges(); s++) {
             if constexpr (invocable) {
                 if (to_kill(s)) continue;
@@ -102,7 +101,6 @@ namespace UM {
             for (int lv=0; lv<2; lv++)
                 edges[new_nb_endpoints++] = vert(s, lv);
         }
-
         edges.resize(new_nb_endpoints);
 
         std::erase_if(attr, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; });
@@ -117,12 +115,10 @@ namespace UM {
             assert(to_kill.size() == (size_t)nverts());
 
         std::vector<bool> edges_to_kill(nedges(), false);
-
         for (int s=0; s<nedges(); s++)
             for (int lv=0; lv<2; lv++)
                 if (to_kill[vert(s, lv)])
                     edges_to_kill[s] = true;
-
         delete_edges(edges_to_kill);
 
         std::vector<int> old2new;

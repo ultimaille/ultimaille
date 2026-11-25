@@ -31,7 +31,7 @@ namespace UM {
         //                                                //
         ////////////////////////////////////////////////////
 
-        void delete_vertices(const std::vector<bool> &to_kill); // TODO invocable
+        template <typename T> void delete_vertices(const T&to_kill);
         template <typename T> void delete_cells(const T &to_kill);
         void delete_isolated_vertices();
         void resize_attrs();
@@ -97,6 +97,8 @@ namespace UM {
         void disconnect();
 
         std::unique_ptr<Connectivity> conn = {};
+        private:
+        void compute_corner_to_corner_map(std::vector<int> &v2c, std::vector<int> &c2c) const;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,6 +242,36 @@ namespace UM {
             spt->compress(facets_old2new);
         for (auto &wp : attr_corners) if (auto spt = wp.lock())
             spt->compress(corners_old2new);
+    }
+
+    template <typename T> void Volume::delete_vertices(const T &to_kill) {
+        constexpr bool invocable = std::is_invocable_r_v<bool, T, int>;
+        if constexpr (!invocable)
+            assert(to_kill.size() == (size_t)nverts());
+
+        std::vector<bool> cells_to_kill(ncells(), false);
+        std::vector<int> c2c, v2c;
+        compute_corner_to_corner_map(v2c, c2c);
+
+        for (int v=0; v<nverts(); v++) {
+            if constexpr (invocable) {
+                if (!to_kill(v)) continue;
+            } else {
+                if (!to_kill[v]) continue;
+            }
+            int cir = v2c[v];
+            if (cir<0) continue; // isolated vertex
+            do {
+                cells_to_kill[cir/nverts_per_cell()] = true;
+                cir = c2c[cir];
+            } while (cir != v2c[v]);
+        }
+        delete_cells(cells_to_kill);
+
+        std::vector<int> old2new;
+        points.delete_points(to_kill, old2new);
+        for (int &v : cells)
+            v = old2new[v];
     }
 }
 
