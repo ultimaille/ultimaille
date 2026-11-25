@@ -225,12 +225,11 @@ namespace UM {
     }
 
     inline Surface::Vertex Surface::Halfedge::from() const {
-        auto f = facet();
-        int lh = id - f.halfedge();
-        return { m, m.vert(f, lh) };
+        return { m, m.facets[id] };
     }
 
     inline Surface::Vertex Surface::Halfedge::to() const {
+        assert(m.connected());
         auto f = facet();
         int lh = id - f.halfedge();
         int n = f.size();
