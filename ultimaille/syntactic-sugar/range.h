@@ -61,41 +61,6 @@ namespace UM {
 
             return wrapper{std::forward<T>(t), std::forward<U>(u)};
         }
-
-    [[deprecated]] inline auto corner_iter(const Surface &m) {
-        return range(m.ncorners());
-    }
-
-    [[deprecated]] inline auto facet_iter(const Surface &m) {
-        return range(m.nfacets());
-    }
-
-    struct [[deprecated]] facet_vert_iter { // TODO provide a non-const version?
-        const Surface &m_;
-        const int facet_;
-        facet_vert_iter(const Surface &m, const int facet) : m_(m), facet_(facet) {}
-
-        struct iterator {
-            void operator++() { ++value_; }
-            int operator*() const { return m_.vert(facet_, value_); }
-            bool operator!=(const iterator& rhs) const { return value_ != rhs.value_; }
-            const Surface &m_;
-            const int facet_;
-            int value_;
-        };
-
-        iterator begin() const { return iterator{m_, facet_, 0}; }
-        iterator end()   const { return iterator{m_, facet_, m_.facet_size(facet_)}; }
-    };
-
-    [[deprecated]] inline auto facet_iter(const Volume &m) {
-        return range(m.nfacets());
-    }
-
-    [[deprecated]] inline auto corner_iter(const Volume &m) {
-        return range(m.ncorners());
-    }
-
 }
 #endif // __RANGE_H__
 
