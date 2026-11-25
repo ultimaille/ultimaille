@@ -24,14 +24,5 @@ namespace UM {
         for (auto &wp : *attr)  if (auto spt = wp.lock())
             spt->resize(size());
     }
-
-    void PointSet::compress_attrs(const std::vector<int> &old2new) {
-        std::erase_if(*attr, [](std::weak_ptr<ContainerBase> ptr) { return ptr.lock()==nullptr; }); // remove dead attributes
-        for (auto &wp : *attr) { // compress attributes
-            auto spt = wp.lock();
-            assert(spt!=nullptr);
-            spt->compress(old2new);
-        }
-    }
 }
 

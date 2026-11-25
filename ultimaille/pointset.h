@@ -45,7 +45,6 @@ namespace UM {
         const_iterator end()   const { return data->end();   }
 
         void resize_attrs();
-        void compress_attrs(const std::vector<int> &old2new);
 
         template <typename T> struct Attribute;
     };
@@ -69,7 +68,16 @@ namespace UM {
             old2new[v] = new_nb_pts++;
         }
         data->resize(new_nb_pts);
-        compress_attrs(old2new);
+
+        std::erase_if(*attr,
+                      [&](std::weak_ptr<ContainerBase> ptr) {
+                          if (auto spt = ptr.lock()) {
+                              spt->compress(old2new);
+                              return false;
+                          }
+                          return true;
+                      }
+                ); // remove dead attributes and compress live attributes
     }
 
     template <typename T> void PointSet::delete_points(const T &to_kill) {
