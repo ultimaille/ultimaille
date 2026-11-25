@@ -16,9 +16,8 @@ namespace UM {
 
     void Volume::delete_isolated_vertices()  {
         std::vector<bool> to_kill(nverts(), true);
-        for (int c=0; c<ncells(); c++) // TODO: rewrite this with for (auto c : iter_corners())
-            for (int lv=0; lv<nverts_per_cell(); lv++)
-                to_kill[vert(c, lv)] = false;
+        for (auto c : iter_corners())
+            to_kill[c.vertex()] = false;
         delete_vertices(to_kill);
     }
 

@@ -110,9 +110,8 @@ namespace UM {
 
     void Surface::delete_isolated_vertices()  {
         std::vector<bool> to_kill(nverts(), true);
-        for (int f=0; f<nfacets(); f++)
-            for (int lv=0; lv<facet_size(f); lv++)
-                to_kill[vert(f, lv)] = false;
+        for (auto h : iter_halfedges())
+            to_kill[h.from()] = false;
         delete_vertices(to_kill);
     }
 

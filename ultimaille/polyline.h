@@ -23,8 +23,6 @@ namespace UM {
         //                                                //
         ////////////////////////////////////////////////////
 
-//      void delete_vertices(const std::vector<bool> &to_kill);
-//      void delete_edges(const std::vector<bool> &to_kill);
         template <typename T> void delete_vertices(const T &to_kill);
         template <typename T> void delete_edges(const T &to_kill);
 
