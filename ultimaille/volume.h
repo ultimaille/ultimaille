@@ -197,6 +197,8 @@ namespace UM {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     template <typename T> void UM::Volume::delete_cells(const T &to_kill) {
+        assert(!connected());
+
         constexpr bool invocable = std::is_invocable_r_v<bool, T, int>;
         if constexpr (!invocable)
             assert(to_kill.size()==(size_t)ncells());

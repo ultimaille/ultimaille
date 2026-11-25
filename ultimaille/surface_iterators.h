@@ -1,18 +1,9 @@
+#include "syntactic-sugar/iterator.h"
+
 namespace UM {
 
     inline auto Surface::iter_vertices() {
-        struct iterator {
-            Vertex v;
-            iterator & operator++() { ++v.id; return *this; }
-            bool operator!=(const iterator& rhs) const { return v != rhs.v; }
-            Vertex& operator*() { return v; }
-        };
-        struct wrapper {
-            Surface& m;
-            iterator begin() { return {{m,0}}; }
-            iterator end()   { return {{m,m.nverts()}}; }
-        };
-        return wrapper{ *this };
+        return custom_iterator<Vertex>(*this, 0, nverts());
     }
 
     inline auto Surface::iter_halfedges() {
@@ -111,22 +102,7 @@ namespace UM {
     }
 
     inline auto Surface::Facet::iter_halfedges() const {
-        struct iterator {
-            Surface::Halfedge he;
-            void operator++() {
-                auto f = he.facet();
-                if (++he == f.halfedge()+f.size()) he = -1;
-            }
-            bool operator!=(const iterator& rhs) const { return he != rhs.he; }
-            Surface::Halfedge& operator*() { return he; }
-        };
-        struct wrapper {
-            Surface::Facet f;
-            iterator begin() { return { f.halfedge() }; }
-            iterator end()   { return { {f.m,-1} }; }
-        };
-        return wrapper{ *this };
+        return custom_iterator<Surface::Halfedge>(m, halfedge(0), halfedge(0) + size());
     }
-
 }
 

@@ -55,8 +55,7 @@ struct VolumeAttributes {
                 case AttributeBase::CELLS:              cells[na.name] = na.attribute.get_ptr(); break;
                 case AttributeBase::CELLFACETS:   cell_facets[na.name] = na.attribute.get_ptr(); break;
                 case AttributeBase::CELLCORNERS: cell_corners[na.name] = na.attribute.get_ptr(); break;
-                default:
-                                                 um_assert(false);
+                default: um_assert(false);
             }
         }
     }
