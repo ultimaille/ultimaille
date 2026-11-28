@@ -88,7 +88,7 @@ namespace UM {
                     Halfedge cir = h;
                     do {
                         Halfedge opp = cir.opposite();
-                        if (opp<=0) return cir;
+                        if (!opp.active()) return cir;
                         cir = opp.next();
                     } while (cir != h);
                     return h;
